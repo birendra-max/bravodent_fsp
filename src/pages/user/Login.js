@@ -1,19 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { UserContext } from "../../Context/UserContext";
+import { useNavigate } from 'react-router-dom';
+
 
 export default function Login() {
 
+    const { setUser } = useContext(UserContext)
+
+    const navigate = useNavigate();
     const [form, setForm] = useState({
         email: "",
         password: "",
-        rememberme: ""
+        rememberme: false,
     });
 
-    const [resp, setResp] = useState(null);
+    const [status, setStatus] = useState({ type: "", message: "" }); // success / error
+    const [showPassword, setShowPassword] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    const images = ["/img/bg0.png", "/img/bg1.png", "/img/bg2.jpg"];
 
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, type, checked, value } = e.target;
+        setForm({
+            ...form,
+            [name]: type === "checkbox" ? checked : value,
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -25,37 +39,31 @@ export default function Login() {
                 formData.append(key, form[key]);
             }
 
-            const res = await fetch("http://localhost/bravodent_ci/Validate_User", {
+            const res = await fetch("http://localhost/bravodent_ci/validate-user", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                credentials: "include", // important for cookies
                 body: formData.toString(),
             });
 
             if (!res.ok) {
-                console.error("HTTP error:", res.status, res.statusText);
+                setStatus({ type: "error", message: "Server error. Try again later." });
                 return;
             }
 
             const data = await res.json();
-            console.log(data['status']);
-            console.log(data['message']);
-            console.log(data['user']);
+
+            if (data.status === "success" && data.message === "Login successfully" && data.user?.useid) {
+                setStatus({ type: "success", message: data.message });
+                setUser(data.user);
+                navigate('/user/home');
+            } else {
+                setStatus({ type: "error", message: data.message || "Invalid login" });
+            }
         } catch (err) {
-            console.error("Fetch error:", err);
+            setStatus({ type: "error", message: "Something went wrong!" });
         }
     };
-
-
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [showPassword, setShowPassword] = useState(false);
-
-    const images = [
-        "/img/bg0.png",
-        "/img/bg1.png",
-        "/img/bg2.jpg",
-    ];
 
     const nextSlide = () => {
         setActiveIndex((prev) => (prev + 1) % images.length);
@@ -67,12 +75,34 @@ export default function Login() {
 
     // Auto-scroll effect
     useEffect(() => {
-        const interval = setInterval(() => {
-            nextSlide();
-        }, 4000);
-
+        const interval = setInterval(nextSlide, 4000);
         return () => clearInterval(interval);
     }, []);
+
+
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const resp = await fetch('http://localhost/bravodent_ci/session-check', {
+                    method: "GET",
+                    credentials: "include", // important if your backend uses sessions
+                });
+
+                const data = await resp.json(); // parse JSON
+
+                if (data.status === "success") {
+                    setUser(data.user)
+                    navigate("/user/home");
+                }
+            } catch (error) {
+                console.error("Error checking session:", error);
+            }
+        };
+
+        checkSession();
+    }, [navigate]);
+
+
 
     return (
         <section className="min-h-screen flex flex-col items-center justify-center bg-[#FFB88C] px-4 py-10">
@@ -91,7 +121,21 @@ export default function Login() {
                     <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
                         Client Login
                     </h2>
-                    <form className="space-y-5">
+
+                    {/* Status Alert */}
+                    {status.message && (
+                        <div
+                            className={`flex items-center p-4 mb-4 text-sm rounded-lg ${status.type === "success"
+                                ? "text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400"
+                                : "text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400"
+                                }`}
+                            role="alert"
+                        >
+                            {status.message}
+                        </div>
+                    )}
+
+                    <form className="space-y-5" onSubmit={handleSubmit}>
                         <div>
                             <label className="block text-sm font-semibold uppercase text-gray-700 mb-2">
                                 Username
@@ -102,7 +146,7 @@ export default function Login() {
                                 required
                                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                 value={form.email}
-                                onChange={(e) => handleChange(e)}
+                                onChange={handleChange}
                             />
                         </div>
                         <div className="relative">
@@ -115,8 +159,7 @@ export default function Login() {
                                 required
                                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
                                 value={form.password}
-                                onChange={(e) => handleChange(e)}
-
+                                onChange={handleChange}
                             />
                             {/* Eye toggle button */}
                             <button
@@ -132,12 +175,18 @@ export default function Login() {
                         </div>
                         <div className="flex items-center justify-between">
                             <label className="flex items-center text-sm text-gray-600">
-                                <input type="checkbox" name="rememberme" value={form.remember} onChange={(e) => handleChange(e)} className="mr-2" /> Remember Me
+                                <input
+                                    type="checkbox"
+                                    name="rememberme"
+                                    checked={form.rememberme}
+                                    onChange={handleChange}
+                                    className="mr-2"
+                                />{" "}
+                                Remember Me
                             </label>
                             <button
-                                type="button"
+                                type="submit"
                                 className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer"
-                                onClick={handleSubmit}
                             >
                                 Submit
                             </button>

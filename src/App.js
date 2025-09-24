@@ -10,6 +10,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<UserRoutes />} />
+        <Route path="/user/*" element={<UserRoutes />} />
         <Route path="/admin/*" element={<AdminRoutes />} />
         <Route path="/designer/*" element={<DesignerRoutes />} />
       </Routes>
