@@ -3,6 +3,51 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default function Login() {
+
+    const [form, setForm] = useState({
+        email: "",
+        password: "",
+        rememberme: ""
+    });
+
+    const [resp, setResp] = useState(null);
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            const formData = new URLSearchParams();
+            for (const key in form) {
+                formData.append(key, form[key]);
+            }
+
+            const res = await fetch("http://localhost/bravodent_ci/Validate_User", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: formData.toString(),
+            });
+
+            if (!res.ok) {
+                console.error("HTTP error:", res.status, res.statusText);
+                return;
+            }
+
+            const data = await res.json();
+            console.log(data['status']);
+            console.log(data['message']);
+            console.log(data['user']);
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    };
+
+
     const [activeIndex, setActiveIndex] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -53,9 +98,11 @@ export default function Login() {
                             </label>
                             <input
                                 type="text"
-                                name="id"
+                                name="email"
                                 required
                                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={form.email}
+                                onChange={(e) => handleChange(e)}
                             />
                         </div>
                         <div className="relative">
@@ -67,6 +114,9 @@ export default function Login() {
                                 name="password"
                                 required
                                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+                                value={form.password}
+                                onChange={(e) => handleChange(e)}
+
                             />
                             {/* Eye toggle button */}
                             <button
@@ -82,11 +132,12 @@ export default function Login() {
                         </div>
                         <div className="flex items-center justify-between">
                             <label className="flex items-center text-sm text-gray-600">
-                                <input type="checkbox" className="mr-2" /> Remember Me
+                                <input type="checkbox" name="rememberme" value={form.remember} onChange={(e) => handleChange(e)} className="mr-2" /> Remember Me
                             </label>
                             <button
-                                type="submit"
+                                type="button"
                                 className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer"
+                                onClick={handleSubmit}
                             >
                                 Submit
                             </button>
