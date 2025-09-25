@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../../Context/UserContext";
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faHome,
@@ -9,8 +9,10 @@ import {
     faChartBar,
     faFileAlt
 } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from "react-router-dom";
 
 export default function Hd() {
+    const navigate = useNavigate();
     const { user } = useContext(UserContext);
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -63,10 +65,20 @@ export default function Hd() {
                 method: "GET",
                 credentials: "include",
             });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+
             const data = await res.json();
-            console.log(data);
+
+            if (data.status === 'success' && data.message === 'successfully logout') {
+                navigate('/', { replace: true });
+            } else {
+                console.error('Logout failed:', data.message);
+            }
         } catch (err) {
-            console.log(err);
+            console.error('Logout error:', err);
         }
     }
 
@@ -267,7 +279,7 @@ export default function Hd() {
                 )}
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .animate-slideDown {
                     animation: slideDown 0.3s ease-out;
                 }

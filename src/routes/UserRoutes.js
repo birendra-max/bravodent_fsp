@@ -17,6 +17,19 @@ export default function UserRoutes() {
             <Route path="/new_request" element={<NewRequest />} />
             <Route path="/multisearch" element={<MultiSearch />} />
             <Route path="/reports" element={<Reports />} />
+
+            <Route path="/new_case" element={<Reports />} />
+            <Route path="/in_progress" element={<Reports />} />
+            <Route path="/canceled_case" element={<Reports />} />
+            <Route path="/completed_case" element={<Reports />} />
+            <Route path="/rush_cases" element={<Reports />} />
+            <Route path="/qc_required" element={<Reports />} />
+            <Route path="/case_on_hold" element={<Reports />} />
+            <Route path="/all_cases" element={<Reports />} />
+            <Route path="/yesterday_cases" element={<Reports />} />
+            <Route path="/today_cases" element={<Reports />} />
+            <Route path="/weekly_case" element={<Reports />} />\
+
         </Routes>
     )
 }

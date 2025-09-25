@@ -1,4 +1,4 @@
-import React, { use, useContext } from "react";
+import React, { useContext } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
 import { UserContext } from "../../Context/UserContext";
