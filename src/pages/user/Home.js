@@ -4,6 +4,8 @@ import Foot from './Foot';
 import { UserContext } from "../../Context/UserContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from 'react-router-dom';
+import Datatable from "./Datatable.js";
+
 import {
     faShoppingCart,
     faSpinner,
@@ -19,6 +21,7 @@ import {
     faComment,
 } from "@fortawesome/free-solid-svg-icons";
 
+
 export default function Home() {
     const { user } = useContext(UserContext);
 
@@ -27,6 +30,7 @@ export default function Home() {
             <Hd />
             <main className="py-22 px-4">
                 <DashboardCards />
+                <Datatable />
             </main>
             <Foot />
         </>
@@ -50,7 +54,7 @@ function DashboardCards() {
     ];
 
     return (
-        <section className="p-6 bg-gray-100">
+        <section className="p-6 bg-gray-200 rounded-xl shadow-xl">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Overview</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {cards.map((card, idx) => (
@@ -80,3 +84,6 @@ function DashboardCards() {
         </section>
     );
 }
+
+
+

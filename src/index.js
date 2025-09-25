@@ -4,6 +4,10 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { UserProvider } from "./Context/UserContext";
+// Skip importing theme.css and primeflex.css
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+   
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
