@@ -1,143 +1,250 @@
-import React, { useEffect, useRef, useState } from "react";
-import $ from "jquery";
-import "datatables.net-dt/css/dataTables.dataTables.css";
-import "datatables.net-dt";
+import React, { useState, useMemo } from "react";
 
-export default function Datatable() {
-    const tableRef = useRef(null);
-    const [data, setData] = useState([]);
-    const [isInitialized, setIsInitialized] = useState(false);
+export default function Datatable({
+    columns = [],
+    data = [],
+    rowsPerPageOptions = [5, 10, 20],
+}) {
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(
+        rowsPerPageOptions.length > 0 ? rowsPerPageOptions[0] : 5
+    );
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
-    // Mock data - replace with your API call
-    useEffect(() => {
-        const mockData = [
-            {
-                orderId: "ORD-001",
-                patientName: "John Doe",
-                tat: 5,
-                status: "In Progress",
-                units: 3,
-                toothNumber: "15,16",
-                labName: "Premium Dental Lab",
-                date: "2024-01-15",
-                message: "Rush case"
-            },
-            // Add more mock data...
-        ];
-        setData(mockData);
-    }, []);
+    // Filter & Sort
+    const filteredData = useMemo(() => {
+        let filtered = data || [];
 
-    useEffect(() => {
-        if (data.length === 0 || isInitialized) return;
+        if (search) {
+            filtered = filtered.filter((row) =>
+                columns.some((col) =>
+                    String(row[col.accessor] ?? "")
+                        .toLowerCase()
+                        .includes(search.toLowerCase())
+                )
+            );
+        }
 
-        const table = $(tableRef.current).DataTable({
-            data: data,
-            columns: [
-                { data: "orderId" },
-                { data: "patientName" },
-                { data: "tat" },
-                { 
-                    data: "status",
-                    render: function(data, type, row) {
-                        const statusColors = {
-                            "New": "bg-blue-100 text-blue-800",
-                            "In Progress": "bg-yellow-100 text-yellow-800",
-                            "Completed": "bg-green-100 text-green-800",
-                            "Cancel": "bg-red-100 text-red-800"
-                        };
-                        return `<span class="px-2 py-1 rounded-full text-xs font-medium ${statusColors[data] || 'bg-gray-100'}">${data}</span>`;
-                    }
-                },
-                { data: "units" },
-                { data: "toothNumber" },
-                { data: "labName" },
-                { data: "date" },
-                { data: "message" }
-            ],
-            paging: true,
-            searching: true,
-            ordering: true,
-            responsive: true,
-            pageLength: 10,
-            lengthMenu: [5, 10, 25, 50],
-            destroy: true, // Important: allow reinitialization
-            dom: '<"flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b"<"mb-4 md:mb-0"l><"flex items-center space-x-2"f>>rt<"flex flex-col md:flex-row md:items-center md:justify-between p-4"<"mb-4 md:mb-0"i><"pagination"p>>',
-            language: {
-                search: "",
-                searchPlaceholder: "🔍 Search cases...",
-                lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ cases",
-                infoEmpty: "No cases available",
-                infoFiltered: "(filtered from _MAX_ total cases)",
-                zeroRecords: "No matching cases found",
-                paginate: {
-                    next: "Next →",
-                    previous: "← Prev",
-                    first: "First",
-                    last: "Last"
+        if (sortConfig.key) {
+            filtered = [...filtered].sort((a, b) => {
+                const aVal = a[sortConfig.key];
+                const bVal = b[sortConfig.key];
+
+                if (aVal === null || aVal === undefined) return 1;
+                if (bVal === null || bVal === undefined) return -1;
+
+                const isNumeric = !isNaN(aVal) && !isNaN(bVal);
+
+                if (isNumeric) {
+                    return sortConfig.direction === "asc"
+                        ? Number(aVal) - Number(bVal)
+                        : Number(bVal) - Number(aVal);
+                } else {
+                    return sortConfig.direction === "asc"
+                        ? String(aVal).localeCompare(String(bVal))
+                        : String(bVal).localeCompare(String(aVal));
                 }
-            },
-            initComplete: function() {
-                $('.dataTables_filter input').addClass('px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent');
-                $('.dataTables_length select').addClass('px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent');
-                setIsInitialized(true);
-            }
-        });
+            });
+        }
 
-        return () => {
-            if (table) {
-                table.destroy(true);
-            }
-        };
-    }, [data, isInitialized]);
+        return filtered;
+    }, [search, data, columns, sortConfig]);
 
-    // If no data, show loading
-    if (data.length === 0) {
-        return (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
-                    <div className="h-32 bg-gray-100 rounded"></div>
-                </div>
-            </div>
-        );
-    }
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
+
+    const paginatedData = useMemo(() => {
+        const start = (currentPage - 1) * rowsPerPage;
+        return filteredData.slice(start, start + rowsPerPage);
+    }, [currentPage, filteredData, rowsPerPage]);
+
+    const handleSearch = (e) => {
+        setSearch(e.target.value);
+        setCurrentPage(1);
+    };
+
+    const handlePageChange = (page) => {
+        if (page < 1 || page > totalPages) return;
+        setCurrentPage(page);
+    };
+
+    const handleSort = (key) => {
+        let direction = "asc";
+        if (sortConfig.key === key && sortConfig.direction === "asc") {
+            direction = "desc";
+        } else if (sortConfig.key === key && sortConfig.direction === "desc") {
+            setSortConfig({ key: null, direction: "asc" });
+            return;
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const handleRowsPerPageChange = (e) => {
+        setRowsPerPage(parseInt(e.target.value));
+        setCurrentPage(1);
+    };
+
+    // Pagination helper
+    const getPageNumbers = (totalPages, currentPage) => {
+        const maxButtons = 5; // max visible buttons
+        const pages = [];
+
+        if (totalPages <= maxButtons) {
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+        }
+
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) pages.push(1, "...");
+        for (let i = startPage; i <= endPage; i++) pages.push(i);
+        if (endPage < totalPages) pages.push("...", totalPages);
+
+        return pages;
+    };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-700 p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold text-white mb-2">Case Management</h2>
-                        <p className="text-blue-100">Manage and track all your dental cases</p>
-                    </div>
-                    <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-                        <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm text-white">
-                            📊 {data.length} Cases
-                        </span>
-                    </div>
+        <div
+            style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}
+            className="bg-gray-200 rounded-xl shadow-xl mt-4"
+        >
+            {/* Empty columns */}
+            {(!Array.isArray(columns) || columns.length === 0) && (
+                <div style={{ padding: "20px", textAlign: "center", background: "#f8f9fa", borderRadius: "8px" }}>
+                    ⚠️ No columns provided.
                 </div>
-            </div>
+            )}
 
-            {/* Table */}
-            <div className="p-1">
-                <table ref={tableRef} className="min-w-full">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Order ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Patient Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">TAT (Days)</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Units</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Tooth #</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Lab</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Message</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
+            {/* Data table */}
+            {Array.isArray(columns) && columns.length > 0 && (
+                <>
+                    {/* Search + Rows per page */}
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+                        <div>
+                            <label>
+                                Rows per page:{" "}
+                                <select
+                                    value={rowsPerPage}
+                                    onChange={handleRowsPerPageChange}
+                                    style={{ padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
+                                >
+                                    {rowsPerPageOptions.map((option) => (
+                                        <option key={option} value={option}>
+                                            {option}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={search}
+                                onChange={handleSearch}
+                                style={{ padding: "10px", width: "250px", borderRadius: "5px", border: "1px solid #ccc" }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Table */}
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                            <tr style={{ background: "#007bff", color: "#fff" }}>
+                                {columns.map((col) => (
+                                    <th
+                                        key={col.accessor}
+                                        onClick={() => handleSort(col.accessor)}
+                                        style={{ border: "1px solid #ddd", padding: "12px", cursor: "pointer" }}
+                                    >
+                                        {col.header}
+                                        {sortConfig.key === col.accessor && (
+                                            <span style={{ marginLeft: "5px" }}>
+                                                {sortConfig.direction === "asc" ? "▲" : "▼"}
+                                            </span>
+                                        )}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paginatedData.length > 0 ? (
+                                paginatedData.map((row, idx) => (
+                                    <tr key={idx} style={{ background: idx % 2 === 0 ? "#f9f9f9" : "#fff" }}>
+                                        {columns.map((col) => (
+                                            <td
+                                                key={col.accessor}
+                                                style={{
+                                                    border: "1px solid #ddd",
+                                                    padding: "10px",
+                                                    wordBreak: "break-word",
+                                                    maxWidth: "200px",
+                                                    overflowWrap: "break-word",
+                                                    whiteSpace: "normal",
+                                                    fontSize: "14px",
+                                                }}
+                                            >
+                                                {row[col.accessor] ?? "-"}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={columns.length} style={{ textAlign: "center", padding: "20px" }}>
+                                        📭 No records found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+
+                    {/* Pagination */}
+                    {paginatedData.length > 0 && (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "15px" }}>
+                            <div style={{ fontSize: "14px" }}>
+                                Showing {paginatedData.length} of {filteredData.length} entries
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} style={paginationButtonStyle}>
+                                    Prev
+                                </button>
+
+                                {getPageNumbers(totalPages, currentPage).map((page, i) => (
+                                    <button
+                                        key={i}
+                                        style={{
+                                            ...paginationButtonStyle,
+                                            background: currentPage === page ? "#007bff" : "#fff",
+                                            color: currentPage === page ? "#fff" : "#000",
+                                        }}
+                                        onClick={() => typeof page === "number" && handlePageChange(page)}
+                                        disabled={page === "..."}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+
+                                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} style={paginationButtonStyle}>
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 }
+
+const paginationButtonStyle = {
+    padding: "8px 12px",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    cursor: "pointer",
+    background: "#fff",
+    color: "#000",
+    fontWeight: "bold",
+};

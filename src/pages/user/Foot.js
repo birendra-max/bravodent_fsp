@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from 'react-router-dom';
 export default function Foot() {
     return (
-        <footer className="mt-[100px] bg-gray-800 text-gray-300 py-4 px-6 flex flex-col md:flex-row justify-between items-center w-full">
+        <footer className="bg-gray-800 text-gray-300 py-4 px-6 flex flex-col md:flex-row justify-between items-center w-full">
             <div className="text-sm">
                 <strong>
                     Copyright &copy; 2014-

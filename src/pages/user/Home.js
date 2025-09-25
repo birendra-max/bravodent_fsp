@@ -1,10 +1,10 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
 import { UserContext } from "../../Context/UserContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from 'react-router-dom';
-import Datatable from "./Datatable.js";
+import Datatable from "./Datatable";
 
 import {
     faShoppingCart,
@@ -24,13 +24,72 @@ import {
 
 export default function Home() {
     const { user } = useContext(UserContext);
+    const [data, setData] = useState([]);
+    const columns = [
+        { header: <input type='checkbox' size="2.4" />, accessor: "select" },
+        { header: "OrderId", accessor: "orderid" },
+        { header: "Name", accessor: "name" },
+        { header: "TAT", accessor: "tduration" },
+        { header: 'Status', accessor: 'status' },
+        { header: 'Unit', accessor: 'unit' },
+        { header: 'Tooth', accessor: 'tooth' },
+        { header: 'Lab Name', accessor: 'labname' },
+        { header: 'Date', accessor: 'created_at' },
+        { header: 'Message', accessor: 'message' },
+    ];
+
+    useEffect(() => {
+        async function newRequest() {
+            try {
+                const res = await fetch("http://localhost/bravodent_ci/new-cases", {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                const result = await res.json();
+                console.log("API Response:", result);
+
+                if (result.status === "success" && result.new_cases) {
+                    const casesArray = Array.isArray(result.new_cases)
+                        ? result.new_cases
+                        : [result.new_cases]; // ensure it's always an array
+
+                    const transformed = casesArray.map((item, index) => ({
+                        select: <input type="checkbox" />,
+                        orderid: index + 1,
+                        name: item.fname || "", // fname is the name
+                        email: item.orderid ? `${item.orderid}@example.com` : "",
+                        orderid: item.orderid || "",
+                        tduration: item.tduration || "",
+                        status: item.status || "",
+                        unit: item.unit || "",
+                        tooth: item.tooth || "",
+                        labname: item.labname || "",
+                        created_at: item.created_at || "",
+                        message: item.message || ""
+                    }));
+
+                    setData(transformed);
+                } else {
+                    console.error("No new_cases found", result.new_cases);
+                    setData([]); // fallback empty array
+                }
+            } catch (error) {
+                console.error("Error fetching new cases:", error);
+                setData([]);
+            }
+        }
+
+        newRequest();
+    }, []);
+
 
     return (
         <>
             <Hd />
             <main className="py-22 px-4">
                 <DashboardCards />
-                <Datatable />
+                <Datatable columns={columns} data={data} rowsPerPage={3} />
             </main>
             <Foot />
         </>
