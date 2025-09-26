@@ -3,7 +3,7 @@ import React, { useState, useMemo } from "react";
 export default function Datatable({
     columns = [],
     data = [],
-    rowsPerPageOptions = [5, 10, 20],
+    rowsPerPageOptions = [10, 25, 50],
 }) {
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);

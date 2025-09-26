@@ -47,7 +47,6 @@ export default function Home() {
                 });
 
                 const result = await res.json();
-                console.log("API Response:", result);
 
                 if (result.status === "success" && result.new_cases) {
                     const casesArray = Array.isArray(result.new_cases)
@@ -55,7 +54,7 @@ export default function Home() {
                         : [result.new_cases]; // ensure it's always an array
 
                     const transformed = casesArray.map((item, index) => ({
-                        select: <input type="checkbox" />,
+                        select: <input type="checkbox" value={item.id} id="rowid" />,
                         orderid: index + 1,
                         name: item.fname || "", // fname is the name
                         email: item.orderid ? `${item.orderid}@example.com` : "",
@@ -71,11 +70,9 @@ export default function Home() {
 
                     setData(transformed);
                 } else {
-                    console.error("No new_cases found", result.new_cases);
                     setData([]); // fallback empty array
                 }
             } catch (error) {
-                console.error("Error fetching new cases:", error);
                 setData([]);
             }
         }
@@ -89,7 +86,7 @@ export default function Home() {
             <Hd />
             <main className="py-22 px-4">
                 <DashboardCards />
-                <Datatable columns={columns} data={data} rowsPerPage={3} />
+                <Datatable columns={columns} data={data} rowsPerPage={10} />
             </main>
             <Foot />
         </>
