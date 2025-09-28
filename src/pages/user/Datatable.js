@@ -182,7 +182,8 @@ export default function Datatable({
                                                     maxWidth: "200px",
                                                     overflowWrap: "break-word",
                                                     whiteSpace: "normal",
-                                                    fontSize: "14px",
+                                                    fontSize: "12px",
+                                                    textAlign:"center"
                                                 }}
                                             >
                                                 {row[col.accessor] ?? "-"}

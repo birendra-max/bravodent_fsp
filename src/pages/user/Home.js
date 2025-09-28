@@ -26,6 +26,21 @@ import {
 export default function Home() {
     const navigate = useNavigate();
 
+    const { user } = useContext(UserContext);
+    const [data, setData] = useState([]);
+
+    const columns = [
+        { header: "Order Id", accessor: "orderid" },
+        { header: "File Name", accessor: "fname" },
+        { header: "TAT", accessor: "tduration" },
+        { header: "Status", accessor: "status" },
+        { header: "Unit", accessor: "unit" },
+        { header: "Tooth", accessor: "tooth" },
+        { header: "Lab Name", accessor: "labname" },
+        { header: "Date", accessor: "order_date" },
+        { header: "Message", accessor: "message" },
+    ];
+
     useEffect(() => {
         const checkSession = async () => {
             try {
@@ -46,22 +61,48 @@ export default function Home() {
         };
 
         checkSession();
+    }, [navigate]);
+
+
+    useEffect(() => {
+        async function fetchNewCases() {
+            try {
+                const res = await fetch('http://localhost/bravodent_ci/get-new-cases', {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                const da_ta = await res.json();
+
+                if (da_ta.status === 'success') {
+                    console.log(da_ta.new_cases, typeof da_ta.new_cases);
+                    setData(da_ta.new_cases); // FIX: Correct property name
+                } else {
+                    console.log("No new cases found:", da_ta.message);
+                    setData([]);
+                }
+            } catch (error) {
+                console.error("Error fetching new cases:", error);
+                setData([]);
+            }
+        }
+
+        fetchNewCases();
     }, []);
 
-
-    const { user } = useContext(UserContext);
-    
 
     return (
         <>
             <Hd />
             <main className="py-22 px-4">
                 <DashboardCards />
+                <Datatable columns={columns} data={data} rowsPerPage={10} />
             </main>
             <Foot />
         </>
     );
 }
+
 
 function DashboardCards() {
     const cards = [
@@ -110,6 +151,3 @@ function DashboardCards() {
         </section>
     );
 }
-
-
-
