@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { UserContext } from "../../Context/UserContext";
@@ -52,10 +52,11 @@ export default function Login() {
             }
 
             const data = await res.json();
-
-            if (data.status === "success" && data.message === "Login successfully" && data.user?.useid) {
+            console.log(data);
+            if (data.status === "success" && data.message === "Login successfully" && data.user?.userid) {
                 setStatus({ type: "success", message: data.message });
                 setUser(data.user);
+                console.log(data);
                 navigate('/user/home');
             } else {
                 setStatus({ type: "error", message: data.message || "Invalid login" });
@@ -93,6 +94,9 @@ export default function Login() {
                 if (data.status === "success") {
                     setUser(data.user)
                     navigate("/user/home");
+                }
+                else {
+                    navigate('/', { replace: true });
                 }
             } catch (error) {
                 console.error("Error checking session:", error);

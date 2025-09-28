@@ -5,6 +5,7 @@ import { UserContext } from "../../Context/UserContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from 'react-router-dom';
 import Datatable from "./Datatable";
+import { useNavigate } from 'react-router-dom';
 
 import {
     faShoppingCart,
@@ -23,70 +24,39 @@ import {
 
 
 export default function Home() {
-    const { user } = useContext(UserContext);
-    const [data, setData] = useState([]);
-    const columns = [
-        { header: <input type='checkbox' size="2.4" />, accessor: "select" },
-        { header: "OrderId", accessor: "orderid" },
-        { header: "Name", accessor: "name" },
-        { header: "TAT", accessor: "tduration" },
-        { header: 'Status', accessor: 'status' },
-        { header: 'Unit', accessor: 'unit' },
-        { header: 'Tooth', accessor: 'tooth' },
-        { header: 'Lab Name', accessor: 'labname' },
-        { header: 'Date', accessor: 'created_at' },
-        { header: 'Message', accessor: 'message' },
-    ];
+    const navigate = useNavigate();
 
     useEffect(() => {
-        async function newRequest() {
+        const checkSession = async () => {
             try {
-                const res = await fetch("http://localhost/bravodent_ci/new-cases", {
+                const resp = await fetch('http://localhost/bravodent_ci/session-check', {
                     method: "GET",
                     credentials: "include",
                 });
 
-                const result = await res.json();
+                const data = await resp.json();
 
-                if (result.status === "success" && result.new_cases) {
-                    const casesArray = Array.isArray(result.new_cases)
-                        ? result.new_cases
-                        : [result.new_cases]; // ensure it's always an array
-
-                    const transformed = casesArray.map((item, index) => ({
-                        select: <input type="checkbox" value={item.id} id="rowid" />,
-                        orderid: index + 1,
-                        name: item.fname || "", // fname is the name
-                        email: item.orderid ? `${item.orderid}@example.com` : "",
-                        orderid: item.orderid || "",
-                        tduration: item.tduration || "",
-                        status: item.status || "",
-                        unit: item.unit || "",
-                        tooth: item.tooth || "",
-                        labname: item.labname || "",
-                        created_at: item.created_at || "",
-                        message: item.message || ""
-                    }));
-
-                    setData(transformed);
-                } else {
-                    setData([]); // fallback empty array
+                if (data.status !== "success") {
+                    navigate("/", { replace: true });
                 }
             } catch (error) {
-                setData([]);
+                console.error("Error checking session:", error);
+                navigate("/", { replace: true });
             }
-        }
+        };
 
-        newRequest();
+        checkSession();
     }, []);
 
+
+    const { user } = useContext(UserContext);
+    
 
     return (
         <>
             <Hd />
             <main className="py-22 px-4">
                 <DashboardCards />
-                <Datatable columns={columns} data={data} rowsPerPage={10} />
             </main>
             <Foot />
         </>
