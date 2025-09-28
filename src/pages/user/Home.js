@@ -55,7 +55,6 @@ export default function Home() {
                     navigate("/", { replace: true });
                 }
             } catch (error) {
-                console.error("Error checking session:", error);
                 navigate("/", { replace: true });
             }
         };
@@ -75,14 +74,11 @@ export default function Home() {
                 const da_ta = await res.json();
 
                 if (da_ta.status === 'success') {
-                    console.log(da_ta.new_cases, typeof da_ta.new_cases);
-                    setData(da_ta.new_cases); // FIX: Correct property name
+                    setData(da_ta.new_cases);
                 } else {
-                    console.log("No new cases found:", da_ta.message);
                     setData([]);
                 }
             } catch (error) {
-                console.error("Error fetching new cases:", error);
                 setData([]);
             }
         }
