@@ -52,11 +52,9 @@ export default function Login() {
             }
 
             const data = await res.json();
-            console.log(data);
             if (data.status === "success" && data.message === "Login successfully" && data.user?.userid) {
                 setStatus({ type: "success", message: data.message });
                 setUser(data.user);
-                console.log(data);
                 navigate('/user/home');
             } else {
                 setStatus({ type: "error", message: data.message || "Invalid login" });
