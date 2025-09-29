@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import Dashboard from "./Dashboard";
 
 
-export default function Home() {
+export default function Completed() {
     const navigate = useNavigate();
 
     const { user } = useContext(UserContext);
@@ -50,7 +50,7 @@ export default function Home() {
     useEffect(() => {
         async function fetchNewCases() {
             try {
-                const res = await fetch('http://localhost/bravodent_ci/get-new-cases', {
+                const res = await fetch('http://localhost/bravodent_ci/get-completed', {
                     method: "GET",
                     credentials: "include",
                 });
