@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import Loder from "../../Components/Loder";
 
 export default function Datatable({
     columns = [],
     data = [],
     rowsPerPageOptions = [10, 25, 50],
 }) {
+    const [status, setStatus] = useState("show");
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(
@@ -58,6 +60,21 @@ export default function Datatable({
         return filteredData.slice(start, start + rowsPerPage);
     }, [currentPage, filteredData, rowsPerPage]);
 
+    // ✅ Spinner control: hide loader once data is ready
+    useEffect(() => {
+        if (data && data.length > 0) {
+            // small delay to simulate loading
+            const timeout = setTimeout(() => {
+                setStatus("hide");
+            }, 500);
+
+            return () => clearTimeout(timeout);
+        }
+        else{
+            setStatus('hide');
+        }
+    }, [data]);
+
     const handleSearch = (e) => {
         setSearch(e.target.value);
         setCurrentPage(1);
@@ -84,9 +101,8 @@ export default function Datatable({
         setCurrentPage(1);
     };
 
-    // Pagination helper
     const getPageNumbers = (totalPages, currentPage) => {
-        const maxButtons = 5; // max visible buttons
+        const maxButtons = 5;
         const pages = [];
 
         if (totalPages <= maxButtons) {
@@ -104,139 +120,144 @@ export default function Datatable({
     };
 
     return (
-        <div
-            style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}
-            className="bg-gray-200 rounded-xl shadow-xl mt-4"
-        >
-            {/* Empty columns */}
-            {(!Array.isArray(columns) || columns.length === 0) && (
-                <div style={{ padding: "20px", textAlign: "center", background: "#f8f9fa", borderRadius: "8px" }}>
-                    ⚠️ No columns provided.
-                </div>
-            )}
+        <>
+            <Loder status={status} />
 
-            {/* Data table */}
-            {Array.isArray(columns) && columns.length > 0 && (
-                <>
-                    {/* Search + Rows per page */}
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-                        <div>
-                            <label>
-                                Rows per page:{" "}
-                                <select
-                                    value={rowsPerPage}
-                                    onChange={handleRowsPerPageChange}
-                                    style={{ padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
-                                >
-                                    {rowsPerPageOptions.map((option) => (
-                                        <option key={option} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                        </div>
-
-                        <div>
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={search}
-                                onChange={handleSearch}
-                                style={{ padding: "10px", width: "250px", borderRadius: "5px", border: "1px solid #ccc" }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Table */}
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                            <tr style={{ background: "#007bff", color: "#fff" }}>
-                                {columns.map((col) => (
-                                    <th
-                                        key={col.accessor}
-                                        onClick={() => handleSort(col.accessor)}
-                                        style={{ border: "1px solid #ddd", padding: "12px", cursor: "pointer" }}
-                                    >
-                                        {col.header}
-                                        {sortConfig.key === col.accessor && (
-                                            <span style={{ marginLeft: "5px" }}>
-                                                {sortConfig.direction === "asc" ? "▲" : "▼"}
-                                            </span>
-                                        )}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedData.length > 0 ? (
-                                paginatedData.map((row, idx) => (
-                                    <tr key={idx} style={{ background: idx % 2 === 0 ? "#f9f9f9" : "#fff" }}>
-                                        {columns.map((col) => (
-                                            <td
-                                                key={col.accessor}
-                                                style={{
-                                                    border: "1px solid #ddd",
-                                                    padding: "10px",
-                                                    wordBreak: "break-word",
-                                                    maxWidth: "200px",
-                                                    overflowWrap: "break-word",
-                                                    whiteSpace: "normal",
-                                                    fontSize: "12px",
-                                                    textAlign:"center"
-                                                }}
-                                            >
-                                                {row[col.accessor] ?? "-"}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={columns.length} style={{ textAlign: "center", padding: "20px" }}>
-                                        📭 No records found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-
-                    {/* Pagination */}
-                    {paginatedData.length > 0 && (
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "15px" }}>
-                            <div style={{ fontSize: "14px" }}>
-                                Showing {paginatedData.length} of {filteredData.length} entries
-                            </div>
-
-                            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} style={paginationButtonStyle}>
-                                    Prev
-                                </button>
-
-                                {getPageNumbers(totalPages, currentPage).map((page, i) => (
-                                    <button
-                                        key={i}
-                                        style={{
-                                            ...paginationButtonStyle,
-                                            background: currentPage === page ? "#007bff" : "#fff",
-                                            color: currentPage === page ? "#fff" : "#000",
-                                        }}
-                                        onClick={() => typeof page === "number" && handlePageChange(page)}
-                                        disabled={page === "..."}
-                                    >
-                                        {page}
-                                    </button>
-                                ))}
-
-                                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} style={paginationButtonStyle}>
-                                    Next
-                                </button>
-                            </div>
+            {/* Table is only shown after loader is hidden */}
+            {status === "hide" && (
+                <div
+                    style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}
+                    className="bg-gray-200 rounded-xl shadow-xl mt-4"
+                >
+                    {(!Array.isArray(columns) || columns.length === 0) && (
+                        <div style={{ padding: "20px", textAlign: "center", background: "#f8f9fa", borderRadius: "8px" }}>
+                            ⚠️ No columns provided.
                         </div>
                     )}
-                </>
+
+                    {Array.isArray(columns) && columns.length > 0 && (
+                        <>
+                            {/* Search + Rows per page */}
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+                                <div>
+                                    <label>
+                                        Rows per page:{" "}
+                                        <select
+                                            value={rowsPerPage}
+                                            onChange={handleRowsPerPageChange}
+                                            style={{ padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
+                                        >
+                                            {rowsPerPageOptions.map((option) => (
+                                                <option key={option} value={option}>
+                                                    {option}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={search}
+                                        onChange={handleSearch}
+                                        style={{ padding: "10px", width: "250px", borderRadius: "5px", border: "1px solid #ccc" }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Table */}
+                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                                <thead>
+                                    <tr style={{ background: "#007bff", color: "#fff" }}>
+                                        {columns.map((col) => (
+                                            <th
+                                                key={col.accessor}
+                                                onClick={() => handleSort(col.accessor)}
+                                                style={{ border: "1px solid #ddd", padding: "12px", cursor: "pointer" }}
+                                            >
+                                                {col.header}
+                                                {sortConfig.key === col.accessor && (
+                                                    <span style={{ marginLeft: "5px" }}>
+                                                        {sortConfig.direction === "asc" ? "▲" : "▼"}
+                                                    </span>
+                                                )}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedData.length > 0 ? (
+                                        paginatedData.map((row, idx) => (
+                                            <tr key={idx} style={{ background: idx % 2 === 0 ? "#f9f9f9" : "#fff" }}>
+                                                {columns.map((col) => (
+                                                    <td
+                                                        key={col.accessor}
+                                                        style={{
+                                                            border: "1px solid #ddd",
+                                                            padding: "10px",
+                                                            wordBreak: "break-word",
+                                                            maxWidth: "200px",
+                                                            overflowWrap: "break-word",
+                                                            whiteSpace: "normal",
+                                                            fontSize: "12px",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        {row[col.accessor] ?? "-"}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={columns.length} style={{ textAlign: "center", padding: "20px" }}>
+                                                📭 No records found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+
+                            {/* Pagination */}
+                            {paginatedData.length > 0 && (
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "15px" }}>
+                                    <div style={{ fontSize: "14px" }}>
+                                        Showing {paginatedData.length} of {filteredData.length} entries
+                                    </div>
+
+                                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} style={paginationButtonStyle}>
+                                            Prev
+                                        </button>
+
+                                        {getPageNumbers(totalPages, currentPage).map((page, i) => (
+                                            <button
+                                                key={i}
+                                                style={{
+                                                    ...paginationButtonStyle,
+                                                    background: currentPage === page ? "#007bff" : "#fff",
+                                                    color: currentPage === page ? "#fff" : "#000",
+                                                }}
+                                                onClick={() => typeof page === "number" && handlePageChange(page)}
+                                                disabled={page === "..."}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+
+                                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} style={paginationButtonStyle}>
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
             )}
-        </div>
+        </>
     );
 }
 

@@ -493,16 +493,6 @@ export default function NewRequest() {
                   </div>
                 </div>
 
-                {/* Clear All Button */}
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={() => setFiles([])}
-                    className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-                  >
-                    Clear All Files
-                  </button>
-                </div>
-
                 {/* Delivery Options and Submit Section */}
                 <div className="mt-8 bg-gray-50 rounded-xl border border-gray-200 p-6">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

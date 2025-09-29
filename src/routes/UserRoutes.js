@@ -7,6 +7,9 @@ import Reports from '../pages/user/Reports';
 import Progress from "../pages/user/Progress";
 import Cancel from '../pages/user/Cancel';
 import Completed from '../pages/user/Completed';
+import Rush from '../pages/user/Rush';
+import Hold from '../pages/user/Hold';
+import Qc from '../pages/user/Qc';
 
 export default function UserRoutes() {
 
@@ -23,9 +26,9 @@ export default function UserRoutes() {
             <Route path="/in_progress" element={<Progress />} />
             <Route path="/canceled_case" element={<Cancel />} />
             <Route path="/completed_case" element={<Completed />} />
-            <Route path="/rush_cases" element={<Reports />} />
-            <Route path="/qc_required" element={<Reports />} />
-            <Route path="/case_on_hold" element={<Reports />} />
+            <Route path="/rush_cases" element={<Rush />} />
+            <Route path="/qc_required" element={<Qc />} />
+            <Route path="/case_on_hold" element={<Hold />} />
             <Route path="/all_cases" element={<Reports />} />
             <Route path="/yesterday_cases" element={<Reports />} />
             <Route path="/today_cases" element={<Reports />} />
