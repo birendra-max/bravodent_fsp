@@ -10,6 +10,10 @@ import Completed from '../pages/user/Completed';
 import Rush from '../pages/user/Rush';
 import Hold from '../pages/user/Hold';
 import Qc from '../pages/user/Qc';
+import AllCases from '../pages/user/AllCases';
+import Yesterday_cases from '../pages/user/Yestearday_cases';
+import TodayCases from '../pages/user/TodayCases';
+import WeeklyCases from '../pages/user/WeeklyCases';
 
 export default function UserRoutes() {
 
@@ -29,10 +33,10 @@ export default function UserRoutes() {
             <Route path="/rush_cases" element={<Rush />} />
             <Route path="/qc_required" element={<Qc />} />
             <Route path="/case_on_hold" element={<Hold />} />
-            <Route path="/all_cases" element={<Reports />} />
-            <Route path="/yesterday_cases" element={<Reports />} />
-            <Route path="/today_cases" element={<Reports />} />
-            <Route path="/weekly_case" element={<Reports />} />\
+            <Route path="/all_cases" element={<AllCases />} />
+            <Route path="/yesterday_cases" element={<Yesterday_cases />} />
+            <Route path="/today_cases" element={<TodayCases />} />
+            <Route path="/weekly_case" element={<WeeklyCases />} />\
 
         </Routes>
     )

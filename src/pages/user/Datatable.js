@@ -63,16 +63,13 @@ export default function Datatable({
     // ✅ Spinner control: hide loader once data is ready
     useEffect(() => {
         if (data && data.length > 0) {
-            // small delay to simulate loading
-            const timeout = setTimeout(() => {
-                setStatus("hide");
-            }, 500);
+            setStatus("hide");
+        }
 
-            return () => clearTimeout(timeout);
-        }
-        else{
+        setTimeout(()=>{
             setStatus('hide');
-        }
+        },3000)
+
     }, [data]);
 
     const handleSearch = (e) => {
