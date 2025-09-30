@@ -14,6 +14,7 @@ import AllCases from '../pages/user/AllCases';
 import Yesterday_cases from '../pages/user/Yestearday_cases';
 import TodayCases from '../pages/user/TodayCases';
 import WeeklyCases from '../pages/user/WeeklyCases';
+import Profile from '../pages/user/Profile';
 
 export default function UserRoutes() {
 
@@ -38,6 +39,7 @@ export default function UserRoutes() {
             <Route path="/today_cases" element={<TodayCases />} />
             <Route path="/weekly_case" element={<WeeklyCases />} />\
 
+            <Route path='/profile' element={<Profile />} />
         </Routes>
     )
 }

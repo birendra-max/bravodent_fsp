@@ -109,15 +109,15 @@ export default function NewRequest() {
           prev.map((f) =>
             f.fileName === file.name
               ? {
-                  ...f,
-                  uploadStatus: "Success",
-                  progress: 100,
-                  orderId: result.id || "ORD-001",
-                  productType: result.product_type || "Crown",
-                  unit: result.unit || "1",
-                  tooth: result.tooth || "15",
-                  message: result.message || "",
-                }
+                ...f,
+                uploadStatus: "Success",
+                progress: 100,
+                orderId: result.id || "ORD-001",
+                productType: result.product_type || "Crown",
+                unit: result.unit || "1",
+                tooth: result.tooth || "15",
+                message: result.message || "",
+              }
               : f
           )
         );
@@ -131,11 +131,11 @@ export default function NewRequest() {
         prev.map((f) =>
           f.fileName === file.name
             ? {
-                ...f,
-                uploadStatus: "Failed",
-                progress: 100,
-                message: error.message || "Error uploading file",
-              }
+              ...f,
+              uploadStatus: "Failed",
+              progress: 100,
+              message: error.message || "Error uploading file",
+            }
             : f
         )
       );
@@ -194,7 +194,7 @@ export default function NewRequest() {
 
       const resp = await response.json();
       if (resp.status === 'completed') {
-        if(resp.results.length === files.length){
+        if (resp.results.length === files.length) {
           setShowSuccessPopup(true);
           // Auto reset after 3 seconds
           setTimeout(() => {
@@ -209,9 +209,9 @@ export default function NewRequest() {
   };
 
   // Check if files are ready for submission (at least one success and no uploading files)
-  const canSubmit = files.length > 0 && 
-    files.some(f => f.uploadStatus === "Success") && 
-    !files.some(f => f.uploadStatus === "Uploading...") && 
+  const canSubmit = files.length > 0 &&
+    files.some(f => f.uploadStatus === "Success") &&
+    !files.some(f => f.uploadStatus === "Uploading...") &&
     selectedDuration;
 
   // Status badge component with enhanced design
@@ -308,7 +308,7 @@ export default function NewRequest() {
   return (
     <>
       <Hd />
-      
+
       {/* Success Popup */}
       {showSuccessPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -342,11 +342,10 @@ export default function NewRequest() {
             {files.length === 0 && (
               <div className="p-6">
                 <div
-                  className={`border-3 min-h-[75vh] flex justify-center items-center flex-col border-dashed rounded-2xl p-12 text-center transition-all duration-200 ${
-                    drag
+                  className={`border-3 min-h-[75vh] flex justify-center items-center flex-col border-dashed rounded-2xl p-12 text-center transition-all duration-200 ${drag
                       ? "border-blue-500 bg-blue-50 scale-[1.02]"
                       : "border-gray-300 hover:border-blue-400 hover:bg-blue-25"
-                  }`}
+                    }`}
                   onDragEnter={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -454,12 +453,11 @@ export default function NewRequest() {
                             </td>
                             <td className="px-4 py-3 w-44">
                               <div className="flex items-center space-x-3">
-                                <div className={`w-2 h-2 rounded-full ${
-                                  file.uploadStatus === "Success" ? "bg-green-500" :
-                                  file.uploadStatus === "Failed" ? "bg-red-500" :
-                                  file.uploadStatus === "Uploading..." ? "bg-blue-500 animate-pulse" :
-                                  "bg-gray-400"
-                                }`}></div>
+                                <div className={`w-2 h-2 rounded-full ${file.uploadStatus === "Success" ? "bg-green-500" :
+                                    file.uploadStatus === "Failed" ? "bg-red-500" :
+                                      file.uploadStatus === "Uploading..." ? "bg-blue-500 animate-pulse" :
+                                        "bg-gray-400"
+                                  }`}></div>
                                 <span className="text-sm text-gray-900 font-medium truncate max-w-sm">
                                   {file.fileName}
                                 </span>
@@ -525,11 +523,10 @@ export default function NewRequest() {
                         ].map((option) => (
                           <label
                             key={option.value}
-                            className={`block p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                              selectedDuration === option.value
+                            className={`block p-4 border-2 rounded-xl cursor-pointer transition-all ${selectedDuration === option.value
                                 ? `border-${option.color}-500 bg-${option.color}-50 shadow-md scale-105`
                                 : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                            }`}
+                              }`}
                           >
                             <input
                               type="radio"
@@ -552,24 +549,23 @@ export default function NewRequest() {
                     <div className="flex flex-col justify-between">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Submit Orders</h3>
-                        <div className={`text-sm mb-4 ${
-                          files.some(f => f.uploadStatus === "Uploading...") 
-                            ? "text-yellow-600" 
+                        <div className={`text-sm mb-4 ${files.some(f => f.uploadStatus === "Uploading...")
+                            ? "text-yellow-600"
                             : !files.some(f => f.uploadStatus === "Success")
-                            ? "text-red-600"
-                            : canSubmit
-                            ? "text-green-600"
-                            : "text-gray-600"
-                        }`}>
+                              ? "text-red-600"
+                              : canSubmit
+                                ? "text-green-600"
+                                : "text-gray-600"
+                          }`}>
                           {files.some(f => f.uploadStatus === "Uploading...")
                             ? "⏳ Please wait for all uploads to complete"
                             : !files.some(f => f.uploadStatus === "Success")
-                            ? "❌ No files successfully uploaded. Please check failed files."
-                            : !selectedDuration
-                            ? "📋 Please select delivery timeframe"
-                            : files.some(f => f.uploadStatus === "Failed")
-                            ? "⚠️ Some files failed, but you can submit successful ones"
-                            : "✅ All files are ready for processing"
+                              ? "❌ No files successfully uploaded. Please check failed files."
+                              : !selectedDuration
+                                ? "📋 Please select delivery timeframe"
+                                : files.some(f => f.uploadStatus === "Failed")
+                                  ? "⚠️ Some files failed, but you can submit successful ones"
+                                  : "✅ All files are ready for processing"
                           }
                         </div>
                       </div>
@@ -577,11 +573,10 @@ export default function NewRequest() {
                         <button
                           onClick={handleSubmit}
                           disabled={!canSubmit}
-                          className={`w-full font-semibold py-3 px-6 rounded-lg text-sm transition-all ${
-                            canSubmit
+                          className={`w-full font-semibold py-3 px-6 rounded-lg text-sm transition-all ${canSubmit
                               ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                               : "bg-gray-400 text-gray-200 cursor-not-allowed"
-                          }`}
+                            }`}
                         >
                           {canSubmit ? (
                             <span className="flex items-center justify-center">

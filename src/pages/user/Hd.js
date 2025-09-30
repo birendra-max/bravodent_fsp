@@ -156,11 +156,6 @@ export default function Hd() {
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
                                 className="flex items-center space-x-2 text-white hover:text-orange-300 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-800 cursor-pointer"
                             >
-                                <div className="text-right hidden sm:block">
-                                    <div className="text-xs lg:text-sm font-medium truncate max-w-24 xl:max-w-full">
-                                        {user?.name || 'User'}
-                                    </div>
-                                </div>
                                 <div className="relative">
                                     <img
                                         src={user?.pic === '' ? '/img/user.webp' : user?.pic || '/img/user.webp'}
@@ -173,38 +168,23 @@ export default function Hd() {
 
                             {/* Dropdown Menu */}
                             {dropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl py-2 border border-gray-700 animate-dropdown z-50">
+                                <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl py-2 border border-gray-700 animate-dropdown z-50">
+
+                                    <div className="text-left hidden sm:block px-4 py-2">
+                                        <div className="text-white text-xs lg:text-sm font-medium truncate max-w-24 xl:max-w-full">
+                                            {user?.name || 'User'}
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-gray-600 my-1"></div>
                                     <Link
                                         to="/user/profile"
                                         className="block px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 flex items-center text-sm"
-                                        onClick={() => setDropdownOpen(false)}
-                                    >
+                                        onClick={() => setDropdownOpen(false)}>
                                         <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
                                         Profile
                                     </Link>
-                                    <Link
-                                        to="/user/password"
-                                        className="block px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 flex items-center text-sm"
-                                        onClick={() => setDropdownOpen(false)}
-                                    >
-                                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                        </svg>
-                                        Password
-                                    </Link>
-                                    <Link
-                                        to="/user/settings"
-                                        className="block px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 flex items-center text-sm"
-                                        onClick={() => setDropdownOpen(false)}
-                                    >
-                                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                        </svg>
-                                        Settings
-                                    </Link>
-                                    <div className="border-t border-gray-600 my-1"></div>
                                     <button
                                         onClick={logout}
                                         className="block w-full text-left px-4 py-3 text-red-400 hover:bg-red-600 hover:text-white transition-colors duration-200 flex items-center text-sm"

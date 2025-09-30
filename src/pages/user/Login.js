@@ -52,9 +52,16 @@ export default function Login() {
             }
 
             const data = await res.json();
+
             if (data.status === "success" && data.message === "Login successfully" && data.user?.userid) {
                 setStatus({ type: "success", message: data.message });
+
+                // save user in context
                 setUser(data.user);
+
+                // save user in localStorage for persistence
+                localStorage.setItem("user", JSON.stringify(data.user));
+
                 navigate('/user/home');
             } else {
                 setStatus({ type: "error", message: data.message || "Invalid login" });
@@ -63,6 +70,7 @@ export default function Login() {
             setStatus({ type: "error", message: "Something went wrong!" });
         }
     };
+
 
     const nextSlide = () => {
         setActiveIndex((prev) => (prev + 1) % images.length);
