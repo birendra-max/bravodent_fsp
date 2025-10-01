@@ -34,14 +34,14 @@ export default function MultiSearch() {
     return (
         <>
             <Hd />
-            <section className="mt-44">
+            <main className="py-22 px-4 transition-colors duration-300 min-h-screen" id="main">
                 <h1>Hello i am User MultiSearch</h1>
                 <p>
                     {
                         console.log(user.pic)
                     }
                 </p>
-            </section>
+            </main>
             <Foot />
         </>
     )

@@ -133,7 +133,7 @@ export default function Dashboard() {
     function star(num) {
         const starElement = document.getElementById('star');
         if (!starElement) return;
-        
+
         const items = starElement.children;
         setForm((prevForm) => ({
             ...prevForm,
@@ -149,15 +149,15 @@ export default function Dashboard() {
         }
     }
 
-    return (
-        <>
+    if (cards && cards != null) {
+        return (
             <section className="p-6 bg-gray-200 rounded-xl shadow-xl">
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {cards.map((card, idx) => (
                         <Link
                             key={idx}
                             to={card.href}
-                            className="rounded-xl shadow-md p-4 text-gray-800 bg-white hover:shadow-xl transition cursor-pointer" 
+                            className="rounded-xl shadow-md p-4 text-gray-800 bg-white hover:shadow-xl transition cursor-pointer"
                             id={card.id}
                         >
                             <div className="flex items-center gap-4">
@@ -169,7 +169,7 @@ export default function Dashboard() {
                                     {card.count !== null ? (
                                         <h3 className="text-xl font-bold text-gray-900">{card.count}</h3>
                                     ) : (
-                                        <button 
+                                        <button
                                             type="button"
                                             className="mt-1 text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
                                             onClick={(e) => {
@@ -186,12 +186,12 @@ export default function Dashboard() {
                     ))}
                 </div>
 
-                <div 
-                    id="feedbackModal" 
+                <div
+                    id="feedbackModal"
                     className={`${showModal ? 'flex' : 'hidden'} fixed inset-0 bg-black/10 backdrop-blur-lg flex items-center justify-center z-50`}
                 >
                     <div className="bg-white border border-white/30 w-full max-w-lg p-6 rounded-2xl shadow-2xl relative animate-fadeIn">
-                        <button 
+                        <button
                             onClick={handleCloseModal}
                             className="absolute top-3 right-3 text-gray-700 hover:text-gray-900 text-2xl cursor-pointer"
                         >
@@ -224,6 +224,12 @@ export default function Dashboard() {
                     </div>
                 </div>
             </section>
-        </>
-    )
+        )
+    } else {
+        return (
+            <>
+                <h1>Data not found</h1>
+            </>
+        )
+    }
 }
