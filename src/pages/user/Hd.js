@@ -12,6 +12,9 @@ import {
 import { useNavigate } from "react-router-dom";
 
 export default function Hd() {
+
+    const [mode, setMode] = useState('light');
+
     const navigate = useNavigate();
     const { user } = useContext(UserContext);
     const [isOpen, setIsOpen] = useState(false);
@@ -73,12 +76,28 @@ export default function Hd() {
             const data = await res.json();
 
             if (data.status === 'success' && data.message === 'successfully logout') {
+                localStorage.clear('user');
                 navigate('/', { replace: true });
             } else {
                 console.error('Logout failed:', data.message);
             }
         } catch (err) {
             console.error('Logout error:', err);
+        }
+    }
+
+    function changeIcon() {
+        if (mode === 'light') {
+            document.getElementById('moonIcon').style.display = 'none';
+            document.getElementById('sunIcon').style.display = "block";
+            document.getElementById('root').style.backgroundColor = "black";
+            setMode('dark');
+        }
+        else {
+            document.getElementById('moonIcon').style.display = 'block';
+            document.getElementById('sunIcon').style.display = "none";
+            document.getElementById('root').style.backgroundColor = "white";
+            setMode('light');
         }
     }
 
@@ -115,7 +134,7 @@ export default function Hd() {
                     </div>
 
                     {/* Right Side - Search & Profile */}
-                    <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 flex-shrink-0">
+                    <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-12 flex-shrink-0">
                         {/* Search Form - Desktop */}
                         <div className="hidden md:block">
                             <form className="flex items-center space-x-2" method="post" action="search.php">
@@ -124,7 +143,7 @@ export default function Hd() {
                                         type="text"
                                         name="orderid"
                                         placeholder="Search Orders..."
-                                        className="pl-3 pr-8 py-1.5 w-40 lg:w-56 xl:w-72 bg-gray-800 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-gray-700 transition-all duration-200 border border-gray-600 text-sm"
+                                        className="pl-3 pr-8 py-3 w-40 lg:w-56 xl:w-92 bg-gray-800 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-gray-700 transition-all duration-200 border border-gray-600 text-sm"
                                     />
                                     <button
                                         type="submit"
@@ -149,6 +168,26 @@ export default function Hd() {
                                 </svg>
                             </button>
                         </div>
+
+                        <div id="themeToggle"
+                            className="cursor-pointer w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 transition" onClick={changeIcon}>
+
+                            {/* <!-- Sun (Light Mode) --> */}
+                            <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6 text-yellow-500 dark:hidden"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                    d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414M16.95 16.95l1.414 1.414M7.05 7.05L5.636 5.636M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                            </svg>
+
+                            {/* <!-- Moon (Dark Mode) --> */}
+                            <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6 text-gray-200 hidden dark:block"
+                                fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M21.752 15.002A9.718 9.718 0 0112 21.75c-5.385 0-9.75-4.365-9.75-9.75 0-4.1 2.563-7.622 6.23-9.055a.75.75 0 01.976.97A7.5 7.5 0 0019.5 15.75a.75.75 0 01.976.97 9.72 9.72 0 011.276-1.718z" />
+                            </svg>
+                        </div>
+
 
                         {/* Profile Dropdown */}
                         <div className="relative dropdown-container">

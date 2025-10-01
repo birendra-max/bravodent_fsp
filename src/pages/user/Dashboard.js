@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { href, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
     faShoppingCart,
     faSpinner,
@@ -16,17 +16,19 @@ import {
     faComment,
 } from "@fortawesome/free-solid-svg-icons";
 
-
 export default function Dashboard() {
+    const [cases, setCases] = useState(null);
+    const [cards, setCards] = useState([]);
     const [form, setForm] = useState({
         feedback: "",
         likes: "",
     });
+    const [showModal, setShowModal] = useState(false);
 
     const handleChange = (e) => {
         setForm({
             ...form,
-            [e.target.name]: e.target.value, // Dynamically update form fields
+            [e.target.name]: e.target.value,
         });
     };
 
@@ -51,55 +53,88 @@ export default function Dashboard() {
                 const statusEl = document.getElementById('status');
                 statusEl.className = 'mb-6 w-full px-4 py-3 text-sm font-medium border shadow-md rounded-lg border-green-400 bg-green-100 text-green-700';
                 statusEl.innerText = data.message;
-                setForm({ feedback: "", links: "" });
+                setForm({ feedback: "", likes: "" });
                 document.getElementById('feedbackform').reset();
                 setTimeout(() => {
-                    document.getElementById('feedbackModal').style.display = "none";
+                    setShowModal(false);
                 }, 2000);
 
             } else {
                 const statusEl = document.getElementById('status');
                 statusEl.className = 'mb-6 w-full px-4 py-3 text-sm font-medium border shadow-md rounded-lg border-red-400 bg-red-100 text-red-700';
                 statusEl.innerText = data.message;
-                setForm({ feedback: "", links: "" });
+                setForm({ feedback: "", likes: "" });
                 document.getElementById('feedbackform').reset();
                 setTimeout(() => {
-                    document.getElementById('feedbackModal').style.display = "none";
+                    setShowModal(false);
                 }, 2000);
             }
-
         }
     };
 
-    const cards = [
-        { id: "home", href: "/user/home", title: "New Cases", count: 12, color: "bg-gray-800", icon: faShoppingCart },
-        { id: "progress", href: "/user/in_progress", title: "In Progress", count: 8, color: "bg-yellow-500", icon: faSpinner },
-        { id: "canceled", href: "/user/canceled_case", title: "Canceled Cases", count: 3, color: "bg-red-500", icon: faTimes },
-        { id: "completed", href: "/user/completed_case", title: "Completed Cases", count: 25, color: "bg-green-600", icon: faTasks },
-        { id: "rush", href: "/user/rush_cases", title: "Rush Cases", count: 5, color: "bg-blue-500", icon: faBolt },
-        { id: "qc", href: "/user/qc_required", title: "QC Required", count: 7, color: "bg-orange-400", icon: faBell },
-        { id: "hold", href: "/user/case_on_hold", title: "Case On Hold", count: 4, color: "bg-pink-500", icon: faPauseCircle },
-        { id: "all_c", href: "/user/all_cases", title: "All Cases", count: 59, color: "bg-green-500", icon: faCogs },
-        { id: "yesterday", href: "/user/yesterday_cases", title: "Yesterday's Cases", count: 6, color: "bg-blue-400", icon: faCalendarDay },
-        { id: "today", href: "/user/today_cases", title: "Today's Cases", count: 11, color: "bg-purple-500", icon: faCalendarCheck },
-        { id: "weekly", href: "/user/weekly_case", title: "Weekly Cases", count: 34, color: "bg-indigo-500", icon: faCalendarWeek },
-        { id: "feedback", href: "", title: "Your Feedback!", count: null, color: "bg-teal-500", icon: faComment },
-    ];
+    useEffect(() => {
+        const fetchCardsData = async () => {
+            try {
+                const res = await fetch('http://localhost/bravodent_ci/all-cases-data-count', {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': "application/json",
+                    },
+                    credentials: 'include',
+                });
+
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    setCases(data);
+                } else {
+                    setCases(null);
+                }
+            } catch (error) {
+                console.error("Error fetching cases:", error);
+                setCases(null);
+            }
+        };
+
+        fetchCardsData();
+    }, []);
 
     useEffect(() => {
-        const closeMOdel = document.getElementById('closeModal')
-        closeMOdel.addEventListener('click', function () {
-            document.getElementById('feedbackModal').style.display = "none";
-        })
+        if (cases) {
+            console.log("Updated cases:", cases);
 
-        const item = document.getElementById('feedback');
-        item.addEventListener('click', function () {
-            document.getElementById('feedbackModal').style.display = "flex";
-        })
-    })
+            const updatedCards = [
+                { id: "home", href: "/user/home", title: "New Cases", count: cases.new_cases, color: "bg-gray-800", icon: faShoppingCart },
+                { id: "progress", href: "/user/in_progress", title: "In Progress", count: cases.progress, color: "bg-yellow-500", icon: faSpinner },
+                { id: "canceled", href: "/user/canceled_case", title: "Canceled Cases", count: cases.canceled, color: "bg-red-500", icon: faTimes },
+                { id: "completed", href: "/user/completed_case", title: "Completed Cases", count: cases.completed, color: "bg-green-600", icon: faTasks },
+                { id: "rush", href: "/user/rush_cases", title: "Rush Cases", count: cases.rush, color: "bg-blue-500", icon: faBolt },
+                { id: "qc", href: "/user/qc_required", title: "QC Required", count: cases.qc, color: "bg-orange-400", icon: faBell },
+                { id: "hold", href: "/user/case_on_hold", title: "Case On Hold", count: cases.hold, color: "bg-pink-500", icon: faPauseCircle },
+                { id: "all_c", href: "/user/all_cases", title: "All Cases", count: cases.all, color: "bg-green-500", icon: faCogs },
+                { id: "yesterday", href: "/user/yesterday_cases", title: "Yesterday's Cases", count: cases.yesterday_cases, color: "bg-blue-400", icon: faCalendarDay },
+                { id: "today", href: "/user/today_cases", title: "Today's Cases", count: cases.today_cases, color: "bg-purple-500", icon: faCalendarCheck },
+                { id: "weekly", href: "/user/weekly_case", title: "Weekly Cases", count: cases.weekly_cases, color: "bg-indigo-500", icon: faCalendarWeek },
+                { id: "feedback", href: "", title: "Your Feedback!", count: null, color: "bg-teal-500", icon: faComment },
+            ];
+
+            setCards(updatedCards);
+        }
+    }, [cases]);
+
+    const handleOpenModal = () => {
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
 
     function star(num) {
-        const items = document.getElementById('star').children;
+        const starElement = document.getElementById('star');
+        if (!starElement) return;
+        
+        const items = starElement.children;
         setForm((prevForm) => ({
             ...prevForm,
             likes: num
@@ -122,7 +157,8 @@ export default function Dashboard() {
                         <Link
                             key={idx}
                             to={card.href}
-                            className="rounded-xl shadow-md p-4 text-gray-800 bg-white hover:shadow-xl transition cursor-pointer" id={card.id}
+                            className="rounded-xl shadow-md p-4 text-gray-800 bg-white hover:shadow-xl transition cursor-pointer" 
+                            id={card.id}
                         >
                             <div className="flex items-center gap-4">
                                 <div className={`flex items-center justify-center w-14 h-14 rounded-full text-white text-2xl ${card.color}`}>
@@ -133,7 +169,14 @@ export default function Dashboard() {
                                     {card.count !== null ? (
                                         <h3 className="text-xl font-bold text-gray-900">{card.count}</h3>
                                     ) : (
-                                        <button className="mt-1 text-sm text-blue-600 underline hover:text-blue-800">
+                                        <button 
+                                            type="button"
+                                            className="mt-1 text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handleOpenModal();
+                                            }}
+                                        >
                                             Give Feedback
                                         </button>
                                     )}
@@ -143,17 +186,21 @@ export default function Dashboard() {
                     ))}
                 </div>
 
-                <div id="feedbackModal" className="hidden fixed inset-0 bg-black/10 backdrop-blur-lg flex items-center justify-center z-50">
+                <div 
+                    id="feedbackModal" 
+                    className={`${showModal ? 'flex' : 'hidden'} fixed inset-0 bg-black/10 backdrop-blur-lg flex items-center justify-center z-50`}
+                >
                     <div className="bg-white border border-white/30 w-full max-w-lg p-6 rounded-2xl shadow-2xl relative animate-fadeIn">
-                        <button id="closeModal" className="absolute top-3 right-3 text-gray-700 hover:text-gray-900 text-2xl cursor-pointer">✖</button>
+                        <button 
+                            onClick={handleCloseModal}
+                            className="absolute top-3 right-3 text-gray-700 hover:text-gray-900 text-2xl cursor-pointer"
+                        >
+                            ✖
+                        </button>
                         <h2 className="text-2xl font-bold text-black">We value your feedback</h2>
                         <p className="text-gray-800 mb-6">Please take a moment to share your thoughts with us.</p>
 
-                        <p
-                            id="status"
-                            className=" w-full">
-                        </p>
-
+                        <p id="status" className="w-full"></p>
 
                         <form className="space-y-4" id="feedbackform">
                             <div>
@@ -176,10 +223,7 @@ export default function Dashboard() {
                         </form>
                     </div>
                 </div>
-
-
             </section>
         </>
     )
 }
-

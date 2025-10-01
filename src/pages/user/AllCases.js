@@ -74,7 +74,7 @@ export default function AllCases() {
     return (
         <>
             <Hd />
-            <main className="py-22 px-4">
+            <main className="py-22 px-4 transition-colors duration-300" id="main">
                 <Dashboard />
                 <Datatable columns={columns} data={data} rowsPerPage={10} />
             </main>

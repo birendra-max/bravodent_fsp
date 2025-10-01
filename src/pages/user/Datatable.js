@@ -123,7 +123,7 @@ export default function Datatable({
             {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
                 <div
-                    style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}
+                    style={{ padding: "20px"}}
                     className="bg-gray-200 rounded-xl shadow-xl mt-4"
                 >
                     {(!Array.isArray(columns) || columns.length === 0) && (
