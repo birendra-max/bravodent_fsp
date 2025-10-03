@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Loder from "../../Components/Loder";
+import Chatbox from "../../Components/Chatbox";
 
 export default function Datatable({
     columns = [],
@@ -66,9 +67,9 @@ export default function Datatable({
             setStatus("hide");
         }
 
-        setTimeout(()=>{
+        setTimeout(() => {
             setStatus('hide');
-        },3000)
+        }, 3000)
 
     }, [data]);
 
@@ -116,14 +117,18 @@ export default function Datatable({
         return pages;
     };
 
+    function openPopup(){
+        document.getElementById('chatbox').style.display="block"
+    }
+
     return (
         <>
             <Loder status={status} />
-
+            <Chatbox />
             {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
                 <div
-                    style={{ padding: "20px"}}
+                    style={{ padding: "20px" }}
                     className="bg-gray-200 rounded-xl shadow-xl mt-4"
                 >
                     {(!Array.isArray(columns) || columns.length === 0) && (
@@ -202,7 +207,16 @@ export default function Datatable({
                                                             textAlign: "center",
                                                         }}
                                                     >
-                                                        {row[col.accessor] ?? "-"}
+
+                                                        {
+                                                            col.header === 'Message' ? (
+                                                                <div className="w-full flex justify-center items-center">
+                                                                    <img src="/img/messages.png" alt="Message" className="w-8 h-8 cursor-pointer" onClick={openPopup} />
+                                                                </div>
+                                                            ) : (
+                                                                row[col.accessor] ?? "-"
+                                                            )
+                                                        }
                                                     </td>
                                                 ))}
                                             </tr>
