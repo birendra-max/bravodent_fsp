@@ -14,6 +14,7 @@ export default function Datatable({
         rowsPerPageOptions.length > 0 ? rowsPerPageOptions[0] : 5
     );
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+    const [orderid, setOrderid] = useState(null);
 
     // Filter & Sort
     const filteredData = useMemo(() => {
@@ -117,14 +118,15 @@ export default function Datatable({
         return pages;
     };
 
-    function openPopup(){
-        document.getElementById('chatbox').style.display="block"
+    function openPopup(id) {
+        setOrderid(id);
+        document.getElementById('chatbox').style.display = "block"
     }
 
     return (
         <>
             <Loder status={status} />
-            <Chatbox />
+            <Chatbox orderid={orderid} />
             {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
                 <div
@@ -211,7 +213,7 @@ export default function Datatable({
                                                         {
                                                             col.header === 'Message' ? (
                                                                 <div className="w-full flex justify-center items-center">
-                                                                    <img src="/img/messages.png" alt="Message" className="w-8 h-8 cursor-pointer" onClick={openPopup} />
+                                                                    <img src="/img/messages.png" alt="Message" className="w-8 h-8 cursor-pointer" onClick={() => openPopup(`${row.orderid}`)} />
                                                                 </div>
                                                             ) : (
                                                                 row[col.accessor] ?? "-"
