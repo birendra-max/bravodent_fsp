@@ -101,8 +101,6 @@ export default function Dashboard() {
 
     useEffect(() => {
         if (cases) {
-            console.log("Updated cases:", cases);
-
             const updatedCards = [
                 { id: "home", href: "/user/home", title: "New Cases", count: cases.new_cases, color: "bg-gray-800", icon: faShoppingCart },
                 { id: "progress", href: "/user/in_progress", title: "In Progress", count: cases.progress, color: "bg-yellow-500", icon: faSpinner },

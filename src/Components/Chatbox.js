@@ -1,11 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect ,useContext} from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
     faUser, faVideo, faTimes, faFile, faDownload, 
-    faSmile, faPaperclip, faPaperPlane, faComment 
+    faSmile, faPaperclip, faPaperPlane
 } from "@fortawesome/free-solid-svg-icons";
+import { UserContext } from '../Context/UserContext';
 
 export default function Chatbox() {
+
+    const user=useContext(UserContext);
+
     const [messages, setMessages] = useState([
         { id: 1, text: "Hey! How's it going?", sender: 'other', timestamp: '2:30 PM', type: 'text' },
         { id: 2, text: "I'm good! Working on the project.", sender: 'user', timestamp: '2:31 PM', type: 'text' }
@@ -14,12 +18,50 @@ export default function Chatbox() {
     const [isOnline, setIsOnline] = useState(true);
     const fileInputRef = useRef(null);
     const chatBodyRef = useRef(null);
+    const chatboxRef = useRef(null);
+    const posRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
 
+    // Auto-scroll to bottom
     useEffect(() => {
         if (chatBodyRef.current) {
             chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
         }
     }, [messages]);
+
+    // Enable dragging
+    useEffect(() => {
+        const chatbox = chatboxRef.current;
+        const header = document.getElementById("chatHeader");
+
+        const mouseDownHandler = (e) => {
+            posRef.current = {
+                x: e.clientX,
+                y: e.clientY,
+                left: chatbox.offsetLeft,
+                top: chatbox.offsetTop
+            };
+            document.addEventListener("mousemove", mouseMoveHandler);
+            document.addEventListener("mouseup", mouseUpHandler);
+        };
+
+        const mouseMoveHandler = (e) => {
+            const dx = e.clientX - posRef.current.x;
+            const dy = e.clientY - posRef.current.y;
+            chatbox.style.left = `${posRef.current.left + dx}px`;
+            chatbox.style.top = `${posRef.current.top + dy}px`;
+        };
+
+        const mouseUpHandler = () => {
+            document.removeEventListener("mousemove", mouseMoveHandler);
+            document.removeEventListener("mouseup", mouseUpHandler);
+        };
+
+        header.addEventListener("mousedown", mouseDownHandler);
+
+        return () => {
+            header.removeEventListener("mousedown", mouseDownHandler);
+        };
+    }, []);
 
     const sendMessage = () => {
         if (newMessage.trim()) {
@@ -73,8 +115,11 @@ export default function Chatbox() {
 
     return (
         <>
-            <section id="chatbox"
-                className="fixed top-20 md:right-6 right-4 md:w-[320px] w-[300px] h-[420px] rounded-xl shadow-xl border border-blue-400/30 bg-gradient-to-br from-gray-900 to-gray-800 z-[999] hidden overflow-hidden backdrop-blur-sm">
+            <section 
+                id="chatbox"
+                ref={chatboxRef}
+                style={{ position: "fixed", top: "80px", right: "24px" }}
+                className="md:w-[320px] w-[300px] h-[420px] rounded-xl shadow-xl border border-blue-400/30 bg-gradient-to-br from-gray-900 to-gray-800 z-[999] hidden overflow-hidden backdrop-blur-sm">
 
                 {/* Header */}
                 <div id="chatHeader"
@@ -97,11 +142,9 @@ export default function Chatbox() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                        {/* Video Call */}
                         <button className="w-6 h-6 flex items-center justify-center text-white/60 hover:text-green-300 hover:bg-green-500/20 rounded transition-all duration-200 cursor-pointer text-xs">
                             <FontAwesomeIcon icon={faVideo} />
                         </button>
-                        {/* Close */}
                         <button 
                             className="w-6 h-6 flex items-center justify-center text-white/60 hover:text-red-300 hover:bg-red-500/20 rounded transition-all duration-200 cursor-pointer text-xs"
                             onClick={() => document.getElementById('chatbox').style.display="none"}>
