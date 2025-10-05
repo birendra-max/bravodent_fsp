@@ -7,7 +7,7 @@ import {
 import { UserContext } from '../Context/UserContext';
 
 export default function Chatbox({ orderid }) {
-    const { user: currentUser } = useContext(UserContext); // ✅ destructure correctly
+    const { user: currentUser } = useContext(UserContext);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [isOnline, setIsOnline] = useState(true);
@@ -16,6 +16,12 @@ export default function Chatbox({ orderid }) {
     const chatboxRef = useRef(null);
     const posRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
 
+    // Reset messages when orderid changes
+    useEffect(() => {
+        setMessages([]); // Clear previous messages
+        setNewMessage(''); // Clear input field
+    }, [orderid]);
+
     // Auto-scroll to bottom
     useEffect(() => {
         if (chatBodyRef.current) {
@@ -23,9 +29,12 @@ export default function Chatbox({ orderid }) {
         }
     }, [messages]);
 
-    // Fetch messages when chatbox opens
+    // Fetch messages when chatbox opens or orderid changes
     useEffect(() => {
         if (orderid && currentUser?.userid) {
+            // Clear messages first to avoid showing old messages during fetch
+            setMessages([]);
+            
             fetch(`http://localhost/bravodent_ci/get-chat/${orderid}`, {
                 method: "GET",
                 headers: {
@@ -36,12 +45,27 @@ export default function Chatbox({ orderid }) {
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        setMessages(data.data);
+                        // Map the fetched messages to ensure consistent structure
+                        const formattedMessages = data.data.map(msg => ({
+                            ...msg,
+                            // Ensure we have the correct field for alignment
+                            user_type: msg.user_type || (msg.sender === currentUser.userid ? 'client' : 'other')
+                        }));
+                        setMessages(formattedMessages);
+                    } else {
+                        // If no messages or error, set empty array
+                        setMessages([]);
                     }
                 })
-                .catch(err => console.error("Error fetching messages:", err));
+                .catch(err => {
+                    console.error("Error fetching messages:", err);
+                    setMessages([]); // Clear on error
+                });
+        } else {
+            // If no orderid or user, clear messages
+            setMessages([]);
         }
-    }, [orderid, currentUser]);
+    }, [orderid, currentUser]); // This will re-run when orderid changes
 
     // Enable dragging
     useEffect(() => {
@@ -78,19 +102,27 @@ export default function Chatbox({ orderid }) {
         };
     }, []);
 
+    // Helper function to determine if message is from current user
+    const isCurrentUserMessage = (message) => {
+        return message.user_type === 'client' || message.sender === currentUser.userid;
+    };
+
     const sendMessage = () => {
-        if (newMessage.trim()) {
+        if (newMessage.trim() && orderid) {
             const message = {
                 orderid: orderid,
                 text: newMessage.trim(),
-                sender: currentUser.userid, // ✅ correct userid
+                sender: currentUser.userid,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                type: 'text'
+                type: 'text',
+                user_type: 'client' // ✅ Add user_type for consistent alignment
             };
 
-            setMessages([...messages, { ...message, id: messages.length + 1 }]);
+            // Add the new message to local state
+            setMessages(prev => [...prev, { ...message, id: Date.now() }]);
             setNewMessage('');
 
+            // Send to backend
             fetch('http://localhost/bravodent_ci/send-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -107,18 +139,19 @@ export default function Chatbox({ orderid }) {
 
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
-        if (file) {
+        if (file && orderid) {
             const message = {
                 orderid: orderid,
                 text: file.name,
-                sender: currentUser.userid, // ✅ correct userid
+                sender: currentUser.userid,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 type: 'file',
                 fileType: file.type,
-                fileSize: formatFileSize(file.size)
+                fileSize: formatFileSize(file.size),
+                user_type: 'client' // ✅ Add user_type for consistent alignment
             };
 
-            setMessages([...messages, { ...message, id: messages.length + 1 }]);
+            setMessages(prev => [...prev, { ...message, id: Date.now() }]);
             event.target.value = '';
 
             fetch('/api/messages', {
@@ -164,7 +197,7 @@ export default function Chatbox({ orderid }) {
                     </div>
                     <div>
                         <h4 className="text-white font-semibold text-sm bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
-                            John Doe
+                            Bravo Team
                         </h4>
                         <div className="flex items-center gap-1">
                             <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400' : 'bg-gray-400'}`}></span>
@@ -188,41 +221,67 @@ export default function Chatbox({ orderid }) {
             </div>
 
             {/* Chat Body */}
-            <div ref={chatBodyRef} id="chatBody" className="p-3 h-72 overflow-y-auto space-y-3 bg-gradient-to-br from-gray-900 to-gray-800 scroll-smooth">
-                {messages.map((message) => (
-                    <div key={message.id} className={`flex ${message.sender === currentUser.userid ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] p-2 rounded-lg shadow-md ${message.sender === currentUser.userid
-                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-none'
-                            : 'bg-gray-700 text-white rounded-bl-none border border-gray-600'
-                            }`}>
-                            {message.type === 'file' ? (
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 bg-blue-500/20 rounded flex items-center justify-center">
-                                        <FontAwesomeIcon icon={faFile} className="text-blue-300 text-xs" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-medium truncate">{message.text}</p>
-                                        <div className="flex items-center gap-1 text-[10px] opacity-80">
-                                            <span>{message.fileType.split('/')[1]?.toUpperCase() || 'FILE'}</span>
-                                            <span>•</span>
-                                            <span>{message.fileSize}</span>
-                                        </div>
-                                    </div>
-                                    <button className="text-blue-200 hover:text-white transition-colors text-xs">
-                                        <FontAwesomeIcon icon={faDownload} />
-                                    </button>
-                                </div>
-                            ) : (
-                                <>
-                                    <p className="text-xs whitespace-pre-wrap leading-relaxed">{message.text}</p>
-                                    <span className={`text-[10px] block mt-0.5 ${message.sender === currentUser.userid ? 'text-blue-100' : 'text-gray-400'}`}>
-                                        {message.timestamp}
-                                    </span>
-                                </>
-                            )}
-                        </div>
+            <div
+                ref={chatBodyRef}
+                id="chatBody"
+                className="p-3 h-72 overflow-y-auto space-y-3 bg-gradient-to-br from-gray-900 to-gray-800 scroll-smooth"
+            >
+                {messages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-400 text-sm">No messages yet</p>
                     </div>
-                ))}
+                ) : (
+                    messages.map((message) => {
+                        const isCurrentUser = isCurrentUserMessage(message);
+                        
+                        return (
+                            <div
+                                key={message.id}
+                                className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                            >
+                                <div
+                                    className={`max-w-[85%] p-2 rounded-lg shadow-md ${
+                                        isCurrentUser
+                                            ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none"
+                                            : "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-bl-none"
+                                    }`}
+                                >
+                                    {message.type === "file" ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 bg-blue-500/20 rounded flex items-center justify-center">
+                                                <FontAwesomeIcon icon={faFile} className="text-blue-300 text-xs" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-medium truncate">{message.text}</p>
+                                                <div className="flex items-center gap-1 text-[10px] opacity-80">
+                                                    <span>{message.fileType?.split("/")[1]?.toUpperCase() || "FILE"}</span>
+                                                    <span>•</span>
+                                                    <span>{message.fileSize}</span>
+                                                </div>
+                                            </div>
+                                            <button className="text-blue-200 hover:text-white transition-colors text-xs">
+                                                <FontAwesomeIcon icon={faDownload} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <p className="text-xs whitespace-pre-wrap leading-relaxed">
+                                                {message.text || message.message}
+                                            </p>
+                                            <span
+                                                className={`text-[10px] block mt-0.5 ${
+                                                    isCurrentUser ? "text-green-100" : "text-blue-100"
+                                                }`}
+                                            >
+                                                {message.timestamp}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
             </div>
 
             {/* Input Area */}
@@ -240,12 +299,13 @@ export default function Chatbox({ orderid }) {
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
                         type="text"
-                        placeholder="Type a message..."
-                        className="flex-1 bg-gray-700/80 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent border border-gray-600 placeholder-gray-400 text-xs transition-all duration-200"
+                        placeholder={orderid ? "Type a message..." : "Select an order to chat"}
+                        disabled={!orderid}
+                        className="flex-1 bg-gray-700/80 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent border border-gray-600 placeholder-gray-400 text-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <button
                         onClick={sendMessage}
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || !orderid}
                         className="w-8 h-8 flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:from-gray-600 disabled:to-gray-600 text-white rounded-lg transition-all duration-200 cursor-pointer shadow-md hover:shadow-blue-500/20 text-xs disabled:cursor-not-allowed">
                         <FontAwesomeIcon icon={faPaperPlane} />
                     </button>
