@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../../Context/UserContext";
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ThemeContext } from "../../Context/ThemeContext";
 import {
     faHome,
     faUpload,
@@ -14,6 +15,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Hd() {
+    const { theme, setTheme } = useContext(ThemeContext);
     const [mode, setMode] = useState('light');
     const navigate = useNavigate();
     const location = useLocation();
@@ -78,14 +80,9 @@ export default function Hd() {
         { href: "/user/reports", label: "Reports", key: "reports", icon: faChartBar }
     ];
 
-    const applyTheme = (theme) => {
-        const root = document.documentElement;
-        if (theme === 'dark') {
-            root.classList.add('dark');
-        } else {
-            root.classList.remove('dark');
-        }
-        localStorage.setItem('theme', theme);
+    const applyTheme = (newTheme) => {
+        localStorage.setItem('theme', newTheme);
+        setTheme(newTheme); // ✅ updates context state here
     };
 
     const changeIcon = () => {
@@ -153,15 +150,14 @@ export default function Hd() {
                                 <Link
                                     to={item.href}
                                     key={item.key}
-                                    className={`text-sm px-4 py-2 rounded-md font-medium transition-all duration-200 flex items-center space-x-2 ${
-                                        activePage === item.key
+                                    className={`text-sm px-4 py-2 rounded-md font-medium transition-all duration-200 flex items-center space-x-2 ${activePage === item.key
                                             ? "bg-orange-500 text-white shadow-md"
                                             : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                                    }`}
+                                        }`}
                                 >
-                                    <FontAwesomeIcon 
-                                        icon={item.icon} 
-                                        className="w-4 h-4" 
+                                    <FontAwesomeIcon
+                                        icon={item.icon}
+                                        className="w-4 h-4"
                                     />
                                     <span className="whitespace-nowrap">{item.label}</span>
                                 </Link>
@@ -200,7 +196,7 @@ export default function Hd() {
                         </button>
 
                         {/* Theme Toggle */}
-                        <button 
+                        <button
                             onClick={changeIcon}
                             className="cursor-pointer text-white hover:text-orange-300 p-2 transition-colors duration-200 "
                         >
@@ -303,11 +299,10 @@ export default function Hd() {
                                 <Link
                                     to={item.href}
                                     key={item.key}
-                                    className={`block px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-3 ${
-                                        activePage === item.key
+                                    className={`block px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-3 ${activePage === item.key
                                             ? "bg-orange-500 text-white"
                                             : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                                    }`}
+                                        }`}
                                     onClick={() => setIsOpen(false)}
                                 >
                                     <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />

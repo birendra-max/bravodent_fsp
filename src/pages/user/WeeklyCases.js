@@ -5,9 +5,10 @@ import { UserContext } from "../../Context/UserContext";
 import Datatable from "./Datatable";
 import { useNavigate } from 'react-router-dom';
 import Dashboard from "./Dashboard";
-
+import { ThemeContext } from "../../Context/ThemeContext";
 
 export default function WeeklyCases() {
+    const { theme, setTheme } = useContext(ThemeContext);
     const navigate = useNavigate();
 
     const { user } = useContext(UserContext);
@@ -74,7 +75,7 @@ export default function WeeklyCases() {
     return (
         <>
             <Hd />
-            <main className="py-22 px-4 transition-colors duration-300 min-h-screen" id="main">
+            <main id="main" className={`py-22 px-4 transition-colors duration-300 min-h-screen ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'}`}>
                 <Dashboard />
                 <Datatable columns={columns} data={data} rowsPerPage={10} />
             </main>

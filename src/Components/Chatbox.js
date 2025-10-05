@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faUser, faVideo, faTimes, faFile, faDownload,
-    faSmile, faPaperclip, faPaperPlane
+    faPaperclip, faPaperPlane
 } from "@fortawesome/free-solid-svg-icons";
 import { UserContext } from '../Context/UserContext';
 
@@ -34,7 +34,7 @@ export default function Chatbox({ orderid }) {
         if (orderid && currentUser?.userid) {
             // Clear messages first to avoid showing old messages during fetch
             setMessages([]);
-            
+
             fetch(`http://localhost/bravodent_ci/get-chat/${orderid}`, {
                 method: "GET",
                 headers: {
@@ -49,7 +49,11 @@ export default function Chatbox({ orderid }) {
                         const formattedMessages = data.data.map(msg => ({
                             ...msg,
                             // Ensure we have the correct field for alignment
-                            user_type: msg.user_type || (msg.sender === currentUser.userid ? 'client' : 'other')
+                            user_type: msg.user_type || (msg.sender === currentUser.userid ? 'client' : 'other'),
+                            // Ensure file data is properly handled
+                            fileSize: msg.file_size || msg.fileSize,
+                            filePath: msg.file_path || msg.filePath,
+                            fileName: msg.filename || msg.fileName || msg.text
                         }));
                         setMessages(formattedMessages);
                     } else {
@@ -107,6 +111,25 @@ export default function Chatbox({ orderid }) {
         return message.user_type === 'client' || message.sender === currentUser.userid;
     };
 
+    // Download file function
+    const downloadFile = (filePath, fileName) => {
+        if (!filePath) {
+            console.error("No file path provided");
+            return;
+        }
+
+        // Create a temporary anchor element to trigger download
+        const link = document.createElement('a');
+        link.href = `${filePath}`;
+        link.download = fileName || 'download';
+        link.target = '_blank';
+
+        // Append to body, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const sendMessage = () => {
         if (newMessage.trim() && orderid) {
             const message = {
@@ -114,7 +137,6 @@ export default function Chatbox({ orderid }) {
                 text: newMessage.trim(),
                 sender: currentUser.userid,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                type: 'text',
                 user_type: 'client' // ✅ Add user_type for consistent alignment
             };
 
@@ -140,25 +162,86 @@ export default function Chatbox({ orderid }) {
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file && orderid) {
-            const message = {
-                orderid: orderid,
+            const chatData = new FormData();
+            chatData.append('orderid', orderid);
+            chatData.append('text', file.name);
+            chatData.append('sender', currentUser.userid);
+            chatData.append('timestamp', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            chatData.append('chatfile', file); // ✅ important: name must match backend
+
+            // Create temporary message with file preview data
+            const tempId = Date.now(); // Store the ID separately
+            const tempMessage = {
+                id: tempId, // Temporary ID
+                orderid,
                 text: file.name,
                 sender: currentUser.userid,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                type: 'file',
-                fileType: file.type,
                 fileSize: formatFileSize(file.size),
-                user_type: 'client' // ✅ Add user_type for consistent alignment
+                fileName: file.name,
+                user_type: 'client',
+                // Temporary file preview (will be replaced by backend response)
+                isUploading: true,
+                file_path: null // Will be updated when backend responds
             };
 
-            setMessages(prev => [...prev, { ...message, id: Date.now() }]);
+            // Add temporary message to UI immediately
+            setMessages(prev => [...prev, tempMessage]);
             event.target.value = '';
 
-            fetch('/api/messages', {
+            // Upload file to backend
+            fetch('http://localhost/bravodent_ci/chat-file', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(message)
-            }).catch(err => console.error("Error uploading file:", err));
+                credentials: "include",
+                body: chatData,
+            })
+                .then(res => res.json())
+                .then(response => {
+                    console.log("✅ File uploaded successfully:", response);
+
+                    // Update the temporary message with actual backend data
+                    if (response.status === 'success' && response.data) {
+                        setMessages(prev => prev.map(msg =>
+                            msg.id === tempId
+                                ? {
+                                    ...msg,
+                                    file_path: response.data.file_path,
+                                    filename: response.data.filename || file.name,
+                                    file_size: response.data.file_size || file.size,
+                                    isUploading: false // Remove uploading flag
+                                }
+                                : msg
+                        ));
+                    } else {
+                        // Handle case where response structure is different
+                        console.warn("Unexpected response structure:", response);
+                        setMessages(prev => prev.map(msg =>
+                            msg.id === tempId
+                                ? {
+                                    ...msg,
+                                    file_path: response.file_path || `/uploads/${file.name}`,
+                                    filename: file.name,
+                                    file_size: file.size,
+                                    isUploading: false
+                                }
+                                : msg
+                        ));
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ Error uploading file:", err);
+                    // Mark the message as failed
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === tempId
+                            ? { 
+                                ...msg, 
+                                isUploading: false, 
+                                uploadFailed: true,
+                                text: `Upload failed: ${file.name}`
+                            }
+                            : msg
+                    ));
+                });
         }
     };
 
@@ -233,35 +316,64 @@ export default function Chatbox({ orderid }) {
                 ) : (
                     messages.map((message) => {
                         const isCurrentUser = isCurrentUserMessage(message);
-                        
+                        // Check if message has file attachment (using backend fields)
+                        const hasAttachment = message.file_path || message.filename;
+                        const isUploading = message.isUploading;
+                        const uploadFailed = message.uploadFailed;
+
                         return (
                             <div
-                                key={message.id}
+                                key={message.id || message.chatid}
                                 className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
                             >
                                 <div
-                                    className={`max-w-[85%] p-2 rounded-lg shadow-md ${
-                                        isCurrentUser
-                                            ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none"
-                                            : "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-bl-none"
-                                    }`}
+                                    className={`max-w-[85%] p-2 rounded-lg shadow-md ${isCurrentUser
+                                        ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none"
+                                        : "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-bl-none"
+                                        }`}
                                 >
-                                    {message.type === "file" ? (
+                                    {hasAttachment || isUploading || uploadFailed ? (
                                         <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 bg-blue-500/20 rounded flex items-center justify-center">
-                                                <FontAwesomeIcon icon={faFile} className="text-blue-300 text-xs" />
+                                            <div className={`w-8 h-8 rounded flex items-center justify-center ${
+                                                uploadFailed ? 'bg-red-500/20' : 'bg-blue-500/20'
+                                            }`}>
+                                                <FontAwesomeIcon 
+                                                    icon={faFile} 
+                                                    className={`text-xs ${
+                                                        uploadFailed ? 'text-red-300' : 'text-blue-300'
+                                                    }`} 
+                                                />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-medium truncate">{message.text}</p>
-                                                <div className="flex items-center gap-1 text-[10px] opacity-80">
-                                                    <span>{message.fileType?.split("/")[1]?.toUpperCase() || "FILE"}</span>
-                                                    <span>•</span>
-                                                    <span>{message.fileSize}</span>
+                                                <p className="text-xs font-medium truncate">
+                                                    {message.filename || message.text}
+                                                </p>
+                                                <div className="flex items-center gap-1 text-[11px]">
+                                                    {isUploading ? (
+                                                        <span className="text-yellow-400">Uploading...</span>
+                                                    ) : uploadFailed ? (
+                                                        <span className="text-red-400">Upload failed</span>
+                                                    ) : (
+                                                        <>
+                                                            <span>FILE</span>
+                                                            <span>•</span>
+                                                            <span>{message.message}</span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <button className="text-blue-200 hover:text-white transition-colors text-xs">
-                                                <FontAwesomeIcon icon={faDownload} />
-                                            </button>
+                                            {!isUploading && !uploadFailed && message.file_path && (
+                                                <button
+                                                    onClick={() => downloadFile(
+                                                        message.file_path,
+                                                        message.filename || message.text
+                                                    )}
+                                                    className="text-blue-200 hover:text-white transition-colors text-xs p-1 hover:bg-blue-500/30 rounded"
+                                                    title="Download file"
+                                                >
+                                                    <FontAwesomeIcon icon={faDownload} />
+                                                </button>
+                                            )}
                                         </div>
                                     ) : (
                                         <>
@@ -269,9 +381,8 @@ export default function Chatbox({ orderid }) {
                                                 {message.text || message.message}
                                             </p>
                                             <span
-                                                className={`text-[10px] block mt-0.5 ${
-                                                    isCurrentUser ? "text-green-100" : "text-blue-100"
-                                                }`}
+                                                className={`text-[10px] block mt-0.5 ${isCurrentUser ? "text-green-100" : "text-blue-100"
+                                                    }`}
                                             >
                                                 {message.timestamp}
                                             </span>
@@ -288,9 +399,6 @@ export default function Chatbox({ orderid }) {
             <div className="absolute bottom-0 left-0 right-0 border-t border-blue-400/20 px-3 py-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-b-xl">
                 <div className="flex items-center gap-1.5">
                     <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                    <button className="w-7 h-7 flex items-center justify-center text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20 rounded transition-all duration-200 cursor-pointer text-xs">
-                        <FontAwesomeIcon icon={faSmile} />
-                    </button>
                     <button onClick={triggerFileInput} className="w-7 h-7 flex items-center justify-center text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded transition-all duration-200 cursor-pointer text-xs">
                         <FontAwesomeIcon icon={faPaperclip} />
                     </button>

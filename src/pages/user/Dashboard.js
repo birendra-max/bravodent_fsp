@@ -1,6 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from 'react-router-dom';
+
+import { ThemeContext } from "../../Context/ThemeContext";
+
 import {
     faShoppingCart,
     faSpinner,
@@ -17,6 +20,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
+    const { theme, setTheme } = useContext(ThemeContext);
     const [cases, setCases] = useState(null);
     const [cards, setCards] = useState([]);
     const [form, setForm] = useState({
@@ -147,15 +151,58 @@ export default function Dashboard() {
         }
     }
 
+    // Theme-based background classes
+    const getBackgroundClass = () => {
+        return theme === 'dark' 
+            ? 'bg-gray-900 text-white' 
+            : 'bg-gray-200 text-gray-800';
+    };
+
+    const getCardClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-800 text-white hover:bg-gray-700'
+            : 'bg-white text-gray-800 hover:bg-gray-50';
+    };
+
+    const getModalClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-800 border-gray-700 text-white'
+            : 'bg-white border-white/30 text-black';
+    };
+
+    const getTextAreaClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+            : 'bg-white border-gray-500 text-black placeholder-gray-300';
+    };
+
+    const getButtonClass = () => {
+        return theme === 'dark'
+            ? 'text-gray-300 hover:text-white'
+            : 'text-gray-700 hover:text-gray-900';
+    };
+
+    const getTextClass = () => {
+        return theme === 'dark'
+            ? 'text-gray-300'
+            : 'text-gray-600';
+    };
+
+    const getCountClass = () => {
+        return theme === 'dark'
+            ? 'text-white'
+            : 'text-gray-900';
+    };
+
     if (cards && cards != null) {
         return (
-            <section className="p-6 bg-gray-200 rounded-xl shadow-xl">
+            <section className={`p-6 rounded-xl shadow-xl ${getBackgroundClass()}`}>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {cards.map((card, idx) => (
                         <Link
                             key={idx}
                             to={card.href}
-                            className="rounded-xl shadow-md p-4 text-gray-800 bg-white hover:shadow-xl transition cursor-pointer"
+                            className={`rounded-xl shadow-md p-4 hover:shadow-xl transition cursor-pointer ${getCardClass()}`}
                             id={card.id}
                         >
                             <div className="flex items-center gap-4">
@@ -163,9 +210,9 @@ export default function Dashboard() {
                                     <FontAwesomeIcon icon={card.icon} />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-600">{card.title}</p>
+                                    <p className={`text-sm font-medium ${getTextClass()}`}>{card.title}</p>
                                     {card.count !== null ? (
-                                        <h3 className="text-xl font-bold text-gray-900">{card.count}</h3>
+                                        <h3 className={`text-xl font-bold ${getCountClass()}`}>{card.count}</h3>
                                     ) : (
                                         <button
                                             type="button"
@@ -188,25 +235,33 @@ export default function Dashboard() {
                     id="feedbackModal"
                     className={`${showModal ? 'flex' : 'hidden'} fixed inset-0 bg-black/10 backdrop-blur-lg flex items-center justify-center z-50`}
                 >
-                    <div className="bg-white border border-white/30 w-full max-w-lg p-6 rounded-2xl shadow-2xl relative animate-fadeIn">
+                    <div className={`border w-full max-w-lg p-6 rounded-2xl shadow-2xl relative animate-fadeIn ${getModalClass()}`}>
                         <button
                             onClick={handleCloseModal}
-                            className="absolute top-3 right-3 text-gray-700 hover:text-gray-900 text-2xl cursor-pointer"
+                            className={`absolute top-3 right-3 text-2xl cursor-pointer ${getButtonClass()}`}
                         >
                             ✖
                         </button>
-                        <h2 className="text-2xl font-bold text-black">We value your feedback</h2>
-                        <p className="text-gray-800 mb-6">Please take a moment to share your thoughts with us.</p>
+                        <h2 className="text-2xl font-bold">We value your feedback</h2>
+                        <p className={`mb-6 ${getTextClass()}`}>Please take a moment to share your thoughts with us.</p>
 
                         <p id="status" className="w-full"></p>
 
                         <form className="space-y-4" id="feedbackform">
                             <div>
-                                <label className="block text-black mb-1 font-medium">Your Feedback</label>
-                                <textarea ref={feedBackaRef} rows="4" name="feedback" value={form.feedback} onChange={handleChange} className="w-full px-4 py-2 border border-gray-500 bg-white rounded-lg text-black placeholder-gray-300 focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="Write your feedback..."></textarea>
+                                <label className={`block mb-1 font-medium ${getTextClass()}`}>Your Feedback</label>
+                                <textarea 
+                                    ref={feedBackaRef} 
+                                    rows="4" 
+                                    name="feedback" 
+                                    value={form.feedback} 
+                                    onChange={handleChange} 
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none ${getTextAreaClass()}`} 
+                                    placeholder="Write your feedback..."
+                                ></textarea>
                             </div>
                             <div>
-                                <label className="block text-black mb-2 font-medium">Rate Us</label>
+                                <label className={`block mb-2 font-medium ${getTextClass()}`}>Rate Us</label>
                                 <div className="flex space-x-2" id="star">
                                     <button onClick={() => star(1)} type="button" className="w-10 h-10 flex items-center justify-center border border-black/30 bg-white/10 rounded-full text-yellow-300 hover:bg-yellow-400 hover:text-white cursor-pointer">⭐</button>
                                     <button onClick={() => star(2)} type="button" className="w-10 h-10 flex items-center justify-center border border-black/30 bg-white/10 rounded-full text-yellow-300 hover:bg-yellow-400 hover:text-white cursor-pointer">⭐</button>
@@ -226,7 +281,7 @@ export default function Dashboard() {
     } else {
         return (
             <>
-                <h1>Data not found</h1>
+                <h1 className={theme === 'dark' ? 'text-white' : 'text-black'}>Data not found</h1>
             </>
         )
     }

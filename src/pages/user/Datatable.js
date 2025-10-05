@@ -1,12 +1,14 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
+import { ThemeContext } from "../../Context/ThemeContext";
 
 export default function Datatable({
     columns = [],
     data = [],
     rowsPerPageOptions = [10, 25, 50],
 }) {
+    const { theme, setTheme } = useContext(ThemeContext);
     const [status, setStatus] = useState("show");
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -123,6 +125,77 @@ export default function Datatable({
         document.getElementById('chatbox').style.display = "block"
     }
 
+    // Theme-based styling functions
+    const getBackgroundClass = () => {
+        return theme === 'dark' 
+            ? 'bg-gray-900 text-white' 
+            : 'bg-gray-200 text-gray-800';
+    };
+
+    const getTableHeaderClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 text-white'
+            : 'bg-blue-600 text-white';
+    };
+
+    const getTableRowClass = (idx) => {
+        if (theme === 'dark') {
+            return idx % 2 === 0 ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white';
+        } else {
+            return idx % 2 === 0 ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-800';
+        }
+    };
+
+    const getInputClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500';
+    };
+
+    const getSelectClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white'
+            : 'bg-white border-gray-300 text-gray-800';
+    };
+
+    const getPaginationButtonStyle = (isActive = false) => {
+        const baseStyle = {
+            padding: "8px 12px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: "bold",
+        };
+
+        if (theme === 'dark') {
+            return {
+                ...baseStyle,
+                background: isActive ? "#4f46e5" : "#374151",
+                color: isActive ? "#fff" : "#d1d5db",
+                borderColor: isActive ? "#4f46e5" : "#4b5563",
+            };
+        } else {
+            return {
+                ...baseStyle,
+                background: isActive ? "#007bff" : "#fff",
+                color: isActive ? "#fff" : "#000",
+                borderColor: "#ccc",
+            };
+        }
+    };
+
+    const getDisabledButtonStyle = () => {
+        return theme === 'dark'
+            ? { ...getPaginationButtonStyle(), background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
+            : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
+    };
+
+    const getNoDataClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-800 text-gray-300'
+            : 'bg-gray-100 text-gray-600';
+    };
+
     return (
         <>
             <Loder status={status} />
@@ -131,10 +204,10 @@ export default function Datatable({
             {status === "hide" && (
                 <div
                     style={{ padding: "20px" }}
-                    className="bg-gray-200 rounded-xl shadow-xl mt-4"
+                    className={`rounded-xl shadow-xl mt-4 ${getBackgroundClass()}`}
                 >
                     {(!Array.isArray(columns) || columns.length === 0) && (
-                        <div style={{ padding: "20px", textAlign: "center", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <div className={`p-5 text-center rounded-lg ${getNoDataClass()}`}>
                             ⚠️ No columns provided.
                         </div>
                     )}
@@ -144,12 +217,12 @@ export default function Datatable({
                             {/* Search + Rows per page */}
                             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
                                 <div>
-                                    <label>
+                                    <label className={theme === 'dark' ? 'text-white' : 'text-gray-800'}>
                                         Rows per page:{" "}
                                         <select
                                             value={rowsPerPage}
                                             onChange={handleRowsPerPageChange}
-                                            style={{ padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
+                                            className={`p-2 rounded border ${getSelectClass()}`}
                                         >
                                             {rowsPerPageOptions.map((option) => (
                                                 <option key={option} value={option}>
@@ -166,7 +239,7 @@ export default function Datatable({
                                         placeholder="Search..."
                                         value={search}
                                         onChange={handleSearch}
-                                        style={{ padding: "10px", width: "250px", borderRadius: "5px", border: "1px solid #ccc" }}
+                                        className={`p-2 w-64 rounded border ${getInputClass()}`}
                                     />
                                 </div>
                             </div>
@@ -174,7 +247,7 @@ export default function Datatable({
                             {/* Table */}
                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <thead>
-                                    <tr style={{ background: "#007bff", color: "#fff" }}>
+                                    <tr className={getTableHeaderClass()}>
                                         {columns.map((col) => (
                                             <th
                                                 key={col.accessor}
@@ -194,7 +267,7 @@ export default function Datatable({
                                 <tbody>
                                     {paginatedData.length > 0 ? (
                                         paginatedData.map((row, idx) => (
-                                            <tr key={idx} style={{ background: idx % 2 === 0 ? "#f9f9f9" : "#fff" }}>
+                                            <tr key={idx} className={getTableRowClass(idx)}>
                                                 {columns.map((col) => (
                                                     <td
                                                         key={col.accessor}
@@ -209,11 +282,15 @@ export default function Datatable({
                                                             textAlign: "center",
                                                         }}
                                                     >
-
                                                         {
                                                             col.header === 'Message' ? (
                                                                 <div className="w-full flex justify-center items-center">
-                                                                    <img src="/img/messages.png" alt="Message" className="w-8 h-8 cursor-pointer" onClick={() => openPopup(`${row.orderid}`)} />
+                                                                    <img 
+                                                                        src="/img/messages.png" 
+                                                                        alt="Message" 
+                                                                        className="w-8 h-8 cursor-pointer" 
+                                                                        onClick={() => openPopup(`${row.orderid}`)} 
+                                                                    />
                                                                 </div>
                                                             ) : (
                                                                 row[col.accessor] ?? "-"
@@ -225,7 +302,10 @@ export default function Datatable({
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={columns.length} style={{ textAlign: "center", padding: "20px" }}>
+                                            <td 
+                                                colSpan={columns.length} 
+                                                className={`p-5 text-center ${getNoDataClass()}`}
+                                            >
                                                 📭 No records found.
                                             </td>
                                         </tr>
@@ -236,23 +316,27 @@ export default function Datatable({
                             {/* Pagination */}
                             {paginatedData.length > 0 && (
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "15px" }}>
-                                    <div style={{ fontSize: "14px" }}>
+                                    <div className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
                                         Showing {paginatedData.length} of {filteredData.length} entries
                                     </div>
 
                                     <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} style={paginationButtonStyle}>
+                                        <button 
+                                            onClick={() => handlePageChange(currentPage - 1)} 
+                                            disabled={currentPage === 1} 
+                                            style={currentPage === 1 ? getDisabledButtonStyle() : getPaginationButtonStyle()}
+                                        >
                                             Prev
                                         </button>
 
                                         {getPageNumbers(totalPages, currentPage).map((page, i) => (
                                             <button
                                                 key={i}
-                                                style={{
-                                                    ...paginationButtonStyle,
-                                                    background: currentPage === page ? "#007bff" : "#fff",
-                                                    color: currentPage === page ? "#fff" : "#000",
-                                                }}
+                                                style={
+                                                    typeof page === "number" && currentPage === page
+                                                        ? getPaginationButtonStyle(true)
+                                                        : getPaginationButtonStyle()
+                                                }
                                                 onClick={() => typeof page === "number" && handlePageChange(page)}
                                                 disabled={page === "..."}
                                             >
@@ -260,7 +344,11 @@ export default function Datatable({
                                             </button>
                                         ))}
 
-                                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} style={paginationButtonStyle}>
+                                        <button 
+                                            onClick={() => handlePageChange(currentPage + 1)} 
+                                            disabled={currentPage === totalPages} 
+                                            style={currentPage === totalPages ? getDisabledButtonStyle() : getPaginationButtonStyle()}
+                                        >
                                             Next
                                         </button>
                                     </div>
@@ -273,13 +361,3 @@ export default function Datatable({
         </>
     );
 }
-
-const paginationButtonStyle = {
-    padding: "8px 12px",
-    border: "1px solid #ccc",
-    borderRadius: "4px",
-    cursor: "pointer",
-    background: "#fff",
-    color: "#000",
-    fontWeight: "bold",
-};
