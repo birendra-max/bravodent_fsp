@@ -2,6 +2,9 @@ import React, { useState, useMemo, useEffect, useContext } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
+import { exportToExcel } from '../../helper/ExcelGenerate'; 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDownload } from "@fortawesome/free-solid-svg-icons";
 
 export default function Datatable({
     columns = [],
@@ -127,8 +130,8 @@ export default function Datatable({
 
     // Theme-based styling functions
     const getBackgroundClass = () => {
-        return theme === 'dark' 
-            ? 'bg-gray-900 text-white' 
+        return theme === 'dark'
+            ? 'bg-gray-900 text-white'
             : 'bg-gray-200 text-gray-800';
     };
 
@@ -204,7 +207,7 @@ export default function Datatable({
             {status === "hide" && (
                 <div
                     style={{ padding: "20px" }}
-                    className={`rounded-xl mt-4 ${getBackgroundClass()}`}
+                    className={`overflow-scroll md:overflow-hidden rounded-xl mt-4 ${getBackgroundClass()}`}
                 >
                     {(!Array.isArray(columns) || columns.length === 0) && (
                         <div className={`p-5 text-center rounded-lg ${getNoDataClass()}`}>
@@ -215,14 +218,17 @@ export default function Datatable({
                     {Array.isArray(columns) && columns.length > 0 && (
                         <>
                             {/* Search + Rows per page */}
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-                                <div>
-                                    <label className={theme === 'dark' ? 'text-white' : 'text-gray-800'}>
+                            <div
+                                style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}
+                            >
+                                <div className="flex justify-around items-center gap-4">
+                                    {/* Rows per page dropdown */}
+                                    <label className={theme === "dark" ? "text-white" : "text-gray-800"}>
                                         Rows per page:{" "}
                                         <select
                                             value={rowsPerPage}
                                             onChange={handleRowsPerPageChange}
-                                            className={`p-2 rounded border ${getSelectClass()}`}
+                                            className={`p-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-400 ${getSelectClass()}`}
                                         >
                                             {rowsPerPageOptions.map((option) => (
                                                 <option key={option} value={option}>
@@ -231,21 +237,31 @@ export default function Datatable({
                                             ))}
                                         </select>
                                     </label>
+
+                                    <button
+                                        onClick={() => exportToExcel(data, "Reports")}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-800 text-white text-sm font-medium rounded-md border border-green-600 transition-all duration-200 shadow-sm hover:shadow-md">
+                                        <FontAwesomeIcon icon={faDownload} className="text-white text-base" />
+                                        Download Report
+                                    </button>
+
                                 </div>
 
+                                {/* Search bar */}
                                 <div>
                                     <input
                                         type="text"
                                         placeholder="Search..."
                                         value={search}
                                         onChange={handleSearch}
-                                        className={`p-2 w-64 rounded border ${getInputClass()}`}
+                                        className={`p-2 w-64 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${getInputClass()}`}
                                     />
                                 </div>
                             </div>
 
+
                             {/* Table */}
-                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                            <table id="datatable" style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <thead>
                                     <tr className={getTableHeaderClass()}>
                                         {columns.map((col) => (
@@ -285,11 +301,11 @@ export default function Datatable({
                                                         {
                                                             col.header === 'Message' ? (
                                                                 <div className="w-full flex justify-center items-center">
-                                                                    <img 
-                                                                        src="/img/messages.png" 
-                                                                        alt="Message" 
-                                                                        className="w-8 h-8 cursor-pointer" 
-                                                                        onClick={() => openPopup(`${row.orderid}`)} 
+                                                                    <img
+                                                                        src="/img/messages.png"
+                                                                        alt="Message"
+                                                                        className="w-8 h-8 cursor-pointer"
+                                                                        onClick={() => openPopup(`${row.orderid}`)}
                                                                     />
                                                                 </div>
                                                             ) : (
@@ -302,8 +318,8 @@ export default function Datatable({
                                         ))
                                     ) : (
                                         <tr>
-                                            <td 
-                                                colSpan={columns.length} 
+                                            <td
+                                                colSpan={columns.length}
                                                 className={`p-5 text-center ${getNoDataClass()}`}
                                             >
                                                 📭 No records found.
@@ -321,9 +337,9 @@ export default function Datatable({
                                     </div>
 
                                     <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                                        <button 
-                                            onClick={() => handlePageChange(currentPage - 1)} 
-                                            disabled={currentPage === 1} 
+                                        <button
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={currentPage === 1}
                                             style={currentPage === 1 ? getDisabledButtonStyle() : getPaginationButtonStyle()}
                                         >
                                             Prev
@@ -344,9 +360,9 @@ export default function Datatable({
                                             </button>
                                         ))}
 
-                                        <button 
-                                            onClick={() => handlePageChange(currentPage + 1)} 
-                                            disabled={currentPage === totalPages} 
+                                        <button
+                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            disabled={currentPage === totalPages}
                                             style={currentPage === totalPages ? getDisabledButtonStyle() : getPaginationButtonStyle()}
                                         >
                                             Next

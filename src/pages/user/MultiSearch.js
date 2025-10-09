@@ -17,7 +17,7 @@ export default function MultiSearch() {
     const { user } = useContext(UserContext);
     const navigate = useNavigate();
 
-    const [selectedFilter, setSelectedFilter] = useState('1');
+    const [selectedFilter, setSelectedFilter] = useState();
     const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -117,8 +117,6 @@ export default function MultiSearch() {
                 endDate: endDate
             };
 
-            console.log('Sending request data:', requestData);
-
             const res = await fetch('http://localhost/bravodent_ci/get-cases-data', {
                 method: "POST",
                 headers: {
@@ -134,10 +132,8 @@ export default function MultiSearch() {
                 setData(responseData.cases);
             } else {
                 setData([]);
-                console.error('API Error:', responseData.message);
             }
         } catch (error) {
-            console.error('Fetch Error:', error);
             setData([]);
         } finally {
             setIsLoading(false);
@@ -231,7 +227,7 @@ export default function MultiSearch() {
                                         <div className="md:col-span-1">
                                             <button
                                                 onClick={handleSearchClick}
-                                                className={`w-full h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${themeClasses.button.success}`}
+                                                className={`cursor-pointer w-full h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${themeClasses.button.success}`}
                                             >
                                                 Search Cases
                                             </button>
@@ -248,7 +244,7 @@ export default function MultiSearch() {
                                             <button
                                                 key={button.value}
                                                 onClick={() => handleFilterClick(button.value)}
-                                                className={`px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${selectedFilter === button.value
+                                                className={`cursor-pointer px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${selectedFilter === button.value
                                                     ? `${themeClasses.button.filterActive} scale-105`
                                                     : themeClasses.button.filterInactive
                                                     }`}
