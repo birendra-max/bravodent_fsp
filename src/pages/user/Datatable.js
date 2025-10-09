@@ -204,7 +204,7 @@ export default function Datatable({
             {status === "hide" && (
                 <div
                     style={{ padding: "20px" }}
-                    className={`rounded-xl shadow-xl mt-4 ${getBackgroundClass()}`}
+                    className={`rounded-xl mt-4 ${getBackgroundClass()}`}
                 >
                     {(!Array.isArray(columns) || columns.length === 0) && (
                         <div className={`p-5 text-center rounded-lg ${getNoDataClass()}`}>
