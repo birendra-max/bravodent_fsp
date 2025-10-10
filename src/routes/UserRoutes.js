@@ -15,11 +15,8 @@ import Yesterday_cases from '../pages/user/Yestearday_cases';
 import TodayCases from '../pages/user/TodayCases';
 import WeeklyCases from '../pages/user/WeeklyCases';
 import Profile from '../pages/user/Profile';
-import Search from '../pages/user/Search';
 
 export default function UserRoutes() {
-
-
     return (
         <Routes>
             <Route index element={<Login />} />
@@ -41,7 +38,6 @@ export default function UserRoutes() {
             <Route path="/weekly_case" element={<WeeklyCases />} />\
 
             <Route path='/profile' element={<Profile />} />
-            <Route path='/search' element={<Search />} />
         </Routes>
     )
 }

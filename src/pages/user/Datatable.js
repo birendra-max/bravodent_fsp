@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useContext } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
-import { exportToExcel } from '../../helper/ExcelGenerate'; 
+import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 
@@ -199,6 +199,10 @@ export default function Datatable({
             : 'bg-gray-100 text-gray-600';
     };
 
+    const downloadFile = (filename, path) => {
+        console.log(filename, path);
+    }
+
     return (
         <>
             <Loder status={status} />
@@ -308,10 +312,44 @@ export default function Datatable({
                                                                         onClick={() => openPopup(`${row.orderid}`)}
                                                                     />
                                                                 </div>
+                                                            ) : col.header === 'Download' ? (
+                                                                <div className="flex justify-center items-center gap-2">
+                                                                    {/* Initial File */}
+                                                                    {
+                                                                        row.file_path && row.file_path != '' ? (<button
+                                                                            onClick={() => downloadFile('initial', row.file_path)}
+                                                                            className="bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
+                                                                        >
+                                                                            Initial
+                                                                        </button>) : ''
+                                                                    }
+
+                                                                    {/* Finish File */}
+                                                                    {
+                                                                        row.finish_file_path && row.finish_file_path != '' ? (<button
+                                                                            onClick={() => downloadFile('finish', row.finish_file_path)}
+                                                                            className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
+                                                                        >
+                                                                            Finish
+                                                                        </button>) : ""
+                                                                    }
+
+                                                                    {/* STL File */}
+                                                                    {
+                                                                        row.finish_file_path && row.finish_file_path != '' ? (<button
+                                                                            onClick={() => downloadFile('stl', row.stl_file_path)}
+                                                                            className="bg-orange-500 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs"
+                                                                        >
+                                                                            STL
+                                                                        </button>) : ''
+                                                                    }
+
+                                                                </div>
                                                             ) : (
                                                                 row[col.accessor] ?? "-"
                                                             )
                                                         }
+
                                                     </td>
                                                 ))}
                                             </tr>

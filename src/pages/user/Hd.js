@@ -291,13 +291,13 @@ export default function Hd() {
                         {/* Theme Toggle */}
                         <button
                             onClick={changeIcon}
-                            className="cursor-pointer transition-all duration-300 rounded-xl border-2 border-orange-400 shadow-lg hover:shadow-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 hover:scale-105"
+                            className="cursor-pointer transition-all duration-300 rounded-full border-2 border-orange-400 shadow-lg hover:shadow-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 hover:scale-105"
                             aria-label="Toggle theme"
                         >
                             {mode === 'light' ? (
-                                <FontAwesomeIcon icon={faMoon} className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                <FontAwesomeIcon icon={faMoon} className="w-6 h-6 sm:w-5 sm:h-5 text-white" />
                             ) : (
-                                <FontAwesomeIcon icon={faSun} className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
+                                <FontAwesomeIcon icon={faSun} className="w-6 h-6 sm:w-5 sm:h-5 text-yellow-400" />
                             )}
                         </button>
 
@@ -431,7 +431,7 @@ export default function Hd() {
                 )}
             </div>
 
-            <style jsx>{`
+            <style jsx='true'>{`
                 @keyframes slideDown {
                     from {
                         opacity: 0;
