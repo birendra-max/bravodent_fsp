@@ -218,8 +218,8 @@ export default function NewRequest() {
 
   // Theme-based styling functions
   const getMainClass = () => {
-    return theme === 'light' 
-      ? 'bg-gray-50 text-gray-900' 
+    return theme === 'light'
+      ? 'bg-gray-50 text-gray-900'
       : 'bg-gray-900 text-white';
   };
 
@@ -231,13 +231,13 @@ export default function NewRequest() {
 
   const getUploadAreaClass = () => {
     const baseClass = "border-3 min-h-[75vh] flex justify-center items-center flex-col border-dashed rounded-2xl p-12 text-center transition-all duration-200";
-    
+
     if (theme === 'light') {
-      return drag 
+      return drag
         ? `${baseClass} border-blue-500 bg-blue-50 scale-[1.02] text-gray-900`
         : `${baseClass} border-gray-300 hover:border-blue-400 hover:bg-blue-25 text-gray-900`;
     } else {
-      return drag 
+      return drag
         ? `${baseClass} border-blue-500 bg-blue-900/20 scale-[1.02] text-white`
         : `${baseClass} border-gray-600 hover:border-blue-400 hover:bg-gray-800 text-white`;
     }
@@ -269,7 +269,7 @@ export default function NewRequest() {
 
   const getDeliveryOptionClass = (option, isSelected) => {
     const baseClass = "block p-4 border-2 rounded-xl cursor-pointer transition-all";
-    
+
     if (isSelected) {
       const colorMap = {
         red: theme === 'light' ? 'border-red-500 bg-red-50' : 'border-red-500 bg-red-900/20',
@@ -338,17 +338,16 @@ export default function NewRequest() {
       };
 
       const config = theme === 'light' ? lightConfig[status] : darkConfig[status];
-      
+
       return {
         ...config,
         shadow: "shadow-sm",
         icon: (
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-            status === "Success" ? "bg-green-500" :
-            status === "Failed" ? "bg-red-500" :
-            status === "Uploading..." ? "bg-blue-500" :
-            "bg-gray-400"
-          }`}>
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${status === "Success" ? "bg-green-500" :
+              status === "Failed" ? "bg-red-500" :
+                status === "Uploading..." ? "bg-blue-500" :
+                  "bg-gray-400"
+            }`}>
             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {status === "Success" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />}
               {status === "Failed" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />}
@@ -369,11 +368,10 @@ export default function NewRequest() {
           <span className="font-medium">{status}</span>
         </div>
         {status === "Failed" && message && (
-          <div className={`flex items-start space-x-2 text-xs px-3 py-2 rounded-lg border ${
-            theme === 'light' 
-              ? 'text-red-600 bg-red-50 border-red-200' 
+          <div className={`flex items-start space-x-2 text-xs px-3 py-2 rounded-lg border ${theme === 'light'
+              ? 'text-red-600 bg-red-50 border-red-200'
               : 'text-red-400 bg-red-900/20 border-red-700'
-          }`}>
+            }`}>
             <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
@@ -391,13 +389,11 @@ export default function NewRequest() {
         {/* Success Popup */}
         {showSuccessPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className={`rounded-xl p-8 max-w-md mx-4 shadow-2xl ${
-              theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-white'
-            }`}>
+            <div className={`rounded-xl p-8 max-w-md mx-4 shadow-2xl ${theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-white'
+              }`}>
               <div className="text-center">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                  theme === 'light' ? 'bg-green-100' : 'bg-green-900/20'
-                }`}>
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${theme === 'light' ? 'bg-green-100' : 'bg-green-900/20'
+                  }`}>
                   <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -442,9 +438,8 @@ export default function NewRequest() {
                     }}
                     onDrop={handleDrop}
                   >
-                    <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${
-                      theme === 'light' ? 'bg-blue-100' : 'bg-blue-900/20'
-                    }`}>
+                    <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${theme === 'light' ? 'bg-blue-100' : 'bg-blue-900/20'
+                      }`}>
                       <svg className={`w-10 h-10 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
@@ -452,16 +447,14 @@ export default function NewRequest() {
                     <h3 className="text-xl font-semibold mb-3">
                       {drag ? "Drop files to upload" : "Upload Order Files"}
                     </h3>
-                    <p className={`mb-6 max-w-md mx-auto ${
-                      theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <p className={`mb-6 max-w-md mx-auto ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                      }`}>
                       Drag and drop your ZIP files here or click the button below. Supported format: .zip only
                     </p>
-                    <label className={`inline-flex items-center px-8 py-3 font-semibold rounded-lg shadow-sm cursor-pointer transition-colors ${
-                      theme === 'light' 
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                    <label className={`inline-flex items-center px-8 py-3 font-semibold rounded-lg shadow-sm cursor-pointer transition-colors ${theme === 'light'
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
                         : 'bg-blue-700 hover:bg-blue-600 text-white'
-                    }`}>
+                      }`}>
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
@@ -524,9 +517,8 @@ export default function NewRequest() {
                           {files.map((file, idx) => (
                             <tr key={idx} className={getTableRowClass()}>
                               <td className="px-4 py-3">
-                                <span className={`text-sm font-medium px-2 py-1 rounded ${
-                                  theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-gray-700 text-white'
-                                }`}>
+                                <span className={`text-sm font-medium px-2 py-1 rounded ${theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-gray-700 text-white'
+                                  }`}>
                                   {file.orderId}
                                 </span>
                               </td>
@@ -614,9 +606,8 @@ export default function NewRequest() {
                               />
                               <div className="text-center">
                                 <div className="font-semibold text-sm">{option.label}</div>
-                                <div className={`text-xs mt-1 ${
-                                  theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                }`}>{option.description}</div>
+                                <div className={`text-xs mt-1 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                                  }`}>{option.description}</div>
                               </div>
                             </label>
                           ))}
@@ -627,15 +618,14 @@ export default function NewRequest() {
                       <div className="flex flex-col justify-between">
                         <div>
                           <h3 className="text-lg font-semibold mb-4">Submit Orders</h3>
-                          <div className={`text-sm mb-4 ${
-                            files.some(f => f.uploadStatus === "Uploading...")
+                          <div className={`text-sm mb-4 ${files.some(f => f.uploadStatus === "Uploading...")
                               ? theme === 'light' ? "text-yellow-600" : "text-yellow-400"
                               : !files.some(f => f.uploadStatus === "Success")
                                 ? theme === 'light' ? "text-red-600" : "text-red-400"
                                 : canSubmit
                                   ? theme === 'light' ? "text-green-600" : "text-green-400"
                                   : getStatusTextClass()
-                          }`}>
+                            }`}>
                             {files.some(f => f.uploadStatus === "Uploading...")
                               ? "⏳ Please wait for all uploads to complete"
                               : !files.some(f => f.uploadStatus === "Success")
@@ -654,8 +644,8 @@ export default function NewRequest() {
                             disabled={!canSubmit}
                             className={`w-full font-semibold py-3 px-6 rounded-lg text-sm transition-all ${canSubmit
                               ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
-                              : theme === 'light' 
-                                ? "bg-gray-400 text-gray-200 cursor-not-allowed" 
+                              : theme === 'light'
+                                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
                                 : "bg-gray-600 text-gray-400 cursor-not-allowed"
                               }`}
                           >
@@ -671,11 +661,10 @@ export default function NewRequest() {
                             )}
                           </button>
                           {files.some(f => f.uploadStatus === "Failed") && canSubmit && (
-                            <div className={`text-xs text-center py-1 rounded ${
-                              theme === 'light' 
-                                ? 'text-yellow-600 bg-yellow-50' 
+                            <div className={`text-xs text-center py-1 rounded ${theme === 'light'
+                                ? 'text-yellow-600 bg-yellow-50'
                                 : 'text-yellow-400 bg-yellow-900/20'
-                            }`}>
+                              }`}>
                               ⚠️ Only successful files will be submitted
                             </div>
                           )}
