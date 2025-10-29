@@ -79,18 +79,13 @@ export default function Dashboard() {
 
 
     useEffect(() => {
-        const fetchCardsData = async () => {
+        async function fetchCardsData() {
             try {
-                const res = await fetch('http://localhost/bravodent_ci/designer/all-cases-data-count', {
+                const data = await fetchWithAuth('designer/all-cases-data-count', {
                     method: "GET",
-                    headers: {
-                        'Content-Type': "application/json",
-                        'Authorization':`Bearer ${token}`
-                    },
                 });
 
-                const data = await res.json();
-
+                // data is already the parsed JSON response
                 if (data.status === 'success') {
                     setCases(data);
                 } else {
@@ -100,10 +95,11 @@ export default function Dashboard() {
                 console.error("Error fetching cases:", error);
                 setCases(null);
             }
-        };
+        }
 
         fetchCardsData();
     }, []);
+
 
     useEffect(() => {
         if (cases) {

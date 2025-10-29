@@ -6,7 +6,6 @@ let isLoggingOut = false; // 🔒 Prevent multiple logouts overlapping
 
 export async function fetchWithAuth(endpoint, options = {}) {
     const token = localStorage.getItem("token");
-
     const headers = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

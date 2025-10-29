@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
-import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from "../../Context/ThemeContext";
 import Datatable from './Datatable';
 import { Link } from 'react-router-dom'
@@ -9,7 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faHome,
 } from '@fortawesome/free-solid-svg-icons';
-
+import { fetchWithAuth } from "../../utils/api";
 
 export default function Reports() {
     const token = localStorage.getItem('token');
@@ -83,30 +82,25 @@ export default function Reports() {
         setIsLoading(true);
 
         try {
-            // Prepare request data
             const requestData = {
                 filter: filterValue || selectedFilter,
-                startDate: startDate,
-                endDate: endDate
+                startDate,
+                endDate,
             };
 
-            const res = await fetch('http://localhost/bravodent_ci/designer/get-reports', {
+            // Use centralized fetchWithAuth for API call
+            const responseData = await fetchWithAuth("designer/get-reports", {
                 method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(requestData)
+                body: JSON.stringify(requestData),
             });
 
-            const responseData = await res.json();
-
-            if (responseData.status === 'success') {
+            if (responseData?.status === "success") {
                 setData(responseData.cases);
             } else {
                 setData([]);
             }
         } catch (error) {
+            console.error("Report fetch error:", error);
             setData([]);
         } finally {
             setIsLoading(false);
