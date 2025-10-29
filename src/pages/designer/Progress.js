@@ -1,14 +1,14 @@
-import { ThemeContext } from "../../Context/ThemeContext";
-import Hd from "./Hd";
-import Foot from "./Foot";
-import Dashboard from "./Dashboard";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import Hd from './Hd';
+import Foot from './Foot';
 import Datatable from "./Datatable";
+import Dashboard from "./Dashboard";
+import { ThemeContext } from "../../Context/ThemeContext";
 import { fetchWithAuth } from '../../utils/api';
 
-export default function Home() {
+export default function Progress() {
     const token = localStorage.getItem('token');
-    const { theme } = useContext(ThemeContext);
+    const { theme, setTheme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [
@@ -25,9 +25,9 @@ export default function Home() {
     ];
 
     useEffect(() => {
-        async function fetchNewCases() {
+        async function fetchProgressCases() {
             try {
-                const data = await fetchWithAuth('designer/get-new-cases', {
+                const data = await fetchWithAuth('designer/get-progress', {
                     method: "GET",
                 });
 
@@ -43,7 +43,7 @@ export default function Home() {
             }
         }
 
-        fetchNewCases();
+        fetchProgressCases();
     }, []);
 
 
@@ -57,5 +57,5 @@ export default function Home() {
             </main>
             <Foot />
         </>
-    )
+    );
 }

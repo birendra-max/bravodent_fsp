@@ -1,14 +1,14 @@
-import { ThemeContext } from "../../Context/ThemeContext";
-import Hd from "./Hd";
-import Foot from "./Foot";
-import Dashboard from "./Dashboard";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import Hd from './Hd';
+import Foot from './Foot';
 import Datatable from "./Datatable";
+import Dashboard from "./Dashboard";
+import { ThemeContext } from "../../Context/ThemeContext";
 import { fetchWithAuth } from '../../utils/api';
 
-export default function Home() {
+export default function Qc() {
     const token = localStorage.getItem('token');
-    const { theme } = useContext(ThemeContext);
+    const { theme, setTheme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [
@@ -25,15 +25,14 @@ export default function Home() {
     ];
 
     useEffect(() => {
-        async function fetchNewCases() {
+        async function fetchQcCases() {
             try {
-                const data = await fetchWithAuth('designer/get-new-cases', {
+                const data = await fetchWithAuth('designer/get-qc-cases', {
                     method: "GET",
                 });
-
                 // data is already the parsed JSON response
                 if (data && data.status === 'success') {
-                    setData(data.new_cases);
+                    setData(data.new_cases || []);
                 } else {
                     setData([]);
                 }
@@ -43,9 +42,8 @@ export default function Home() {
             }
         }
 
-        fetchNewCases();
+        fetchQcCases();
     }, []);
-
 
 
     return (
@@ -57,5 +55,5 @@ export default function Home() {
             </main>
             <Foot />
         </>
-    )
+    );
 }

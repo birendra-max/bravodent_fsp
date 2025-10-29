@@ -23,7 +23,7 @@ export default function Login() {
     const [form, setForm] = useState({
         email: "",
         password: "",
-        remember: false
+        remember: "false"
     })
 
     const handleChange = (e) => {
@@ -36,7 +36,6 @@ export default function Login() {
 
     const handleForm = async (e) => {
         e.preventDefault();
-
         try {
             const res = await fetch("http://localhost/bravodent_ci/designer/validate-designer", {
                 method: "POST",

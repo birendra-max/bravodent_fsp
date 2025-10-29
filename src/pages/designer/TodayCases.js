@@ -1,14 +1,14 @@
-import { ThemeContext } from "../../Context/ThemeContext";
-import Hd from "./Hd";
-import Foot from "./Foot";
-import Dashboard from "./Dashboard";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import Hd from './Hd';
+import Foot from './Foot';
 import Datatable from "./Datatable";
+import Dashboard from "./Dashboard";
+import { ThemeContext } from "../../Context/ThemeContext";
 import { fetchWithAuth } from '../../utils/api';
 
-export default function Home() {
-    const token = localStorage.getItem('token');
-    const { theme } = useContext(ThemeContext);
+
+export default function TodayCases() {
+    const { theme, setTheme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [
@@ -25,12 +25,11 @@ export default function Home() {
     ];
 
     useEffect(() => {
-        async function fetchNewCases() {
+        async function fetchTodayCases() {
             try {
-                const data = await fetchWithAuth('designer/get-new-cases', {
+                const data = await fetchWithAuth('designer/today-cases', {
                     method: "GET",
                 });
-
                 // data is already the parsed JSON response
                 if (data && data.status === 'success') {
                     setData(data.new_cases);
@@ -43,9 +42,8 @@ export default function Home() {
             }
         }
 
-        fetchNewCases();
+        fetchTodayCases();
     }, []);
-
 
 
     return (
@@ -57,5 +55,5 @@ export default function Home() {
             </main>
             <Foot />
         </>
-    )
+    );
 }

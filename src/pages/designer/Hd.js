@@ -17,11 +17,21 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Hd() {
+
+    useEffect(() => {
+        const data = localStorage.getItem('designer') ? localStorage.getItem('designer') : "";
+        const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
+
+        if (data === '' && token === '') {
+            navigate('/designer');
+        }
+    })
+
     const { theme, setTheme } = useContext(ThemeContext);
     const [mode, setMode] = useState('light');
     const navigate = useNavigate();
     const location = useLocation();
-    const { designer,logout } = useContext(DesignerContext);
+    const { designer, logout } = useContext(DesignerContext);
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activePage, setActivePage] = useState("index");
@@ -96,11 +106,11 @@ export default function Hd() {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        
+
         if (searchQuery.trim()) {
             // Close mobile search if open
             setMobileSearchOpen(false);
-            
+
             // Implement search functionality
             const rows = document.querySelectorAll('#datatable tbody tr');
             let found = false;
@@ -139,13 +149,12 @@ export default function Hd() {
     const showNotification = (message, type = 'info') => {
         // Create notification element
         const notification = document.createElement('div');
-        notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transform transition-all duration-300 ${
-            type === 'warning' ? 'bg-orange-500' : 'bg-blue-500'
-        }`;
+        notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transform transition-all duration-300 ${type === 'warning' ? 'bg-orange-500' : 'bg-blue-500'
+            }`;
         notification.textContent = message;
-        
+
         document.body.appendChild(notification);
-        
+
         // Remove notification after 3 seconds
         setTimeout(() => {
             notification.style.transform = 'translateX(100%)';
@@ -165,16 +174,15 @@ export default function Hd() {
     };
 
     return (
-        <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-            scrolled ? "bg-gray-900 shadow-2xl" : "bg-gray-900"
-        }`}>
+        <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-gray-900 shadow-2xl" : "bg-gray-900"
+            }`}>
             <div className="w-full mx-auto px-3 sm:px-4 lg:px-6">
                 {/* Main Navigation Bar */}
                 <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
                     {/* Logo - Left Side */}
                     <div className="flex-shrink-0">
-                        <Link 
-                            to="/designer/home" 
+                        <Link
+                            to="/designer/home"
                             className="flex items-center"
                             onClick={() => {
                                 setIsOpen(false);
@@ -199,11 +207,10 @@ export default function Hd() {
                                 <Link
                                     to={item.href}
                                     key={item.key}
-                                    className={`text-xs lg:text-sm px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
-                                        activePage === item.key
-                                            ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg transform scale-105"
-                                            : "text-gray-300 hover:bg-gray-700 hover:text-white hover:shadow-md"
-                                    }`}
+                                    className={`text-xs lg:text-sm px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${activePage === item.key
+                                        ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg transform scale-105"
+                                        : "text-gray-300 hover:bg-gray-700 hover:text-white hover:shadow-md"
+                                        }`}
                                 >
                                     <FontAwesomeIcon
                                         icon={item.icon}
@@ -258,9 +265,9 @@ export default function Hd() {
                             }}
                             className="lg:hidden text-white hover:text-orange-300 p-2 transition-colors duration-200 rounded-lg hover:bg-gray-800"
                         >
-                            <FontAwesomeIcon 
-                                icon={mobileSearchOpen ? faTimes : faSearch} 
-                                className="w-5 h-5 sm:w-6 sm:h-6" 
+                            <FontAwesomeIcon
+                                icon={mobileSearchOpen ? faTimes : faSearch}
+                                className="w-5 h-5 sm:w-6 sm:h-6"
                             />
                         </button>
 
@@ -336,9 +343,9 @@ export default function Hd() {
                             className="xl:hidden text-white hover:text-orange-300 p-2 transition-colors duration-200 rounded-lg hover:bg-gray-800"
                             aria-label="Toggle menu"
                         >
-                            <FontAwesomeIcon 
-                                icon={isOpen ? faTimes : faBars} 
-                                className="w-5 h-5 sm:w-6 sm:h-6" 
+                            <FontAwesomeIcon
+                                icon={isOpen ? faTimes : faBars}
+                                className="w-5 h-5 sm:w-6 sm:h-6"
                             />
                         </button>
                     </div>
@@ -386,18 +393,16 @@ export default function Hd() {
                                 <Link
                                     to={item.href}
                                     key={item.key}
-                                    className={`block px-4 py-4 rounded-xl font-medium transition-all duration-300 flex items-center space-x-4 text-base sm:text-lg ${
-                                        activePage === item.key
-                                            ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg"
-                                            : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                                    }`}
+                                    className={`block px-4 py-4 rounded-xl font-medium transition-all duration-300 flex items-center space-x-4 text-base sm:text-lg ${activePage === item.key
+                                        ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg"
+                                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                                        }`}
                                     onClick={() => setIsOpen(false)}
                                 >
-                                    <FontAwesomeIcon 
-                                        icon={item.icon} 
-                                        className={`w-5 h-5 ${
-                                            activePage === item.key ? 'text-white' : 'text-orange-400'
-                                        }`} 
+                                    <FontAwesomeIcon
+                                        icon={item.icon}
+                                        className={`w-5 h-5 ${activePage === item.key ? 'text-white' : 'text-orange-400'
+                                            }`}
                                     />
                                     <span>{item.label}</span>
                                 </Link>

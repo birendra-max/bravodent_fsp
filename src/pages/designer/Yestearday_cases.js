@@ -1,14 +1,14 @@
-import { ThemeContext } from "../../Context/ThemeContext";
-import Hd from "./Hd";
-import Foot from "./Foot";
-import Dashboard from "./Dashboard";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import Hd from './Hd';
+import Foot from './Foot';
 import Datatable from "./Datatable";
+import Dashboard from "./Dashboard";
+import { ThemeContext } from "../../Context/ThemeContext";
 import { fetchWithAuth } from '../../utils/api';
 
-export default function Home() {
+export default function Yesterday_cases() {
     const token = localStorage.getItem('token');
-    const { theme } = useContext(ThemeContext);
+    const { theme, setTheme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [
@@ -24,13 +24,13 @@ export default function Home() {
         { header: "Download", accessor: "file_path" },
     ];
 
-    useEffect(() => {
-        async function fetchNewCases() {
+
+     useEffect(() => {
+        async function fetchYestearCases() {
             try {
-                const data = await fetchWithAuth('designer/get-new-cases', {
+                const data = await fetchWithAuth('designer/yesterday-cases', {
                     method: "GET",
                 });
-
                 // data is already the parsed JSON response
                 if (data && data.status === 'success') {
                     setData(data.new_cases);
@@ -43,9 +43,8 @@ export default function Home() {
             }
         }
 
-        fetchNewCases();
+        fetchYestearCases();
     }, []);
-
 
 
     return (
@@ -57,5 +56,5 @@ export default function Home() {
             </main>
             <Foot />
         </>
-    )
+    );
 }

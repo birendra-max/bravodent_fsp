@@ -1,14 +1,14 @@
-import { ThemeContext } from "../../Context/ThemeContext";
-import Hd from "./Hd";
-import Foot from "./Foot";
-import Dashboard from "./Dashboard";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import Hd from './Hd';
+import Foot from './Foot';
 import Datatable from "./Datatable";
+import Dashboard from "./Dashboard";
+import { ThemeContext } from "../../Context/ThemeContext";
 import { fetchWithAuth } from '../../utils/api';
 
-export default function Home() {
-    const token = localStorage.getItem('token');
-    const { theme } = useContext(ThemeContext);
+
+export default function AllCases() {
+    const { theme, setTheme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [
@@ -25,9 +25,9 @@ export default function Home() {
     ];
 
     useEffect(() => {
-        async function fetchNewCases() {
+        async function fetchAllCases() {
             try {
-                const data = await fetchWithAuth('designer/get-new-cases', {
+                const data = await fetchWithAuth('designer/get-all-cases', {
                     method: "GET",
                 });
 
@@ -43,9 +43,8 @@ export default function Home() {
             }
         }
 
-        fetchNewCases();
+        fetchAllCases();
     }, []);
-
 
 
     return (
@@ -57,5 +56,5 @@ export default function Home() {
             </main>
             <Foot />
         </>
-    )
+    );
 }

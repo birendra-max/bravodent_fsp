@@ -11,7 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 
-export default function MultiSearch() {
+export default function Reports() {
     const token = localStorage.getItem('token');
     const { theme, setTheme } = useContext(ThemeContext);
     const [selectedFilter, setSelectedFilter] = useState();
@@ -19,6 +19,7 @@ export default function MultiSearch() {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [data, setData] = useState([]);
+
 
     // Theme-based classes
     const getThemeClasses = () => {
@@ -67,13 +68,9 @@ export default function MultiSearch() {
     ];
 
     const filterButtons = [
-        { value: '1', label: 'All' },
-        { value: '2', label: 'New' },
-        { value: '3', label: 'In Progress' },
-        { value: '4', label: 'QC Required' },
-        { value: '5', label: 'On Hold' },
-        { value: '6', label: 'Designed Completed' },
-        { value: '7', label: 'Canceled' },
+        { value: '1', label: 'Today' },
+        { value: '2', label: 'Weekly' },
+        { value: '3', label: 'Monthely' },
     ];
 
     // Single function to handle both search types
@@ -93,7 +90,7 @@ export default function MultiSearch() {
                 endDate: endDate
             };
 
-            const res = await fetch('http://localhost/bravodent_ci/designer/get-cases-data', {
+            const res = await fetch('http://localhost/bravodent_ci/designer/get-reports', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -137,7 +134,7 @@ export default function MultiSearch() {
     return (
         <>
             <Hd />
-            <main id="main" className={`py-22 px-4 transition-colors duration-300 min-h-screen ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'}`}>
+            <main id="main" className={`py-18 px-4 transition-colors duration-300 min-h-screen ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'}`}>
                 <div className="min-h-screen px-2 sm:px-6 lg:px-2">
                     <div className="w-full max-w-full">
 
@@ -148,10 +145,10 @@ export default function MultiSearch() {
                                     <div className="text-center sm:text-left">
                                         <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'text-gray-800' : 'text-white'
                                             }`}>
-                                            View Orders
+                                            Generate & Download Reports
                                         </h1>
                                         <p className={`mt-1 text-sm sm:text-base ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'
-                                            }`}>Manage your account orders and preferences</p>
+                                            }`}>Generate your reports and download</p>
                                     </div>
                                     <nav className="flex justify-center sm:justify-start">
                                         <ol className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">

@@ -1,14 +1,13 @@
-import { ThemeContext } from "../../Context/ThemeContext";
-import Hd from "./Hd";
-import Foot from "./Foot";
-import Dashboard from "./Dashboard";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import Hd from './Hd';
+import Foot from './Foot';
 import Datatable from "./Datatable";
+import Dashboard from "./Dashboard";
+import { ThemeContext } from "../../Context/ThemeContext";
 import { fetchWithAuth } from '../../utils/api';
 
-export default function Home() {
-    const token = localStorage.getItem('token');
-    const { theme } = useContext(ThemeContext);
+export default function Cancel() {
+    const { theme, setTheme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [
@@ -24,28 +23,28 @@ export default function Home() {
         { header: "Download", accessor: "file_path" },
     ];
 
+
     useEffect(() => {
-        async function fetchNewCases() {
+        async function fetchCancelCases() {
             try {
-                const data = await fetchWithAuth('designer/get-new-cases', {
+                const data = await fetchWithAuth('designer/get-cancel', {
                     method: "GET",
                 });
 
-                // data is already the parsed JSON response
-                if (data && data.status === 'success') {
-                    setData(data.new_cases);
+                // Ensure data is valid and has expected structure
+                if (data?.status === 'success') {
+                    setData(data.new_cases || []); // Safe fallback
                 } else {
                     setData([]);
                 }
             } catch (error) {
-                console.error("Error fetching cases:", error);
+                console.error("Error fetching cancel cases:", error);
                 setData([]);
             }
         }
 
-        fetchNewCases();
+        fetchCancelCases();
     }, []);
-
 
 
     return (
@@ -57,5 +56,5 @@ export default function Home() {
             </main>
             <Foot />
         </>
-    )
+    );
 }

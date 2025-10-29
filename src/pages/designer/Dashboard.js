@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from 'react-router-dom';
 import { ThemeContext } from "../../Context/ThemeContext";
+import { fetchWithAuth } from '../../utils/api';
 
 import {
     faShoppingCart,
@@ -76,6 +77,7 @@ export default function Dashboard() {
         }
     };
 
+
     useEffect(() => {
         const fetchCardsData = async () => {
             try {
@@ -83,9 +85,8 @@ export default function Dashboard() {
                     method: "GET",
                     headers: {
                         'Content-Type': "application/json",
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization':`Bearer ${token}`
                     },
-                    credentials: "include",
                 });
 
                 const data = await res.json();
