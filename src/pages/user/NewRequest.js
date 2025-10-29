@@ -385,7 +385,7 @@ export default function NewRequest() {
   return (
     <>
       <Hd />
-      <main id="main" className={`min-h-screen transition-colors duration-300 ${getMainClass()}`}>
+      <main id="main" className={`transition-colors duration-300 ${getMainClass()}`}>
         {/* Success Popup */}
         {showSuccessPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -414,7 +414,7 @@ export default function NewRequest() {
         )}
 
         <section className={theme === 'light' ? 'bg-gray-50' : 'bg-black'}>
-          <div className="max-w-full mx-auto py-22">
+          <div className="max-w-full mx-auto py-22 px-8 mt-4">
             {/* Main Content - Full Width */}
             <div className={`rounded-xl shadow-sm border ${getCardClass()}`}>
               {/* Upload Area */}

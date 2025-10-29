@@ -25,7 +25,7 @@ export const DesignerProvider = ({ children }) => {
         localStorage.removeItem('designer');
         localStorage.removeItem('token');
         localStorage.removeItem('theme');
-        navigate('/desinger', { replace: true });
+        navigate('/desinger/login', { replace: true });
     }
 
 
