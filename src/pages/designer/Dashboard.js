@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from 'react-router-dom';
-
 import { ThemeContext } from "../../Context/ThemeContext";
 
 import {
@@ -20,6 +19,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
+    const token = localStorage.getItem('token');
     const { theme, setTheme } = useContext(ThemeContext);
     const [cases, setCases] = useState(null);
     const [cards, setCards] = useState([]);
@@ -79,12 +79,13 @@ export default function Dashboard() {
     useEffect(() => {
         const fetchCardsData = async () => {
             try {
-                const res = await fetch('http://localhost/bravodent_ci/all-cases-data-count', {
+                const res = await fetch('http://localhost/bravodent_ci/designer/all-cases-data-count', {
                     method: "GET",
                     headers: {
                         'Content-Type': "application/json",
+                        'Authorization': `Bearer ${token}`,
                     },
-                    credentials: 'include',
+                    credentials: "include",
                 });
 
                 const data = await res.json();
@@ -106,17 +107,17 @@ export default function Dashboard() {
     useEffect(() => {
         if (cases) {
             const updatedCards = [
-                { id: "home", href: "/user/home", title: "New Cases", count: cases.new_cases, color: "bg-gray-800", icon: faShoppingCart },
-                { id: "progress", href: "/user/in_progress", title: "In Progress", count: cases.progress, color: "bg-yellow-500", icon: faSpinner },
-                { id: "canceled", href: "/user/canceled_case", title: "Canceled Cases", count: cases.canceled, color: "bg-red-500", icon: faTimes },
-                { id: "completed", href: "/user/completed_case", title: "Completed Cases", count: cases.completed, color: "bg-green-600", icon: faTasks },
-                { id: "rush", href: "/user/rush_cases", title: "Rush Cases", count: cases.rush, color: "bg-blue-500", icon: faBolt },
-                { id: "qc", href: "/user/qc_required", title: "QC Required", count: cases.qc, color: "bg-orange-400", icon: faBell },
-                { id: "hold", href: "/user/case_on_hold", title: "Case On Hold", count: cases.hold, color: "bg-pink-500", icon: faPauseCircle },
-                { id: "all_c", href: "/user/all_cases", title: "All Cases", count: cases.all, color: "bg-green-500", icon: faCogs },
-                { id: "yesterday", href: "/user/yesterday_cases", title: "Yesterday's Cases", count: cases.yesterday_cases, color: "bg-blue-400", icon: faCalendarDay },
-                { id: "today", href: "/user/today_cases", title: "Today's Cases", count: cases.today_cases, color: "bg-purple-500", icon: faCalendarCheck },
-                { id: "weekly", href: "/user/weekly_case", title: "Weekly Cases", count: cases.weekly_cases, color: "bg-indigo-500", icon: faCalendarWeek },
+                { id: "home", href: "/designer/home", title: "New Cases", count: cases.new_cases, color: "bg-gray-800", icon: faShoppingCart },
+                { id: "progress", href: "/designer/in_progress", title: "In Progress", count: cases.progress, color: "bg-yellow-500", icon: faSpinner },
+                { id: "canceled", href: "/designer/canceled_case", title: "Canceled Cases", count: cases.canceled, color: "bg-red-500", icon: faTimes },
+                { id: "completed", href: "/designer/completed_case", title: "Completed Cases", count: cases.completed, color: "bg-green-600", icon: faTasks },
+                { id: "rush", href: "/designer/rush_cases", title: "Rush Cases", count: cases.rush, color: "bg-blue-500", icon: faBolt },
+                { id: "qc", href: "/designer/qc_required", title: "QC Required", count: cases.qc, color: "bg-orange-400", icon: faBell },
+                { id: "hold", href: "/designer/case_on_hold", title: "Case On Hold", count: cases.hold, color: "bg-pink-500", icon: faPauseCircle },
+                { id: "all_c", href: "/designer/all_cases", title: "All Cases", count: cases.all, color: "bg-green-500", icon: faCogs },
+                { id: "yesterday", href: "/designer/yesterday_cases", title: "Yesterday's Cases", count: cases.yesterday_cases, color: "bg-blue-400", icon: faCalendarDay },
+                { id: "today", href: "/designer/today_cases", title: "Today's Cases", count: cases.today_cases, color: "bg-purple-500", icon: faCalendarCheck },
+                { id: "weekly", href: "/designer/weekly_case", title: "Weekly Cases", count: cases.weekly_cases, color: "bg-indigo-500", icon: faCalendarWeek },
                 { id: "feedback", href: "", title: "Your Feedback!", count: null, color: "bg-teal-500", icon: faComment },
             ];
 
@@ -153,8 +154,8 @@ export default function Dashboard() {
 
     // Theme-based background classes
     const getBackgroundClass = () => {
-        return theme === 'dark' 
-            ? 'bg-gray-900 text-white' 
+        return theme === 'dark'
+            ? 'bg-gray-900 text-white'
             : 'bg-gray-200 text-gray-800';
     };
 
@@ -250,13 +251,13 @@ export default function Dashboard() {
                         <form className="space-y-4" id="feedbackform">
                             <div>
                                 <label className={`block mb-1 font-medium ${getTextClass()}`}>Your Feedback</label>
-                                <textarea 
-                                    ref={feedBackaRef} 
-                                    rows="4" 
-                                    name="feedback" 
-                                    value={form.feedback} 
-                                    onChange={handleChange} 
-                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none ${getTextAreaClass()}`} 
+                                <textarea
+                                    ref={feedBackaRef}
+                                    rows="4"
+                                    name="feedback"
+                                    value={form.feedback}
+                                    onChange={handleChange}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none ${getTextAreaClass()}`}
                                     placeholder="Write your feedback..."
                                 ></textarea>
                             </div>
