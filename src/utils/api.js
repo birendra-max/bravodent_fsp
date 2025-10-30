@@ -5,7 +5,14 @@ const BASE_URL = "http://localhost/bravodent_ci/";
 let isLoggingOut = false; // 🔒 Prevent multiple logouts overlapping
 
 export async function fetchWithAuth(endpoint, options = {}) {
-    const token = localStorage.getItem("token");
+    let token = localStorage.getItem("token");
+
+    // 🛡️ Ensure token is valid before using it
+    if (!token || token === "null" || token === "undefined" || token.trim() === "") {
+        console.warn("Invalid token found in localStorage:", token);
+        token = null;
+    }
+
     const headers = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -52,5 +59,10 @@ export async function fetchWithAuth(endpoint, options = {}) {
             logoutUser();
         }
         return null;
+    } finally {
+        // 🧹 Destroy headers after every request (important)
+        for (let key in headers) {
+            delete headers[key];
+        }
     }
 }
