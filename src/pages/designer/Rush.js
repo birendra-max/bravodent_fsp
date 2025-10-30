@@ -5,7 +5,7 @@ import Datatable from "./Datatable";
 import { useNavigate } from 'react-router-dom';
 import Dashboard from "./Dashboard";
 import { ThemeContext } from "../../Context/ThemeContext";
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function Home() {
     const token = localStorage.getItem('token');

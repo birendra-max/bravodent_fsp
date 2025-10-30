@@ -5,8 +5,8 @@ export const DesignerContext = createContext();
 
 export const DesignerProvider = ({ children }) => {
     const [designer, setDesigner] = useState(() => {
-        const storedUser = localStorage.getItem('designer');
-        return storedUser ? JSON.parse(storedUser) : null;
+        const storedDesigner = localStorage.getItem('designer');
+        return storedDesigner ? JSON.parse(storedDesigner) : null;
     });
 
     const navigate = useNavigate();

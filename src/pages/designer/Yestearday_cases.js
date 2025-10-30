@@ -4,7 +4,7 @@ import Foot from './Foot';
 import Datatable from "./Datatable";
 import Dashboard from "./Dashboard";
 import { ThemeContext } from "../../Context/ThemeContext";
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function Yesterday_cases() {
     const token = localStorage.getItem('token');
@@ -25,7 +25,7 @@ export default function Yesterday_cases() {
     ];
 
 
-     useEffect(() => {
+    useEffect(() => {
         async function fetchYestearCases() {
             try {
                 const data = await fetchWithAuth('designer/yesterday-cases', {

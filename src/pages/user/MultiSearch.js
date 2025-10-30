@@ -1,8 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
-import { UserContext } from "../../Context/UserContext";
-import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from "../../Context/ThemeContext";
 import Datatable from './Datatable';
 import { Link } from 'react-router-dom'
@@ -10,40 +8,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faHome,
 } from '@fortawesome/free-solid-svg-icons';
+import { fetchWithAuth } from '../../utils/userapi';
 
 
 export default function MultiSearch() {
-    const { theme, setTheme } = useContext(ThemeContext);
-    const { user } = useContext(UserContext);
-    const navigate = useNavigate();
-
+    const { theme } = useContext(ThemeContext);
     const [selectedFilter, setSelectedFilter] = useState();
     const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [data, setData] = useState([]);
-
-    useEffect(() => {
-        const checkSession = async () => {
-            try {
-                const resp = await fetch('http://localhost/bravodent_ci/session-check', {
-                    method: "GET",
-                    credentials: "include",
-                });
-
-                const data = await resp.json();
-
-                if (data.status !== "success") {
-                    navigate("/", { replace: true });
-                }
-            } catch (error) {
-                console.error("Error checking session:", error);
-                navigate("/", { replace: true });
-            }
-        };
-
-        checkSession();
-    }, [navigate]);
 
     // Theme-based classes
     const getThemeClasses = () => {

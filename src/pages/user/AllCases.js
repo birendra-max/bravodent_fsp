@@ -1,18 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
-import { UserContext } from "../../Context/UserContext";
 import Datatable from "./Datatable";
-import { useNavigate } from 'react-router-dom';
 import Dashboard from "./Dashboard";
 import { ThemeContext } from "../../Context/ThemeContext";
-
+import { fetchWithAuth } from '../../utils/userapi';
 
 export default function AllCases() {
-    const { theme, setTheme } = useContext(ThemeContext);
-    const navigate = useNavigate();
-
-    const { user } = useContext(UserContext);
+    const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [
@@ -29,49 +24,27 @@ export default function AllCases() {
     ];
 
     useEffect(() => {
-        const checkSession = async () => {
+        async function fetchAllCases() {
             try {
-                const resp = await fetch('http://localhost/bravodent_ci/session-check', {
+                const data = await fetchWithAuth('get-all-cases', {
                     method: "GET",
-                    credentials: "include",
                 });
 
-                const data = await resp.json();
-
-                if (data.status !== "success") {
-                    navigate("/", { replace: true });
-                }
-            } catch (error) {
-                navigate("/", { replace: true });
-            }
-        };
-
-        checkSession();
-    }, [navigate]);
-
-
-    useEffect(() => {
-        async function fetchNewCases() {
-            try {
-                const res = await fetch('http://localhost/bravodent_ci/get-all-cases', {
-                    method: "GET",
-                    credentials: "include",
-                });
-
-                const da_ta = await res.json();
-
-                if (da_ta.status === 'success') {
-                    setData(da_ta.new_cases);
+                // data is already the parsed JSON response
+                if (data && data.status === 'success') {
+                    setData(data.new_cases);
                 } else {
                     setData([]);
                 }
             } catch (error) {
+                console.error("Error fetching cases:", error);
                 setData([]);
             }
         }
 
-        fetchNewCases();
+        fetchAllCases();
     }, []);
+
 
 
     return (

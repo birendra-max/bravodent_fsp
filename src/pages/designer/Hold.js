@@ -4,7 +4,7 @@ import Foot from './Foot';
 import Datatable from "./Datatable";
 import Dashboard from "./Dashboard";
 import { ThemeContext } from "../../Context/ThemeContext";
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function Hold() {
     const { theme, setTheme } = useContext(ThemeContext);

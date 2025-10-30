@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { UserContext } from "../../Context/UserContext";
@@ -6,14 +6,21 @@ import { useNavigate } from 'react-router-dom';
 
 
 export default function Login() {
+    useEffect(() => {
+        const data = localStorage.getItem('user') ? localStorage.getItem('user') : "";
+        const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
 
+        if (data !== '' && token !== '') {
+            navigate("/user/home");
+        }
+    })
     const { setUser } = useContext(UserContext)
 
     const navigate = useNavigate();
     const [form, setForm] = useState({
         email: "",
         password: "",
-        rememberme: false,
+        remember: "false"
     });
 
     const [status, setStatus] = useState({ type: "", message: "" }); // success / error
@@ -23,27 +30,20 @@ export default function Login() {
     const images = ["/img/bg0.png", "/img/bg1.png", "/img/bg2.jpg"];
 
     const handleChange = (e) => {
-        const { name, type, checked, value } = e.target;
+        const { name, type, value, checked } = e.target;
         setForm({
             ...form,
-            [name]: type === "checkbox" ? checked : value,
-        });
-    };
+            [name]: type === 'checkbox' ? checked : value
+        })
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         try {
-            const formData = new URLSearchParams();
-            for (const key in form) {
-                formData.append(key, form[key]);
-            }
-
             const res = await fetch("http://localhost/bravodent_ci/validate-user", {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                credentials: "include", // important for cookies
-                body: formData.toString(),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
             });
 
             if (!res.ok) {
@@ -54,14 +54,9 @@ export default function Login() {
             const data = await res.json();
 
             if (data.status === "success" && data.message === "Login successfully" && data.user?.userid) {
-                setStatus({ type: "success", message: data.message });
-
-                // save user in context
                 setUser(data.user);
-
-                // save user in localStorage for persistence
-                localStorage.setItem("user", JSON.stringify(data.user));
-
+                localStorage.setItem('token', data.token);
+                setStatus({ type: "success", message: data.message });
                 navigate('/user/home');
             } else {
                 setStatus({ type: "error", message: data.message || "Invalid login" });
@@ -85,34 +80,6 @@ export default function Login() {
         const interval = setInterval(nextSlide, 4000);
         return () => clearInterval(interval);
     }, []);
-
-
-    useEffect(() => {
-        const checkSession = async () => {
-            try {
-                const resp = await fetch('http://localhost/bravodent_ci/session-check', {
-                    method: "GET",
-                    credentials: "include", // important if your backend uses sessions
-                });
-
-                const data = await resp.json(); // parse JSON
-
-                if (data.status === "success") {
-                    setUser(data.user)
-                    navigate("/user/home");
-                }
-                else {
-                    navigate('/', { replace: true });
-                }
-            } catch (error) {
-                console.error("Error checking session:", error);
-            }
-        };
-
-        checkSession();
-    }, [navigate]);
-
-
 
     return (
         <section className="min-h-screen flex flex-col items-center justify-center bg-[#FFB88C] px-4 py-10">
@@ -187,8 +154,7 @@ export default function Login() {
                             <label className="flex items-center text-sm text-gray-600">
                                 <input
                                     type="checkbox"
-                                    name="rememberme"
-                                    checked={form.rememberme}
+                                    name="remember"
                                     onChange={handleChange}
                                     className="mr-2"
                                 />{" "}

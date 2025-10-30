@@ -4,7 +4,7 @@ import Foot from "./Foot";
 import Dashboard from "./Dashboard";
 import { useContext, useState, useEffect } from "react";
 import Datatable from "./Datatable";
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function Home() {
     const token = localStorage.getItem('token');

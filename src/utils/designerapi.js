@@ -1,4 +1,4 @@
-import { logoutUser } from "./auth";
+import { logoutUser } from "./designerauth";
 
 const BASE_URL = "http://localhost/bravodent_ci/";
 

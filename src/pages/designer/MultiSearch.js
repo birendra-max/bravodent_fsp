@@ -9,7 +9,7 @@ import {
     faHome,
 } from '@fortawesome/free-solid-svg-icons';
 
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function MultiSearch() {
     const token = localStorage.getItem('token');

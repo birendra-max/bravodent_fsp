@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from 'react-router-dom';
-
+import { fetchWithAuth } from "../../utils/userapi";
 import { ThemeContext } from "../../Context/ThemeContext";
 
 import {
@@ -77,18 +77,13 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        const fetchCardsData = async () => {
+        async function fetchCardsData() {
             try {
-                const res = await fetch('http://localhost/bravodent_ci/all-cases-data-count', {
+                const data = await fetchWithAuth('all-cases-data-count', {
                     method: "GET",
-                    headers: {
-                        'Content-Type': "application/json",
-                    },
-                    credentials: 'include',
                 });
 
-                const data = await res.json();
-
+                // data is already the parsed JSON response
                 if (data.status === 'success') {
                     setCases(data);
                 } else {
@@ -98,7 +93,7 @@ export default function Dashboard() {
                 console.error("Error fetching cases:", error);
                 setCases(null);
             }
-        };
+        }
 
         fetchCardsData();
     }, []);
@@ -153,8 +148,8 @@ export default function Dashboard() {
 
     // Theme-based background classes
     const getBackgroundClass = () => {
-        return theme === 'dark' 
-            ? 'bg-gray-900 text-white' 
+        return theme === 'dark'
+            ? 'bg-gray-900 text-white'
             : 'bg-gray-200 text-gray-800';
     };
 
@@ -250,13 +245,13 @@ export default function Dashboard() {
                         <form className="space-y-4" id="feedbackform">
                             <div>
                                 <label className={`block mb-1 font-medium ${getTextClass()}`}>Your Feedback</label>
-                                <textarea 
-                                    ref={feedBackaRef} 
-                                    rows="4" 
-                                    name="feedback" 
-                                    value={form.feedback} 
-                                    onChange={handleChange} 
-                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none ${getTextAreaClass()}`} 
+                                <textarea
+                                    ref={feedBackaRef}
+                                    rows="4"
+                                    name="feedback"
+                                    value={form.feedback}
+                                    onChange={handleChange}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none ${getTextAreaClass()}`}
                                     placeholder="Write your feedback..."
                                 ></textarea>
                             </div>
