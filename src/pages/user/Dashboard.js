@@ -37,7 +37,7 @@ export default function Dashboard() {
     };
 
     const feedBackaRef = useRef(null);
-
+    const token = localStorage.getItem('token');
     const saveFeedback = async () => {
         if (form.feedback === '') {
             feedBackaRef.current.focus();
@@ -47,8 +47,8 @@ export default function Dashboard() {
                 method: "POST",
                 headers: {
                     'Content-Type': "application/json",
+                    'Authorization': `Bearer ${token}`
                 },
-                credentials: 'include',
                 body: JSON.stringify(form),
             })
 

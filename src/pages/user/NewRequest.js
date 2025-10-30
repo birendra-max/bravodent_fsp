@@ -1,34 +1,16 @@
-import React, { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import Hd from "./Hd";
 import Foot from "./Foot";
-import { UserContext } from "../../Context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../Context/ThemeContext";
 
 export default function NewRequest() {
-  const { theme, setTheme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const navigate = useNavigate();
-  const { user } = useContext(UserContext);
   const [files, setFiles] = useState([]);
   const [drag, setDragActive] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState("");
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const resp = await fetch("http://localhost/bravodent_ci/session-check", {
-          method: "GET",
-          credentials: "include",
-        });
-        const data = await resp.json();
-        if (data.status !== "success") navigate("/", { replace: true });
-      } catch (error) {
-        navigate("/", { replace: true });
-      }
-    };
-    checkSession();
-  }, []);
 
   const handleFiles = async (selectedFiles) => {
     const fileArray = Array.from(selectedFiles);
@@ -72,6 +54,8 @@ export default function NewRequest() {
     });
   };
 
+  const token = localStorage.getItem('token');
+
   const uploadFile = async (file) => {
     setFiles((prev) =>
       prev.map((f) =>
@@ -97,7 +81,9 @@ export default function NewRequest() {
     try {
       const response = await fetch("http://localhost/bravodent_ci/new-orders", {
         method: "POST",
-        credentials: "include",
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 
@@ -188,7 +174,8 @@ export default function NewRequest() {
       const response = await fetch('http://localhost/bravodent_ci/new-orders-data', {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
         body: JSON.stringify(filesWithDuration),
@@ -344,9 +331,9 @@ export default function NewRequest() {
         shadow: "shadow-sm",
         icon: (
           <div className={`w-6 h-6 rounded-full flex items-center justify-center ${status === "Success" ? "bg-green-500" :
-              status === "Failed" ? "bg-red-500" :
-                status === "Uploading..." ? "bg-blue-500" :
-                  "bg-gray-400"
+            status === "Failed" ? "bg-red-500" :
+              status === "Uploading..." ? "bg-blue-500" :
+                "bg-gray-400"
             }`}>
             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {status === "Success" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />}
@@ -369,8 +356,8 @@ export default function NewRequest() {
         </div>
         {status === "Failed" && message && (
           <div className={`flex items-start space-x-2 text-xs px-3 py-2 rounded-lg border ${theme === 'light'
-              ? 'text-red-600 bg-red-50 border-red-200'
-              : 'text-red-400 bg-red-900/20 border-red-700'
+            ? 'text-red-600 bg-red-50 border-red-200'
+            : 'text-red-400 bg-red-900/20 border-red-700'
             }`}>
             <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -452,8 +439,8 @@ export default function NewRequest() {
                       Drag and drop your ZIP files here or click the button below. Supported format: .zip only
                     </p>
                     <label className={`inline-flex items-center px-8 py-3 font-semibold rounded-lg shadow-sm cursor-pointer transition-colors ${theme === 'light'
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-blue-700 hover:bg-blue-600 text-white'
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-blue-700 hover:bg-blue-600 text-white'
                       }`}>
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -619,12 +606,12 @@ export default function NewRequest() {
                         <div>
                           <h3 className="text-lg font-semibold mb-4">Submit Orders</h3>
                           <div className={`text-sm mb-4 ${files.some(f => f.uploadStatus === "Uploading...")
-                              ? theme === 'light' ? "text-yellow-600" : "text-yellow-400"
-                              : !files.some(f => f.uploadStatus === "Success")
-                                ? theme === 'light' ? "text-red-600" : "text-red-400"
-                                : canSubmit
-                                  ? theme === 'light' ? "text-green-600" : "text-green-400"
-                                  : getStatusTextClass()
+                            ? theme === 'light' ? "text-yellow-600" : "text-yellow-400"
+                            : !files.some(f => f.uploadStatus === "Success")
+                              ? theme === 'light' ? "text-red-600" : "text-red-400"
+                              : canSubmit
+                                ? theme === 'light' ? "text-green-600" : "text-green-400"
+                                : getStatusTextClass()
                             }`}>
                             {files.some(f => f.uploadStatus === "Uploading...")
                               ? "⏳ Please wait for all uploads to complete"
@@ -662,8 +649,8 @@ export default function NewRequest() {
                           </button>
                           {files.some(f => f.uploadStatus === "Failed") && canSubmit && (
                             <div className={`text-xs text-center py-1 rounded ${theme === 'light'
-                                ? 'text-yellow-600 bg-yellow-50'
-                                : 'text-yellow-400 bg-yellow-900/20'
+                              ? 'text-yellow-600 bg-yellow-50'
+                              : 'text-yellow-400 bg-yellow-900/20'
                               }`}>
                               ⚠️ Only successful files will be submitted
                             </div>

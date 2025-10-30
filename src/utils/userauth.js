@@ -3,5 +3,5 @@ export function logoutUser() {
   localStorage.removeItem("user");
   
   // redirect to login
-  window.location.href = "/user/login";
+  window.location.href = "/user";
 }
