@@ -56,57 +56,63 @@ export default function Chatbox({ orderid }) {
     // Fetch messages for BOTH client and designer - FIXED VERSION
     useEffect(() => {
         if (orderid && userId && userRole) {
-            fetch(`http://localhost/bravodent_ci/chat/get-chat/${orderid}`, {
-                method: "GET",
-                headers: {
-                    'Content-Type': "application/json",
-                    'Authorization': `Bearer ${token}`
-                },
-            })
-                .then(res => {
-                    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-                    return res.json();
+            const fetchChat = () => {
+                fetch(`http://localhost/bravodent_ci/chat/get-chat/${orderid}`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': "application/json",
+                        'Authorization': `Bearer ${token}`
+                    },
                 })
-                .then(data => {
-                    if (data.status === 'success' && Array.isArray(data.data)) {
-                        const formattedMessages = data.data.map(msg => {
-                            // Determine message alignment based on user_type from API
-                            const isClientMessage = msg.user_type === 'Client';
-                            const isDesignerMessage = msg.user_type === 'Designer';
-                            
-                            // For current user viewing:
-                            // - If I'm a client: my messages (client) should be on right, designer messages on left
-                            // - If I'm a designer: my messages (designer) should be on right, client messages on left
-                            const shouldShowRight = 
-                                (userRole === 'client' && isClientMessage) || 
-                                (userRole === 'designer' && isDesignerMessage);
+                    .then(res => {
+                        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'success' && Array.isArray(data.data)) {
+                            const formattedMessages = data.data.map(msg => {
+                                // Determine message alignment based on user_type from API
+                                const isClientMessage = msg.user_type === 'Client';
+                                const isDesignerMessage = msg.user_type === 'Designer';
 
-                            return {
-                                id: msg.chatid || msg.id,
-                                orderid: msg.orderid,
-                                text: msg.message || msg.text,
-                                sender: msg.sender,
-                                timestamp: msg.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                user_type: msg.user_type, // Keep original user_type from API
-                                alignment: shouldShowRight ? 'right' : 'left', // Add alignment field
-                                fileSize: msg.file_size ? formatFileSize(msg.file_size) : null,
-                                filePath: msg.file_path || msg.filePath,
-                                fileName: msg.filename || msg.fileName,
-                                file_path: msg.file_path,
-                                filename: msg.filename,
-                                file_size: msg.file_size,
-                                hasAttachment: !!(msg.file_path || msg.filename)
-                            };
-                        });
-                        setMessages(formattedMessages);
-                    } else {
+                                // For current user viewing:
+                                // - If I'm a client: my messages (client) should be on right, designer messages on left
+                                // - If I'm a designer: my messages (designer) should be on right, client messages on left
+                                const shouldShowRight =
+                                    (userRole === 'client' && isClientMessage) ||
+                                    (userRole === 'designer' && isDesignerMessage);
+
+                                return {
+                                    id: msg.chatid || msg.id,
+                                    orderid: msg.orderid,
+                                    text: msg.message || msg.text,
+                                    sender: msg.sender,
+                                    timestamp: msg.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                    user_type: msg.user_type, // Keep original user_type from API
+                                    alignment: shouldShowRight ? 'right' : 'left', // Add alignment field
+                                    fileSize: msg.file_size ? formatFileSize(msg.file_size) : null,
+                                    filePath: msg.file_path || msg.filePath,
+                                    fileName: msg.filename || msg.fileName,
+                                    file_path: msg.file_path,
+                                    filename: msg.filename,
+                                    file_size: msg.file_size,
+                                    hasAttachment: !!(msg.file_path || msg.filename)
+                                };
+                            });
+                            setMessages(formattedMessages);
+                        } else {
+                            setMessages([]);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("❌ Error fetching messages:", err);
                         setMessages([]);
-                    }
-                })
-                .catch(err => {
-                    console.error("❌ Error fetching messages:", err);
-                    setMessages([]);
-                });
+                    });
+            }
+
+            fetchChat();
+            const interval = setInterval(fetchChat, 3000)
+            return () => clearInterval(interval)
         } else {
             setMessages([]);
         }
@@ -229,11 +235,11 @@ export default function Chatbox({ orderid }) {
                     // Replace temporary message with server response
                     setMessages(prev => prev.map(msg =>
                         msg.id === tempMessage.id
-                            ? { 
-                                ...msg, 
+                            ? {
+                                ...msg,
                                 id: data.data.chatid,
                                 alignment: 'right'
-                              }
+                            }
                             : msg
                     ));
                 }
@@ -349,14 +355,8 @@ export default function Chatbox({ orderid }) {
                     </div>
                     <div>
                         <h4 className="text-white font-semibold text-sm bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
-                            {userName} ({userRole === 'client' ? 'Client' : 'Designer'})
+                            {userRole === 'client' ? 'Designer Team' : orderid}
                         </h4>
-                        <div className="flex items-center gap-1">
-                            <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400' : 'bg-gray-400'}`}></span>
-                            <span className={`text-[10px] ${isOnline ? 'text-green-400' : 'text-gray-400'}`}>
-                                {isOnline ? 'Online' : 'Offline'} • Order: {orderid}
-                            </span>
-                        </div>
                     </div>
                 </div>
 
@@ -372,7 +372,7 @@ export default function Chatbox({ orderid }) {
                 </div>
             </div>
 
-            {/* Chat Body - FIXED FILE DISPLAY */}
+            {/* Chat Body - FIXED STRUCTURE */}
             <div ref={chatBodyRef} id="chatBody" className="p-3 h-72 overflow-y-auto space-y-3 bg-gradient-to-br from-gray-900 to-gray-800 scroll-smooth">
                 {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
@@ -390,53 +390,33 @@ export default function Chatbox({ orderid }) {
                         const fileSize = message.fileSize || (message.file_size ? formatFileSize(message.file_size) : null);
 
                         return (
-                            <div key={message.id} className={`flex ${isRightAligned ? "justify-end" : "justify-start"}`}>
-                                <div
-                                    className={`max-w-[85%] p-2 rounded-lg shadow-md ${isRightAligned
-                                        ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none"
-                                        : "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-bl-none"
-                                        }`}
+                            <div key={message.id} className={`flex flex-col ${isRightAligned ? "items-end" : "items-start"}`}>
+                                <div className={`max-w-[85%] p-2 rounded-lg shadow-md ${isRightAligned
+                                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none"
+                                    : "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-bl-none"
+                                    }`}
                                 >
                                     {hasAttachment || isUploading || uploadFailed ? (
                                         <div className="flex items-center gap-2">
                                             <div className={`w-8 h-8 rounded flex items-center justify-center ${uploadFailed ? 'bg-red-500/20' : isRightAligned ? 'bg-green-500/20' : 'bg-blue-500/20'}`}>
                                                 <FontAwesomeIcon
                                                     icon={faFile}
-                                                    className={`text-xs ${uploadFailed ? 'text-red-300' : isRightAligned ? 'text-green-300' : 'text-blue-300'}`}
+                                                    className={`text-xl ${uploadFailed ? 'text-red-300' : isRightAligned ? 'text-green-300' : 'text-blue-300'}`}
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 {/* Show file name as main content - like text messages */}
-                                                <p className="text-xs whitespace-pre-wrap leading-relaxed">
+                                                <p className="text-[10px] whitespace-pre-wrap leading-relaxed">
                                                     {fileName}
                                                 </p>
-                                                {/* Show file size and timestamp below - like timestamp area */}
-                                                <div className="flex items-center gap-1 text-[10px] mt-0.5">
-                                                    {isUploading ? (
-                                                        <span className="text-yellow-400">Uploading...</span>
-                                                    ) : uploadFailed ? (
-                                                        <span className="text-red-400">Upload failed</span>
-                                                    ) : (
-                                                        <>
-                                                            <span className={isRightAligned ? "text-green-100" : "text-blue-100"}>
-                                                                {fileSize || 'Unknown size'}
-                                                            </span>
-                                                            <span>•</span>
-                                                            <span className={isRightAligned ? "text-green-100" : "text-blue-100"}>
-                                                                {message.timestamp}
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </div>
                                             </div>
                                             {!isUploading && !uploadFailed && message.file_path && (
                                                 <button
                                                     onClick={() => downloadFile(message.file_path, fileName)}
-                                                    className={`text-xs p-1 rounded transition-colors hover:bg-opacity-30 ${
-                                                        isRightAligned 
-                                                            ? "text-green-200 hover:text-white hover:bg-green-500" 
-                                                            : "text-blue-200 hover:text-white hover:bg-blue-500"
-                                                    }`}
+                                                    className={`text-xs p-1 rounded transition-colors hover:bg-opacity-30 ${isRightAligned
+                                                        ? "text-green-200 hover:text-white hover:bg-green-500"
+                                                        : "text-blue-200 hover:text-white hover:bg-blue-500"
+                                                        }`}
                                                     title="Download file"
                                                 >
                                                     <FontAwesomeIcon icon={faDownload} />
@@ -444,16 +424,15 @@ export default function Chatbox({ orderid }) {
                                             )}
                                         </div>
                                     ) : (
-                                        <>
-                                            <p className="text-xs whitespace-pre-wrap leading-relaxed">
-                                                {message.text}
-                                            </p>
-                                            <span className={`text-[10px] block mt-0.5 ${isRightAligned ? "text-green-100" : "text-blue-100"}`}>
-                                                {message.timestamp}
-                                            </span>
-                                        </>
+                                        <p className="text-xs whitespace-pre-wrap leading-relaxed">
+                                            {message.text}
+                                        </p>
                                     )}
                                 </div>
+                                {/* Timestamp now properly aligned with the message bubble */}
+                                <span className={`text-[10px] mt-1 px-1 ${isRightAligned ? "text-green-100 text-right" : "text-blue-100 text-left"}`}>
+                                    {message.timestamp}
+                                </span>
                             </div>
                         );
                     })
