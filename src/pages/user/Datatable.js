@@ -75,7 +75,7 @@ export default function Datatable({
 
         setTimeout(() => {
             setStatus('hide');
-        }, 3000)
+        }, 1000)
 
     }, [data]);
 
