@@ -1,11 +1,13 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState } from "react";
 import Hd from "./Hd";
 import Foot from "./Foot";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../Context/ThemeContext";
+import { UserContext } from "../../Context/UserContext";
 
 export default function NewRequest() {
   const { theme } = useContext(ThemeContext);
+  const { logout } = useContext(UserContext);
   const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [drag, setDragActive] = useState(false);
@@ -112,6 +114,10 @@ export default function NewRequest() {
       } else {
         // Backend returned an error
         throw new Error(result.message || "Upload failed");
+        if (result.error === 'Invalid or expired token') {
+          alert('Invalid or expired token. Please log in again.')
+          navigate(logout);
+        }
       }
     } catch (error) {
       clearInterval(progressInterval);
@@ -189,6 +195,12 @@ export default function NewRequest() {
           setTimeout(() => {
             resetPage();
           }, 3000);
+        }
+      }
+      else {
+        if (resp.error === 'Invalid or expired token') {
+          alert('Invalid or expired token. Please log in again.')
+          navigate(logout);
         }
       }
 

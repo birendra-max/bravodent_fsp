@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from 'react-router-dom';
 import { fetchWithAuth } from "../../utils/userapi";
 import { ThemeContext } from "../../Context/ThemeContext";
+import { UserContext } from "../../Context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 import {
     faShoppingCart,
@@ -20,7 +22,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
-    const { theme, setTheme } = useContext(ThemeContext);
+    const navigate = useNavigate();
+    const { logout } = useContext(UserContext);
+    const { theme } = useContext(ThemeContext);
     const [cases, setCases] = useState(null);
     const [cards, setCards] = useState([]);
     const [form, setForm] = useState({
@@ -64,6 +68,12 @@ export default function Dashboard() {
                 }, 2000);
 
             } else {
+
+                if (data.error === 'Invalid or expired token') {
+                    alert('Invalid or expired token. Please log in again.')
+                    navigate(logout);
+                }
+
                 const statusEl = document.getElementById('status');
                 statusEl.className = 'mb-6 w-full px-4 py-3 text-sm font-medium border shadow-md rounded-lg border-red-400 bg-red-100 text-red-700';
                 statusEl.innerText = data.message;

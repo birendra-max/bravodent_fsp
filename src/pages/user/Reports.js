@@ -11,7 +11,7 @@ import {
 import { fetchWithAuth } from '../../utils/userapi';
 
 export default function Reports() {
-    const { theme} = useContext(ThemeContext);
+    const { theme } = useContext(ThemeContext);
     const [selectedFilter, setSelectedFilter] = useState();
     const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState('');
@@ -81,30 +81,25 @@ export default function Reports() {
         setIsLoading(true);
 
         try {
-            // Prepare request data
             const requestData = {
                 filter: filterValue || selectedFilter,
-                startDate: startDate,
-                endDate: endDate
+                startDate,
+                endDate,
             };
 
-            const res = await fetch('http://localhost/bravodent_ci/get-reports', {
+            // Use centralized fetchWithAuth for API call
+            const responseData = await fetchWithAuth("get-reports", {
                 method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: "include",
-                body: JSON.stringify(requestData)
+                body: JSON.stringify(requestData),
             });
 
-            const responseData = await res.json();
-
-            if (responseData.status === 'success') {
+            if (responseData?.status === "success") {
                 setData(responseData.cases);
             } else {
                 setData([]);
             }
         } catch (error) {
+            console.error("Report fetch error:", error);
             setData([]);
         } finally {
             setIsLoading(false);

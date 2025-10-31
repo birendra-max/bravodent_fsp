@@ -85,30 +85,25 @@ export default function MultiSearch() {
         setIsLoading(true);
 
         try {
-            // Prepare request data
             const requestData = {
                 filter: filterValue || selectedFilter,
-                startDate: startDate,
-                endDate: endDate
+                startDate,
+                endDate,
             };
 
-            const res = await fetch('http://localhost/bravodent_ci/get-cases-data', {
+            // Use centralized fetchWithAuth
+            const responseData = await fetchWithAuth("get-cases-data", {
                 method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: "include",
-                body: JSON.stringify(requestData)
+                body: JSON.stringify(requestData),
             });
 
-            const responseData = await res.json();
-
-            if (responseData.status === 'success') {
+            if (responseData?.status === "success") {
                 setData(responseData.cases);
             } else {
                 setData([]);
             }
         } catch (error) {
+            console.error("Search error:", error);
             setData([]);
         } finally {
             setIsLoading(false);
