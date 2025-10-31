@@ -5,9 +5,12 @@ import {
     faPaperclip, faPaperPlane
 } from "@fortawesome/free-solid-svg-icons";
 import { DesignerContext } from '../Context/DesignerContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dchatbox({ orderid }) {
-    const { designer: currentUser } = useContext(DesignerContext);
+    const navigate = useNavigate();
+    const token = localStorage.getItem('token');
+    const { designer: currentDesigner, logout } = useContext(DesignerContext);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [isOnline, setIsOnline] = useState(true);
@@ -31,7 +34,7 @@ export default function Dchatbox({ orderid }) {
 
     // Fetch messages when chatbox opens or orderid changes
     useEffect(() => {
-        if (orderid && currentUser?.userid) {
+        if (orderid && currentDesigner?.desiid) {
             // Clear messages first to avoid showing old messages during fetch
             setMessages([]);
 
@@ -39,8 +42,8 @@ export default function Dchatbox({ orderid }) {
                 method: "GET",
                 headers: {
                     'Content-Type': "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
-                credentials: 'include',
             })
                 .then(res => res.json())
                 .then(data => {
@@ -49,7 +52,7 @@ export default function Dchatbox({ orderid }) {
                         const formattedMessages = data.data.map(msg => ({
                             ...msg,
                             // Ensure we have the correct field for alignment
-                            user_type: msg.user_type || (msg.sender === currentUser.userid ? 'client' : 'other'),
+                            user_type: msg.user_type || (msg.sender === currentDesigner.desiid ? 'designer' : 'other'),
                             // Ensure file data is properly handled
                             fileSize: msg.file_size || msg.fileSize,
                             filePath: msg.file_path || msg.filePath,
@@ -59,6 +62,10 @@ export default function Dchatbox({ orderid }) {
                     } else {
                         // If no messages or error, set empty array
                         setMessages([]);
+                        if (data.error === 'Invalid or expired token') {
+                            alert('Invalid or expired token. Please log in again.')
+                            navigate(logout);
+                        }
                     }
                 })
                 .catch(err => {
@@ -66,15 +73,15 @@ export default function Dchatbox({ orderid }) {
                     setMessages([]); // Clear on error
                 });
         } else {
-            // If no orderid or user, clear messages
+            // If no orderid or designer, clear messages
             setMessages([]);
         }
-    }, [orderid, currentUser]); // This will re-run when orderid changes
+    }, [orderid, currentDesigner]); // This will re-run when orderid changes
 
     // Enable dragging
     useEffect(() => {
         const chatbox = chatboxRef.current;
-        const header = document.getElementById("chatHeader");
+        const header = document.getElementById("dchatHeader");
 
         const mouseDownHandler = (e) => {
             posRef.current = {
@@ -106,9 +113,9 @@ export default function Dchatbox({ orderid }) {
         };
     }, []);
 
-    // Helper function to determine if message is from current user
+    // Helper function to determine if message is from current designer
     const isCurrentUserMessage = (message) => {
-        return message.user_type === 'client' || message.sender === currentUser.userid;
+        return message.user_type === 'designer' || message.sender === currentDesigner.desiid;
     };
 
     // Download file function
@@ -135,9 +142,9 @@ export default function Dchatbox({ orderid }) {
             const message = {
                 orderid: orderid,
                 text: newMessage.trim(),
-                sender: currentUser.userid,
+                sender: currentDesigner.desiid,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                user_type: 'client' // ✅ Add user_type for consistent alignment
+                user_type: 'designer' // ✅ Add user_type for consistent alignment
             };
 
             // Add the new message to local state
@@ -147,12 +154,18 @@ export default function Dchatbox({ orderid }) {
             // Send to backend
             fetch('http://localhost/bravodent_ci/send-message', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: "include",
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify(message)
             })
                 .then(res => res.json())
                 .then(data => {
+                    if (data.error === 'Invalid or expired token') {
+                        alert('Invalid or expired token. Please log in again.')
+                        navigate(logout);
+                    }
                     console.log("Message saved:", data);
                 })
                 .catch(err => console.error("Error sending message:", err));
@@ -165,7 +178,7 @@ export default function Dchatbox({ orderid }) {
             const chatData = new FormData();
             chatData.append('orderid', orderid);
             chatData.append('text', file.name);
-            chatData.append('sender', currentUser.userid);
+            chatData.append('sender', currentDesigner.desiid);
             chatData.append('timestamp', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
             chatData.append('chatfile', file); // ✅ important: name must match backend
 
@@ -175,11 +188,11 @@ export default function Dchatbox({ orderid }) {
                 id: tempId, // Temporary ID
                 orderid,
                 text: file.name,
-                sender: currentUser.userid,
+                sender: currentDesigner.desiid,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 fileSize: formatFileSize(file.size),
                 fileName: file.name,
-                user_type: 'client',
+                user_type: 'designer',
                 // Temporary file preview (will be replaced by backend response)
                 isUploading: true,
                 file_path: null // Will be updated when backend responds
@@ -192,7 +205,9 @@ export default function Dchatbox({ orderid }) {
             // Upload file to backend
             fetch('http://localhost/bravodent_ci/chat-file', {
                 method: 'POST',
-                credentials: "include",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
                 body: chatData,
             })
                 .then(res => res.json())
@@ -213,6 +228,10 @@ export default function Dchatbox({ orderid }) {
                                 : msg
                         ));
                     } else {
+                        if (response.error === 'Invalid or expired token') {
+                            alert('Invalid or expired token. Please log in again.')
+                            navigate(logout);
+                        }
                         // Handle case where response structure is different
                         console.warn("Unexpected response structure:", response);
                         setMessages(prev => prev.map(msg =>
@@ -266,13 +285,13 @@ export default function Dchatbox({ orderid }) {
 
     return (
         <section
-            id="chatbox"
+            id="dchatbox"
             ref={chatboxRef}
             style={{ position: "fixed", top: "80px", right: "24px" }}
             className="md:w-[320px] w-[300px] h-[420px] rounded-xl shadow-xl border border-blue-400/30 bg-gradient-to-br from-gray-900 to-gray-800 z-[999] hidden overflow-hidden backdrop-blur-sm"
         >
             {/* Header */}
-            <div id="chatHeader"
+            <div id="dchatHeader"
                 className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-800/60 to-purple-800/60 rounded-t-xl border-b border-blue-400/30 cursor-move select-none">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md ring-1 ring-blue-400/50 relative">
@@ -297,7 +316,7 @@ export default function Dchatbox({ orderid }) {
                     </button>
                     <button
                         className="w-6 h-6 flex items-center justify-center text-white/60 hover:text-red-300 hover:bg-red-500/20 rounded transition-all duration-200 cursor-pointer text-xs"
-                        onClick={() => document.getElementById('chatbox').style.display = "none"}>
+                        onClick={() => document.getElementById('dchatbox').style.display = "none"}>
                         <FontAwesomeIcon icon={faTimes} />
                     </button>
                 </div>
@@ -306,7 +325,7 @@ export default function Dchatbox({ orderid }) {
             {/* Chat Body */}
             <div
                 ref={chatBodyRef}
-                id="chatBody"
+                id="dchatBody"
                 className="p-3 h-72 overflow-y-auto space-y-3 bg-gradient-to-br from-gray-900 to-gray-800 scroll-smooth"
             >
                 {messages.length === 0 ? (

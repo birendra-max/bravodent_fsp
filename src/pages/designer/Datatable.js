@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useContext } from "react";
 import Loder from "../../Components/Loder";
-import Dchatbox from "../../Components/Dchatbox";
+import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -211,7 +211,7 @@ export default function Datatable({
     return (
         <>
             <Loder status={status} />
-            <Dchatbox orderid={orderid} />
+            <Chatbox orderid={orderid} />
             {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
                 <div
