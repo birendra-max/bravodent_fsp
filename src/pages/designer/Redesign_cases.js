@@ -7,7 +7,6 @@ import Datatable from "./Datatable";
 import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function Redesign_cases() {
-    const token = localStorage.getItem('token');
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 

@@ -2,15 +2,12 @@ import { useContext, useEffect, useState } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
 import Datatable from "./Datatable";
-import { useNavigate } from 'react-router-dom';
 import Dashboard from "./Dashboard";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function Home() {
-    const token = localStorage.getItem('token');
-    const { theme, setTheme } = useContext(ThemeContext);
-    const navigate = useNavigate();
+    const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [

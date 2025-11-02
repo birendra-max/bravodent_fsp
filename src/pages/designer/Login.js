@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { DesignerContext } from '../../Context/DesignerContext';
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-    const { designer, setDesigner, logout } = useContext(DesignerContext);
+    const { setDesigner } = useContext(DesignerContext);
     const [activeIndex, setActiveIndex] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
     const [status, setStatus] = useState({ type: "", message: "" }); // success / error

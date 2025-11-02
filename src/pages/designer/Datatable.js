@@ -11,7 +11,7 @@ export default function Datatable({
     data = [],
     rowsPerPageOptions = [10, 25, 50],
 }) {
-    const { theme, setTheme } = useContext(ThemeContext);
+    const { theme } = useContext(ThemeContext);
     const [status, setStatus] = useState("show");
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);

@@ -128,19 +128,8 @@ export default function NewRequest() {
     }
   };
 
-  const removeFile = (fileName) => {
-    setFiles(prev => prev.filter(f => f.fileName !== fileName));
-  };
-
   const resetPage = () => {
     setFiles([]);
-  };
-
-  // Theme-based styling functions
-  const getMainClass = () => {
-    return theme === 'light'
-      ? 'bg-gray-50 text-gray-900'
-      : 'bg-gray-900 text-white';
   };
 
   const getCardClass = () => {

@@ -16,7 +16,6 @@ import {
     faCalendarDay,
     faCalendarCheck,
     faCalendarWeek,
-    faComment,
     faRepeat
 } from "@fortawesome/free-solid-svg-icons";
 

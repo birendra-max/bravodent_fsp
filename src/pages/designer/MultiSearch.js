@@ -12,8 +12,7 @@ import {
 import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function MultiSearch() {
-    const token = localStorage.getItem('token');
-    const { theme, setTheme } = useContext(ThemeContext);
+    const { theme } = useContext(ThemeContext);
     const [selectedFilter, setSelectedFilter] = useState();
     const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState('');

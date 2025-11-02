@@ -8,7 +8,7 @@ import { fetchWithAuth } from '../../utils/designerapi';
 
 
 export default function AllCases() {
-    const { theme, setTheme } = useContext(ThemeContext);
+    const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
     const columns = [

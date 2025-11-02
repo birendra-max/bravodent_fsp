@@ -27,7 +27,7 @@ export default function Hd() {
         }
     })
 
-    const { theme, setTheme } = useContext(ThemeContext);
+    const { setTheme } = useContext(ThemeContext);
     const [mode, setMode] = useState('light');
     const navigate = useNavigate();
     const location = useLocation();
@@ -174,7 +174,7 @@ export default function Hd() {
     };
 
     return (
-        <header className="fixed top-0 left-0 w-full h-[9vh] bg-gray-800 text-white flex items-center">
+        <header className="fixed z-50 top-0 left-0 w-full h-[9vh] bg-gray-800 text-white flex items-center">
             <nav className={`w-full transition-all duration-300 ${scrolled ? "bg-gray-900 shadow-2xl" : "bg-gray-900"
                 }`}>
                 <div className="w-full mx-auto px-3 sm:px-4 lg:px-6">

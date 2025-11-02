@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useContext } from "react";
+import { useState, useMemo, useEffect, useContext } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -11,7 +11,7 @@ export default function Datatable({
     data = [],
     rowsPerPageOptions = [10, 25, 50],
 }) {
-    const { theme, setTheme } = useContext(ThemeContext);
+    const { theme } = useContext(ThemeContext);
     const [status, setStatus] = useState("show");
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -203,6 +203,7 @@ export default function Datatable({
         const link = document.createElement('a');
         link.href = path;
         link.download = filename;
+        link.target='__blank'
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link)
