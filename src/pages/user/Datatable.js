@@ -214,7 +214,7 @@ export default function Datatable({
             <Chatbox orderid={orderid} />
             {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
-                <div
+                <section
                     style={{ padding: "20px" }}
                     className={`overflow-scroll md:overflow-hidden rounded-xl mt-4 ${getBackgroundClass()}`}
                 >
@@ -467,7 +467,7 @@ export default function Datatable({
                             )}
                         </>
                     )}
-                </div>
+                </section>
             )}
         </>
     );

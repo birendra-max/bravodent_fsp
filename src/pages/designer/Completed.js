@@ -32,7 +32,7 @@ export default function Completed() {
                 });
                 // data is already the parsed JSON response
                 if (data && data.status === 'success') {
-                    setData(data.new_cases||[]);
+                    setData(data.new_cases || []);
                 } else {
                     setData([]);
                 }
@@ -49,7 +49,7 @@ export default function Completed() {
     return (
         <>
             <Hd />
-            <main id="main" className={`py-22 px-4 transition-colors duration-300 min-h-screen ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'}`}>
+            <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-22`}>
                 <Dashboard />
                 <Datatable columns={columns} data={data} rowsPerPage={10} />
             </main>

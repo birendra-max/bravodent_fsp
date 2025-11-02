@@ -244,7 +244,7 @@ export default function Profile() {
         return (
             <>
                 <Hd />
-                <main className={`min-h-screen transition-colors duration-300 ${getMainClass()}`}>
+                <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-22`}>
                     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
                         <div className="flex justify-center items-center min-h-80 sm:min-h-96">
                             <div className="text-center px-4">

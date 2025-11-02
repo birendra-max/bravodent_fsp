@@ -1,4 +1,4 @@
-import { useContext, useState ,useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -153,8 +153,8 @@ export default function MultiSearch() {
     return (
         <>
             <Hd />
-            <main id="main" className={`py-22 px-4 transition-colors duration-300 min-h-screen ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'}`}>
-                <div className="min-h-screen px-2 sm:px-6 lg:px-2">
+            <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18`}>
+                <div className="px-2 sm:px-6 lg:px-2">
                     <div className="w-full max-w-full">
 
                         {/* Header Section */}
@@ -189,7 +189,7 @@ export default function MultiSearch() {
                         <div className={`bg-gray-50 rounded-xl ${themeClasses.card} p-4`}>
 
                             {/* Search Section */}
-                            <div className="mb-8 ">
+                            <div className="mb-8">
                                 <div className="max-w-4xl mx-auto">
                                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                                         <div className="md:col-span-2">

@@ -154,7 +154,7 @@ export default function MultiSearch() {
     return (
         <>
             <Hd />
-            <main id="main" className={`py-22 px-4 transition-colors duration-300 min-h-screen ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'}`}>
+            <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18`}>
                 <div className="min-h-screen px-2 sm:px-6 lg:px-2">
                     <div className="w-full max-w-full">
 

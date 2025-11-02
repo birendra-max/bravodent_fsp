@@ -306,9 +306,9 @@ export default function NewRequest() {
   return (
     <>
       <Hd />
-      <main id="main" className={`min-h-screen transition-colors duration-300 ${getMainClass()}`}>
+      <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18`}>
         <section className={theme === 'light' ? 'bg-gray-50' : 'bg-black'}>
-          <div className="max-w-full mx-auto py-22 px-8 mt-4">
+          <div className="max-w-full mx-auto mt-4">
             <div className={`rounded-xl shadow-sm border ${getCardClass()}`}>
               {/* Upload Area */}
               {files.length === 0 && (
