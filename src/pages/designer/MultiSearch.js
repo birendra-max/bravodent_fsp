@@ -93,7 +93,7 @@ export default function MultiSearch() {
             };
 
             // Use centralized fetchWithAuth
-            const responseData = await fetchWithAuth("designer/get-cases-data", {
+            const responseData = await fetchWithAuth("/get-cases-data", {
                 method: "POST",
                 body: JSON.stringify(requestData),
             });

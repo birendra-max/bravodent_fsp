@@ -22,6 +22,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
+    const base_url = localStorage.getItem('base_url');
     const navigate = useNavigate();
     const { logout } = useContext(UserContext);
     const { theme } = useContext(ThemeContext);
@@ -47,7 +48,7 @@ export default function Dashboard() {
             feedBackaRef.current.focus();
         }
         else {
-            const resp = await fetch('http://localhost/bravodent_ci/save-feedback', {
+            const resp = await fetch(`${base_url}/save-feedback`, {
                 method: "POST",
                 headers: {
                     'Content-Type': "application/json",

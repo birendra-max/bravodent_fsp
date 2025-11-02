@@ -6,6 +6,7 @@ import { ThemeContext } from "../../Context/ThemeContext";
 import { UserContext } from "../../Context/UserContext";
 
 export default function NewRequest() {
+  let base_url = localStorage.getItem('base_url');
   const { theme } = useContext(ThemeContext);
   const { logout } = useContext(UserContext);
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ export default function NewRequest() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost/bravodent_ci/new-orders", {
+      const response = await fetch(`${base_url}/new-orders`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`
@@ -177,7 +178,7 @@ export default function NewRequest() {
     }));
 
     try {
-      const response = await fetch('http://localhost/bravodent_ci/new-orders-data', {
+      const response = await fetch(`${base_url}/new-orders-data`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -27,7 +27,7 @@ export default function TodayCases() {
     useEffect(() => {
         async function fetchTodayCases() {
             try {
-                const data = await fetchWithAuth('designer/today-cases', {
+                const data = await fetchWithAuth('/today-cases', {
                     method: "GET",
                 });
                 // data is already the parsed JSON response

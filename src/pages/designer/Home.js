@@ -27,7 +27,7 @@ export default function Home() {
     useEffect(() => {
         async function fetchNewCases() {
             try {
-                const data = await fetchWithAuth('designer/get-new-cases', {
+                const data = await fetchWithAuth('/get-new-cases', {
                     method: "GET",
                 });
 

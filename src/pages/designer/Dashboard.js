@@ -20,8 +20,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
+    let base_url = localStorage.getItem('base_url');
     const token = localStorage.getItem('token');
-    const { theme, setTheme } = useContext(ThemeContext);
+    const { theme } = useContext(ThemeContext);
     const [cases, setCases] = useState(null);
     const [cards, setCards] = useState([]);
     const [form, setForm] = useState({
@@ -44,10 +45,11 @@ export default function Dashboard() {
             feedBackaRef.current.focus();
         }
         else {
-            const resp = await fetch('http://localhost/bravodent_ci/save-feedback', {
+            const resp = await fetch(`${base_url}/save-feedback`, {
                 method: "POST",
                 headers: {
                     'Content-Type': "application/json",
+                    'Authorization': `Bearer ${token}`
                 },
                 credentials: 'include',
                 body: JSON.stringify(form),
@@ -81,7 +83,7 @@ export default function Dashboard() {
     useEffect(() => {
         async function fetchCardsData() {
             try {
-                const data = await fetchWithAuth('designer/all-cases-data-count', {
+                const data = await fetchWithAuth('/all-cases-data-count', {
                     method: "GET",
                 });
 

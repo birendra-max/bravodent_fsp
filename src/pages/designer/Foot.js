@@ -8,7 +8,7 @@ export default function Foot() {
                 <strong>
                     Copyright &copy; 2014-
                     <span>{new Date().getFullYear()}</span>{" "}
-                    <Link to="/user/home" className="text-orange-500 hover:underline">
+                    <Link to="/designer/home" className="text-orange-500 hover:underline">
                         BravoDent
                     </Link>
                 </strong>{" "}

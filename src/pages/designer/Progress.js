@@ -27,7 +27,7 @@ export default function Progress() {
     useEffect(() => {
         async function fetchProgressCases() {
             try {
-                const data = await fetchWithAuth('designer/get-progress', {
+                const data = await fetchWithAuth('/get-progress', {
                     method: "GET",
                 });
 

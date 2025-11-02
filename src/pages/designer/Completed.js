@@ -27,7 +27,7 @@ export default function Completed() {
     useEffect(() => {
         async function fetchCompletedCases() {
             try {
-                const data = await fetchWithAuth('designer/get-completed', {
+                const data = await fetchWithAuth('/get-completed', {
                     method: "GET",
                 });
                 // data is already the parsed JSON response

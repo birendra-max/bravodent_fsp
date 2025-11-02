@@ -27,7 +27,7 @@ export default function WeeklyCases() {
     useEffect(() => {
         async function fetchTodayCases() {
             try {
-                const data = await fetchWithAuth('designer/weekly-cases', {
+                const data = await fetchWithAuth('/weekly-cases', {
                     method: "GET",
                 });
                 // data is already the parsed JSON response

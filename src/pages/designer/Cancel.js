@@ -27,7 +27,7 @@ export default function Cancel() {
     useEffect(() => {
         async function fetchCancelCases() {
             try {
-                const data = await fetchWithAuth('designer/get-cancel', {
+                const data = await fetchWithAuth('/get-cancel', {
                     method: "GET",
                 });
 

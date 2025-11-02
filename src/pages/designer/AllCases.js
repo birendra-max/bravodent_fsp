@@ -27,7 +27,7 @@ export default function AllCases() {
     useEffect(() => {
         async function fetchAllCases() {
             try {
-                const data = await fetchWithAuth('designer/get-all-cases', {
+                const data = await fetchWithAuth('/get-all-cases', {
                     method: "GET",
                 });
 

@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import Hd from './Hd';
 import Foot from './Foot';
-import { UserContext } from '../../Context/UserContext';
+import { DesignerContext } from '../../Context/DesignerContext';
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -27,9 +27,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Profile() {
-    const { theme, setTheme } = useContext(ThemeContext);
+    let base_url = localStorage.getItem('base_url');
+    const token = localStorage.getItem('token');
+    const { theme } = useContext(ThemeContext);
     const [formStatus, setFormStatus] = useState(0);
-    const { user, setUser } = useContext(UserContext);
+    const { designer, setDesigner } = useContext(DesignerContext);
     const [showPassword, setShowPassword] = useState(false);
     const [activeTab, setActiveTab] = useState('personal');
     const [loading, setLoading] = useState(false);
@@ -55,28 +57,28 @@ export default function Profile() {
     const fetchUserData = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost/bravodent_ci/get-user-profile', {
+            const response = await fetch(`${base_url}/get-user-profile`, {
                 method: "GET",
                 headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: 'include',
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             const data = await response.json();
             if (data.status === 'success') {
-                setUser(data.user);
+                setDesigner(data.designer);
                 setForm({
-                    email: data.user.email || "",
-                    designation: data.user.designation || "",
-                    occlusion: data.user.occlusion || "",
-                    labname: data.user.labname || "",
-                    mobile: data.user.mobile || "",
-                    anatomy: data.user.anatomy || "",
-                    contact: data.user.contact || "",
-                    pontic: data.user.pontic || "",
+                    email: data.designer.email || "",
+                    designation: data.designer.designation || "",
+                    occlusion: data.designer.occlusion || "",
+                    labname: data.designer.labname || "",
+                    mobile: data.designer.mobile || "",
+                    anatomy: data.designer.anatomy || "",
+                    contact: data.designer.contact || "",
+                    pontic: data.designer.pontic || "",
                     password: "",
-                    remark: data.user.remark || "",
+                    remark: data.designer.remark || "",
                 });
             }
         } catch (error) {
@@ -94,34 +96,33 @@ export default function Profile() {
 
             try {
                 setProfileLoading(true);
-                const profileresp = await fetch("http://localhost/bravodent_ci/update-profile", {
+                const profileresp = await fetch(`${base_url}/update-profile`, {
                     method: "POST",
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: formData,
-                    credentials: "include",
                 });
 
                 const data = await profileresp.json();
                 const statusEl = document.getElementById('profilestatus');
                 if (data.status === 'success') {
-                    statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${
-                        theme === 'light' ? 'text-green-700' : 'text-green-400'
-                    }`;
+                    statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${theme === 'light' ? 'text-green-700' : 'text-green-400'
+                        }`;
                     statusEl.innerText = data.message;
                     await fetchUserData();
                     setTimeout(() => {
                         statusEl.innerText = '';
                     }, 3000);
                 } else {
-                    statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${
-                        theme === 'light' ? 'text-red-700' : 'text-red-400'
-                    }`;
+                    statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${theme === 'light' ? 'text-red-700' : 'text-red-400'
+                        }`;
                     statusEl.innerText = data.message;
                 }
             } catch (err) {
                 const statusEl = document.getElementById('profilestatus');
-                statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${
-                    theme === 'light' ? 'text-red-700' : 'text-red-400'
-                }`;
+                statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${theme === 'light' ? 'text-red-700' : 'text-red-400'
+                    }`;
                 statusEl.innerText = 'Upload failed. Please try again.';
             } finally {
                 setProfileLoading(false);
@@ -138,37 +139,34 @@ export default function Profile() {
         e.preventDefault();
         try {
             setLoading(true);
-            const response = await fetch('http://localhost/bravodent_ci/update-user', {
+            const response = await fetch(`${base_url}/update-user`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${token}`
                 },
-                credentials: 'include',
                 body: JSON.stringify(form),
             });
 
             const resp = await response.json();
             const statusEl = document.getElementById('status');
             if (resp.status === 'success') {
-                statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${
-                    theme === 'light' ? 'text-green-700' : 'text-green-400'
-                }`;
+                statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${theme === 'light' ? 'text-green-700' : 'text-green-400'
+                    }`;
                 statusEl.innerText = resp.message;
                 await fetchUserData();
                 setTimeout(() => {
                     statusEl.innerText = '';
                 }, 3000);
             } else {
-                statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${
-                    theme === 'light' ? 'text-red-700' : 'text-red-400'
-                }`;
+                statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${theme === 'light' ? 'text-red-700' : 'text-red-400'
+                    }`;
                 statusEl.innerText = resp.message;
             }
         } catch (error) {
             const statusEl = document.getElementById('status');
-            statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${
-                theme === 'light' ? 'text-red-700' : 'text-red-400'
-            }`;
+            statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${theme === 'light' ? 'text-red-700' : 'text-red-400'
+                }`;
             statusEl.innerText = 'Update failed. Please try again.';
         } finally {
             setLoading(false);
@@ -177,8 +175,8 @@ export default function Profile() {
 
     // Theme-based styling functions
     const getMainClass = () => {
-        return theme === 'light' 
-            ? 'bg-gray-100 sm:bg-gray-200' 
+        return theme === 'light'
+            ? 'bg-gray-100 sm:bg-gray-200'
             : 'bg-black';
     };
 
@@ -242,7 +240,7 @@ export default function Profile() {
             : 'border-gray-700';
     };
 
-    if (!user || Object.keys(user).length === 0) {
+    if (!designer || Object.keys(designer).length === 0) {
         return (
             <>
                 <Hd />
@@ -251,9 +249,8 @@ export default function Profile() {
                         <div className="flex justify-center items-center min-h-80 sm:min-h-96">
                             <div className="text-center px-4">
                                 <FontAwesomeIcon icon={faExclamationTriangle} className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-500 mb-3 sm:mb-4" />
-                                <h2 className={`text-xl sm:text-2xl font-bold mb-2 ${
-                                    theme === 'light' ? 'text-gray-800' : 'text-white'
-                                }`}>User Not Found</h2>
+                                <h2 className={`text-xl sm:text-2xl font-bold mb-2 ${theme === 'light' ? 'text-gray-800' : 'text-white'
+                                    }`}>User Not Found</h2>
                                 <p className={theme === 'light' ? 'text-gray-600' : 'text-gray-400'}>
                                     Please log in to view your profile.
                                 </p>
@@ -275,33 +272,28 @@ export default function Profile() {
                     <div className="container mx-auto px-3 sm:px py-4 sm:py-3">
                         <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                             <div className="text-center sm:text-left">
-                                <h1 className={`text-2xl sm:text-3xl font-bold ${
-                                    theme === 'light' ? 'text-gray-800' : 'text-white'
-                                }`}>
+                                <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'text-gray-800' : 'text-white'
+                                    }`}>
                                     Profile Overview
                                 </h1>
-                                <p className={`mt-1 text-sm sm:text-base ${
-                                    theme === 'light' ? 'text-gray-600' : 'text-gray-300'
-                                }`}>Manage your account settings and preferences</p>
+                                <p className={`mt-1 text-sm sm:text-base ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'
+                                    }`}>Manage your account settings and preferences</p>
                             </div>
                             <nav className="flex justify-center sm:justify-start">
                                 <ol className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">
                                     <li>
-                                        <Link to="/user/home" className={`hover:text-blue-800 transition-colors duration-300 flex items-center ${
-                                            theme === 'light' ? 'text-blue-600' : 'text-blue-400'
-                                        }`}>
+                                        <Link to="/designer/home" className={`hover:text-blue-800 transition-colors duration-300 flex items-center ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'
+                                            }`}>
                                             <FontAwesomeIcon icon={faHome} className="w-3 h-3 mr-1 sm:mr-2" />
                                             <span className="hidden xs:inline">Home</span>
                                         </Link>
                                     </li>
                                     <li className="flex items-center">
-                                        <span className={`mx-1 sm:mx-2 ${
-                                            theme === 'light' ? 'text-gray-400' : 'text-gray-500'
-                                        }`}>/</span>
-                                        <span className={`font-semibold truncate max-w-[120px] sm:max-w-none ${
-                                            theme === 'light' ? 'text-blue-600' : 'text-blue-400'
-                                        }`}>
-                                            {user.name}
+                                        <span className={`mx-1 sm:mx-2 ${theme === 'light' ? 'text-gray-400' : 'text-gray-500'
+                                            }`}>/</span>
+                                        <span className={`font-semibold truncate max-w-[120px] sm:max-w-none ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'
+                                            }`}>
+                                            {designer.name}
                                         </span>
                                     </li>
                                 </ol>
@@ -321,7 +313,7 @@ export default function Profile() {
                                 <div className="text-center mb-4 sm:mb-6">
                                     <div className="relative inline-block">
                                         <div className="relative">
-                                            {!user.pic || user.pic === '' ? (
+                                            {!designer.pic || designer.pic === '' ? (
                                                 <img
                                                     className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg sm:rounded-xl mx-auto border-4 shadow-md"
                                                     src="/img/user.webp"
@@ -330,14 +322,13 @@ export default function Profile() {
                                             ) : (
                                                 <img
                                                     className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg sm:rounded-xl mx-auto border-4 shadow-md object-cover"
-                                                    src={`${user.pic}`}
+                                                    src={`${designer.pic}`}
                                                     alt="User profile"
                                                 />
                                             )}
                                             {profileLoading && (
-                                                <div className={`absolute inset-0 bg-opacity-70 rounded-lg sm:rounded-xl flex items-center justify-center ${
-                                                    theme === 'light' ? 'bg-white' : 'bg-gray-900'
-                                                }`}>
+                                                <div className={`absolute inset-0 bg-opacity-70 rounded-lg sm:rounded-xl flex items-center justify-center ${theme === 'light' ? 'bg-white' : 'bg-gray-900'
+                                                    }`}>
                                                     <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 animate-spin" />
                                                 </div>
                                             )}
@@ -347,14 +338,12 @@ export default function Profile() {
                                         </div>
                                     </div>
 
-                                    <h3 className={`text-lg sm:text-xl font-bold mt-3 sm:mt-4 truncate px-2 ${
-                                        theme === 'light' ? 'text-gray-800' : 'text-white'
-                                    }`}>
-                                        {user.name || 'User'}
+                                    <h3 className={`text-lg sm:text-xl font-bold mt-3 sm:mt-4 truncate px-2 ${theme === 'light' ? 'text-gray-800' : 'text-white'
+                                        }`}>
+                                        {designer.name || 'Designer'}
                                     </h3>
-                                    <p className={`text-xs sm:text-sm mt-1 font-medium ${
-                                        theme === 'light' ? 'text-blue-600' : 'text-blue-400'
-                                    }`}>Professional Account</p>
+                                    <p className={`text-xs sm:text-sm mt-1 font-medium ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'
+                                        }`}>Professional Account</p>
                                     <div className="flex items-center justify-center mt-2">
                                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
                                         <span className="text-green-600 text-xs font-medium">Online</span>
@@ -368,10 +357,9 @@ export default function Profile() {
                                             <FontAwesomeIcon icon={faIdCard} className="w-3 h-3 text-blue-500 mr-2" />
                                             Client ID
                                         </span>
-                                        <span className={`font-semibold px-2 py-1 rounded-md text-xs sm:text-sm ${
-                                            theme === 'light' ? 'text-gray-800 bg-blue-50' : 'text-white bg-blue-900/20'
-                                        }`}>
-                                            #{user.userid}
+                                        <span className={`font-semibold px-2 py-1 rounded-md text-xs sm:text-sm ${theme === 'light' ? 'text-gray-800 bg-blue-50' : 'text-white bg-blue-900/20'
+                                            }`}>
+                                            #{designer.desiid}
                                         </span>
                                     </div>
                                     <div className={`flex justify-between items-center py-2 border-b ${getDividerClass()}`}>
@@ -379,31 +367,28 @@ export default function Profile() {
                                             <FontAwesomeIcon icon={faCalendarAlt} className="w-3 h-3 text-purple-500 mr-2" />
                                             Member Since
                                         </span>
-                                        <span className={`font-semibold text-xs sm:text-sm ${
-                                            theme === 'light' ? 'text-gray-800' : 'text-white'
-                                        }`}>
-                                            {user.joining_date || 'N/A'}
+                                        <span className={`font-semibold text-xs sm:text-sm ${theme === 'light' ? 'text-gray-800' : 'text-white'
+                                            }`}>
+                                            {designer.joining_date || 'N/A'}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Status Button */}
-                                {user.status !== 'active' ? (
-                                    <button className={`w-full text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-300 mb-4 sm:mb-6 shadow-md flex items-center justify-center text-xs sm:text-sm ${
-                                        theme === 'light' 
-                                            ? 'bg-green-500 hover:bg-green-600' 
-                                            : 'bg-green-600 hover:bg-green-700'
-                                    }`}>
+                                {designer.status !== 'active' ? (
+                                    <button className={`w-full text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-300 mb-4 sm:mb-6 shadow-md flex items-center justify-center text-xs sm:text-sm ${theme === 'light'
+                                        ? 'bg-green-500 hover:bg-green-600'
+                                        : 'bg-green-600 hover:bg-green-700'
+                                        }`}>
                                         <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
-                                        Active Your Account 
+                                        Active Your Account
                                     </button>
                                 ) : (
-                                    <button className={`w-full text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-300 mb-4 sm:mb-6 shadow-md text-xs sm:text-sm ${
-                                        theme === 'light'
-                                            ? 'bg-red-500 hover:bg-red-600'
-                                            : 'bg-red-600 hover:bg-red-700'
-                                    }`}>
-                                       Inactive Your Account 
+                                    <button className={`w-full text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-300 mb-4 sm:mb-6 shadow-md text-xs sm:text-sm ${theme === 'light'
+                                        ? 'bg-red-500 hover:bg-red-600'
+                                        : 'bg-red-600 hover:bg-red-700'
+                                        }`}>
+                                        Inactive Your Account
                                     </button>
                                 )}
 
@@ -422,11 +407,10 @@ export default function Profile() {
                                                 accept='image/*'
                                                 onChange={handleFileChange}
                                                 disabled={profileLoading}
-                                                className={`w-full px-2 sm:px-3 py-2 border-2 border-dashed rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 file:mr-2 sm:file:mr-4 file:py-1 file:px-2 sm:file:px-3 file:rounded file:border-0 file:text-xs sm:file:text-sm file:font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
-                                                    theme === 'light'
-                                                        ? 'bg-gray-50 border-gray-300 text-gray-700 file:bg-blue-500 file:text-white hover:file:bg-blue-600'
-                                                        : 'bg-gray-700 border-gray-600 text-gray-300 file:bg-blue-600 file:text-white hover:file:bg-blue-700'
-                                                }`}
+                                                className={`w-full px-2 sm:px-3 py-2 border-2 border-dashed rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 file:mr-2 sm:file:mr-4 file:py-1 file:px-2 sm:file:px-3 file:rounded file:border-0 file:text-xs sm:file:text-sm file:font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'light'
+                                                    ? 'bg-gray-50 border-gray-300 text-gray-700 file:bg-blue-500 file:text-white hover:file:bg-blue-600'
+                                                    : 'bg-gray-700 border-gray-600 text-gray-300 file:bg-blue-600 file:text-white hover:file:bg-blue-700'
+                                                    }`}
                                             />
                                         </div>
                                     </div>
@@ -590,9 +574,8 @@ export default function Profile() {
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowPassword(!showPassword)}
-                                                        className={`absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 transition-colors duration-300 p-1 ${
-                                                            theme === 'light' ? 'text-gray-400 hover:text-blue-500' : 'text-gray-500 hover:text-blue-400'
-                                                        }`}
+                                                        className={`absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 transition-colors duration-300 p-1 ${theme === 'light' ? 'text-gray-400 hover:text-blue-500' : 'text-gray-500 hover:text-blue-400'
+                                                            }`}
                                                     >
                                                         <FontAwesomeIcon
                                                             icon={showPassword ? faEyeSlash : faEye}
@@ -600,9 +583,8 @@ export default function Profile() {
                                                         />
                                                     </button>
                                                 </div>
-                                                <p className={`text-xs mt-1 flex items-center ${
-                                                    theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                                }`}>
+                                                <p className={`text-xs mt-1 flex items-center ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                                                    }`}>
                                                     <FontAwesomeIcon icon={faKey} className="w-3 h-3 text-blue-400 mr-1" />
                                                     Leave blank to keep current password
                                                 </p>
@@ -627,25 +609,22 @@ export default function Profile() {
                                         {/* Submit Button */}
                                         <div className={`pt-4 sm:pt-6 border-t ${getBorderClass()}`}>
                                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                                                <div className={`text-xs sm:text-sm text-center sm:text-left ${
-                                                    theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                                }`}>
-                                                    Last updated: {user.joining_date}
+                                                <div className={`text-xs sm:text-sm text-center sm:text-left ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                                                    }`}>
+                                                    Last updated: {designer.joining_date}
                                                 </div>
                                                 <div className="flex flex-col items-stretch sm:items-end gap-2">
                                                     <p id="status" className="w-full text-center sm:text-right text-xs sm:text-sm"></p>
                                                     <button
                                                         disabled={formStatus === 0 || loading}
                                                         type="submit"
-                                                        className={`cursor-pointer text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg transition-all duration-300 shadow-md flex items-center justify-center text-sm sm:text-base w-full sm:w-auto ${
-                                                            formStatus === 0 || loading 
-                                                                ? "opacity-50 cursor-not-allowed" 
-                                                                : "hover:bg-blue-600"
-                                                        } ${
-                                                            theme === 'light' 
-                                                                ? 'bg-blue-500 hover:bg-blue-600' 
+                                                        className={`cursor-pointer text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg transition-all duration-300 shadow-md flex items-center justify-center text-sm sm:text-base w-full sm:w-auto ${formStatus === 0 || loading
+                                                            ? "opacity-50 cursor-not-allowed"
+                                                            : "hover:bg-blue-600"
+                                                            } ${theme === 'light'
+                                                                ? 'bg-blue-500 hover:bg-blue-600'
                                                                 : 'bg-blue-600 hover:bg-blue-700'
-                                                        }`}>
+                                                            }`}>
                                                         {loading ? (
                                                             <>
                                                                 <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />

@@ -27,8 +27,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Profile() {
+    let base_url = localStorage.getItem('base_url');
     const token = localStorage.getItem('token');
-    const { theme, setTheme } = useContext(ThemeContext);
+    const { theme } = useContext(ThemeContext);
     const [formStatus, setFormStatus] = useState(0);
     const { user, setUser } = useContext(UserContext);
     const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +57,7 @@ export default function Profile() {
     const fetchUserData = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost/bravodent_ci/get-user-profile', {
+            const response = await fetch(`${base_url}/get-user-profile`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -96,7 +97,7 @@ export default function Profile() {
 
             try {
                 setProfileLoading(true);
-                const profileresp = await fetch("http://localhost/bravodent_ci/update-profile", {
+                const profileresp = await fetch(`${base_url}/update-profile`, {
                     method: "POST",
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -139,11 +140,11 @@ export default function Profile() {
         e.preventDefault();
         try {
             setLoading(true);
-            const response = await fetch('http://localhost/bravodent_ci/update-user', {
+            const response = await fetch(`${base_url}/update-user`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    'Authorization':`Bearer ${token}`,
+                    'Authorization': `Bearer ${token}`,
                 },
                 credentials: 'include',
                 body: JSON.stringify(form),
@@ -378,16 +379,16 @@ export default function Profile() {
                                 {/* Status Button */}
                                 {user.status !== 'active' ? (
                                     <button className={`w-full text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-300 mb-4 sm:mb-6 shadow-md flex items-center justify-center text-xs sm:text-sm ${theme === 'light'
-                                            ? 'bg-green-500 hover:bg-green-600'
-                                            : 'bg-green-600 hover:bg-green-700'
+                                        ? 'bg-green-500 hover:bg-green-600'
+                                        : 'bg-green-600 hover:bg-green-700'
                                         }`}>
                                         <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
                                         Active Your Account
                                     </button>
                                 ) : (
                                     <button className={`w-full text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-300 mb-4 sm:mb-6 shadow-md text-xs sm:text-sm ${theme === 'light'
-                                            ? 'bg-red-500 hover:bg-red-600'
-                                            : 'bg-red-600 hover:bg-red-700'
+                                        ? 'bg-red-500 hover:bg-red-600'
+                                        : 'bg-red-600 hover:bg-red-700'
                                         }`}>
                                         Inactive Your Account
                                     </button>
@@ -409,8 +410,8 @@ export default function Profile() {
                                                 onChange={handleFileChange}
                                                 disabled={profileLoading}
                                                 className={`w-full px-2 sm:px-3 py-2 border-2 border-dashed rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 file:mr-2 sm:file:mr-4 file:py-1 file:px-2 sm:file:px-3 file:rounded file:border-0 file:text-xs sm:file:text-sm file:font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'light'
-                                                        ? 'bg-gray-50 border-gray-300 text-gray-700 file:bg-blue-500 file:text-white hover:file:bg-blue-600'
-                                                        : 'bg-gray-700 border-gray-600 text-gray-300 file:bg-blue-600 file:text-white hover:file:bg-blue-700'
+                                                    ? 'bg-gray-50 border-gray-300 text-gray-700 file:bg-blue-500 file:text-white hover:file:bg-blue-600'
+                                                    : 'bg-gray-700 border-gray-600 text-gray-300 file:bg-blue-600 file:text-white hover:file:bg-blue-700'
                                                     }`}
                                             />
                                         </div>
@@ -620,8 +621,8 @@ export default function Profile() {
                                                         disabled={formStatus === 0 || loading}
                                                         type="submit"
                                                         className={`cursor-pointer text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg transition-all duration-300 shadow-md flex items-center justify-center text-sm sm:text-base w-full sm:w-auto ${formStatus === 0 || loading
-                                                                ? "opacity-50 cursor-not-allowed"
-                                                                : "hover:bg-blue-600"
+                                                            ? "opacity-50 cursor-not-allowed"
+                                                            : "hover:bg-blue-600"
                                                             } ${theme === 'light'
                                                                 ? 'bg-blue-500 hover:bg-blue-600'
                                                                 : 'bg-blue-600 hover:bg-blue-700'

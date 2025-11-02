@@ -1,16 +1,19 @@
 import { logoutUser } from "./designerauth";
 
-const BASE_URL = "http://localhost/bravodent_ci/";
-
 let isLoggingOut = false; // 🔒 Prevent multiple logouts overlapping
 
 export async function fetchWithAuth(endpoint, options = {}) {
     let token = localStorage.getItem("token");
-
+    let base_url = localStorage.getItem('base_url');
     // 🛡️ Ensure token is valid before using it
     if (!token || token === "null" || token === "undefined" || token.trim() === "") {
         console.warn("Invalid token found in localStorage:", token);
         token = null;
+    }
+
+    if (!base_url || base_url === "null" || base_url === "undefined" || base_url.trim() === "") {
+        console.warn("Invalid base Url not found in localStorage:", base_url);
+        base_url = null;
     }
 
     const headers = {
@@ -20,7 +23,7 @@ export async function fetchWithAuth(endpoint, options = {}) {
     };
 
     try {
-        const response = await fetch(BASE_URL + endpoint, {
+        const response = await fetch(base_url + endpoint, {
             ...options,
             headers,
         });

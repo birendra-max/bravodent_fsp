@@ -89,7 +89,7 @@ export default function Reports() {
             };
 
             // Use centralized fetchWithAuth for API call
-            const responseData = await fetchWithAuth("designer/get-reports", {
+            const responseData = await fetchWithAuth("/get-reports", {
                 method: "POST",
                 body: JSON.stringify(requestData),
             });

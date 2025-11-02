@@ -29,7 +29,7 @@ export default function Home() {
     useEffect(() => {
         async function fetchRushCases() {
             try {
-                const data = await fetchWithAuth('designer/get-rush', {
+                const data = await fetchWithAuth('/get-rush', {
                     method: "GET",
                 });
                 // data is already the parsed JSON response

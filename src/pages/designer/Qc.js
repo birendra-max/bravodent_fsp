@@ -27,7 +27,7 @@ export default function Qc() {
     useEffect(() => {
         async function fetchQcCases() {
             try {
-                const data = await fetchWithAuth('designer/get-qc-cases', {
+                const data = await fetchWithAuth('/get-qc-cases', {
                     method: "GET",
                 });
                 // data is already the parsed JSON response

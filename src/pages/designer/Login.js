@@ -53,6 +53,7 @@ export default function Login() {
             if (data.status === "success" && data.message === "Login successfully" && data.designer?.desiid) {
                 setStatus({ type: "success", message: data.message });
                 localStorage.setItem('token', data.token);
+                localStorage.setItem('base_url', data.base_url);
                 setDesigner(data.designer);
                 setStatus({ type: 'success', message: data.message })
                 navigate('/designer/home');

@@ -27,7 +27,7 @@ export default function Hold() {
     useEffect(() => {
         async function fetchHoldCases() {
             try {
-                const data = await fetchWithAuth('designer/get-hold', {
+                const data = await fetchWithAuth('/get-hold', {
                     method: "GET",
                 });
                 // data is already the parsed JSON response

@@ -52,10 +52,10 @@ export default function Login() {
             }
 
             const data = await res.json();
-
             if (data.status === "success" && data.message === "Login successfully" && data.user?.userid) {
                 setUser(data.user);
                 localStorage.setItem('token', data.token);
+                localStorage.setItem('base_url',data.base_url);
                 setStatus({ type: "success", message: data.message });
                 navigate('/user/home');
             } else {
