@@ -309,14 +309,31 @@ export default function Datatable({
                                                     >
                                                         {
                                                             col.header === 'Message' ? (
-                                                                <div className="w-full flex justify-center items-center">
+                                                                <div className="w-full flex justify-center items-center relative mt-4">
                                                                     <img
                                                                         src="/img/messages.png"
                                                                         alt="Message"
-                                                                        className="w-8 h-8 cursor-pointer"
+                                                                        className="w-8 h-8 cursor-pointer hover:scale-110 transition-transform duration-200"
                                                                         onClick={() => openPopup(`${row.orderid}`)}
                                                                     />
+
+                                                                    {/* 🔹 Stylish message count badge */}
+                                                                    {row.totalMessages > 0 && (
+                                                                        <span className="
+                                                                                absolute -top-2 right-5
+                                                                                bg-gradient-to-r from-red-600 to-red-700
+                                                                                text-white text-[10px] font-bold
+                                                                                rounded-full min-w-[18px] h-[18px]
+                                                                                flex items-center justify-center
+                                                                                shadow-lg
+                                                                                animate-pulse
+                                                                                ">
+                                                                            {row.totalMessages > 99 ? '99+' : row.totalMessages}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
+
+
                                                             ) : col.header === 'Download' ? (
                                                                 <div className="flex justify-center items-center gap-2">
                                                                     {/* Initial File */}
