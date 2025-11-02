@@ -17,6 +17,7 @@ import {
     faCalendarCheck,
     faCalendarWeek,
     faComment,
+    faDrawPolygon
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
@@ -117,7 +118,7 @@ export default function Dashboard() {
                 { id: "yesterday", href: "/designer/yesterday_cases", title: "Yesterday's Cases", count: cases.yesterday_cases, color: "bg-blue-400", icon: faCalendarDay },
                 { id: "today", href: "/designer/today_cases", title: "Today's Cases", count: cases.today_cases, color: "bg-purple-500", icon: faCalendarCheck },
                 { id: "weekly", href: "/designer/weekly_case", title: "Weekly Cases", count: cases.weekly_cases, color: "bg-indigo-500", icon: faCalendarWeek },
-                { id: "feedback", href: "", title: "Your Feedback!", count: null, color: "bg-teal-500", icon: faComment },
+                { id: "Redesign", href: "/designer/redesign_cases", title: "Redesign Cases", count: cases.redesign, color: "bg-teal-500", icon: faDrawPolygon },
             ];
 
             setCards(updatedCards);
@@ -214,16 +215,7 @@ export default function Dashboard() {
                                     {card.count !== null ? (
                                         <h3 className={`text-xl font-bold ${getCountClass()}`}>{card.count}</h3>
                                     ) : (
-                                        <button
-                                            type="button"
-                                            className="mt-1 text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleOpenModal();
-                                            }}
-                                        >
-                                            Give Feedback
-                                        </button>
+                                        <h3 className={`text-xl font-bold ${getCountClass()}`}>{0}</h3>
                                     )}
                                 </div>
                             </div>

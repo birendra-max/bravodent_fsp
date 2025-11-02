@@ -319,53 +319,88 @@ export default function Datatable({
 
                                                                     {/* 🔹 Stylish message count badge */}
                                                                     {row.totalMessages > 0 && (
-                                                                        <span className="
-                                                                                absolute -top-2 right-5
-                                                                                bg-gradient-to-r from-red-600 to-red-700
-                                                                                text-white text-[10px] font-bold
-                                                                                rounded-full min-w-[18px] h-[18px]
-                                                                                flex items-center justify-center
-                                                                                shadow-lg
-                                                                                animate-pulse
-                                                                                ">
+                                                                        <span
+                                                                            className="
+                                                                                    absolute -top-2 right-5
+                                                                                    bg-gradient-to-r from-red-600 to-red-700
+                                                                                    text-white text-[10px] font-bold
+                                                                                    rounded-full min-w-[18px] h-[18px]
+                                                                                    flex items-center justify-center
+                                                                                    shadow-lg animate-pulse
+                                                                                "
+                                                                        >
                                                                             {row.totalMessages > 99 ? '99+' : row.totalMessages}
                                                                         </span>
                                                                     )}
                                                                 </div>
-
-
                                                             ) : col.header === 'Download' ? (
                                                                 <div className="flex justify-center items-center gap-2">
                                                                     {/* Initial File */}
-                                                                    {
-                                                                        row.file_path && row.file_path != '' ? (<button
+                                                                    {row.file_path && row.file_path !== '' && (
+                                                                        <button
                                                                             onClick={() => downloadFile('initial', row.file_path)}
                                                                             className="bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
                                                                         >
                                                                             Initial
-                                                                        </button>) : ''
-                                                                    }
+                                                                        </button>
+                                                                    )}
 
                                                                     {/* Finish File */}
-                                                                    {
-                                                                        row.finish_file_path && row.finish_file_path != '' ? (<button
+                                                                    {row.finish_file_path && row.finish_file_path !== '' && (
+                                                                        <button
                                                                             onClick={() => downloadFile('finish', row.finish_file_path)}
                                                                             className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
                                                                         >
                                                                             Finish
-                                                                        </button>) : ""
-                                                                    }
+                                                                        </button>
+                                                                    )}
 
                                                                     {/* STL File */}
-                                                                    {
-                                                                        row.finish_file_path && row.finish_file_path != '' ? (<button
+                                                                    {row.stl_file_path && row.stl_file_path !== '' && (
+                                                                        <button
                                                                             onClick={() => downloadFile('stl', row.stl_file_path)}
                                                                             className="bg-orange-500 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs"
                                                                         >
                                                                             STL
-                                                                        </button>) : ''
-                                                                    }
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            ) : col.header === 'Status' ? (
+                                                                <div className="flex justify-center items-center">
+                                                                    {(() => {
+                                                                        let statusColor = '';
+                                                                        let textColor = 'text-white';
 
+                                                                        switch (row.status?.toLowerCase()) {
+                                                                            case 'completed':
+                                                                                statusColor = 'bg-green-600';
+                                                                                break;
+                                                                            case 'pending':
+                                                                                statusColor = 'bg-yellow-500';
+                                                                                textColor = 'text-black';
+                                                                                break;
+                                                                            case 'new':
+                                                                                statusColor = 'bg-blue-500';
+                                                                                break;
+                                                                            case 'cancel':
+                                                                                statusColor = 'bg-red-600';
+                                                                                break;
+                                                                            case 'qc':
+                                                                                statusColor = 'bg-purple-600';
+                                                                                break;
+                                                                            default:
+                                                                                statusColor = 'bg-gray-400';
+                                                                                break;
+                                                                        }
+
+                                                                        return (
+                                                                            <span
+                                                                                className={`px-3 py-1 text-xs font-bold rounded-full shadow-md ${statusColor} ${textColor}`}
+                                                                            >
+                                                                                {row.status ? row.status : 'Unknown'}
+                                                                            </span>
+                                                                        );
+                                                                    })()}
                                                                 </div>
                                                             ) : (
                                                                 row[col.accessor] ?? "-"
