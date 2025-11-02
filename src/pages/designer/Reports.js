@@ -124,6 +124,27 @@ export default function Reports() {
             : 'bg-gray-800 border-gray-700 text-white';
     };
 
+    useEffect(() => {
+        async function fetchAllCases() {
+            try {
+                const data = await fetchWithAuth('/get-all-cases', {
+                    method: "GET",
+                });
+
+                // data is already the parsed JSON response
+                if (data && data.status === 'success') {
+                    setData(data.new_cases);
+                } else {
+                    setData([]);
+                }
+            } catch (error) {
+                console.error("Error fetching cases:", error);
+                setData([]);
+            }
+        }
+
+        fetchAllCases();
+    }, []);
 
     return (
         <>

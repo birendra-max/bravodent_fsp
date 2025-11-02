@@ -17,7 +17,7 @@ import {
     faCalendarCheck,
     faCalendarWeek,
     faComment,
-    faDrawPolygon
+    faRepeat
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
@@ -118,7 +118,7 @@ export default function Dashboard() {
                 { id: "yesterday", href: "/designer/yesterday_cases", title: "Yesterday's Cases", count: cases.yesterday_cases, color: "bg-blue-400", icon: faCalendarDay },
                 { id: "today", href: "/designer/today_cases", title: "Today's Cases", count: cases.today_cases, color: "bg-purple-500", icon: faCalendarCheck },
                 { id: "weekly", href: "/designer/weekly_case", title: "Weekly Cases", count: cases.weekly_cases, color: "bg-indigo-500", icon: faCalendarWeek },
-                { id: "Redesign", href: "/designer/redesign_cases", title: "Redesign Cases", count: cases.redesign, color: "bg-teal-500", icon: faDrawPolygon },
+                { id: "Redesign", href: "/designer/redesign_cases", title: "Redesign Cases", count: cases.redesign, color: "bg-teal-500", icon: faRepeat },
             ];
 
             setCards(updatedCards);
