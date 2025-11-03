@@ -344,7 +344,7 @@ export default function Datatable({
                                                                 <div className="flex justify-center items-center gap-2">
                                                                     {/* Initial File */}
                                                                     {row.file_path && row.file_path !== '' && (
-                                                                        <button
+                                                                        <button title="Download Initial File"
                                                                             onClick={() => downloadFile('initial', row.file_path)}
                                                                             className="bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
                                                                         >
@@ -354,7 +354,7 @@ export default function Datatable({
 
                                                                     {/* Finish File */}
                                                                     {row.finish_file_path && row.finish_file_path !== '' && (
-                                                                        <button
+                                                                        <button title="Download Fisnish File"
                                                                             onClick={() => downloadFile('finish', row.finish_file_path)}
                                                                             className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
                                                                         >
@@ -364,7 +364,7 @@ export default function Datatable({
 
                                                                     {/* STL File */}
                                                                     {row.stl_file_path && row.stl_file_path !== '' && (
-                                                                        <button
+                                                                        <button title="Download Stl File"
                                                                             onClick={() => downloadFile('stl', row.stl_file_path)}
                                                                             className="bg-orange-500 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs"
                                                                         >
