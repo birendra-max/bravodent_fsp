@@ -19,6 +19,7 @@ import MultiSearch from "../pages/designer/MultiSearch";
 import Reports from "../pages/designer/Reports";
 import Redesign_cases from '../pages/designer/Redesign_cases';
 import { DesignerProvider } from "../Context/DesignerContext";
+import OrderDetails from "../pages/designer/OrderDetails";
 
 export default function DesignerRoutes() {
     return (
@@ -44,7 +45,7 @@ export default function DesignerRoutes() {
                 <Route path="/today_cases" element={<TodayCases />} />
                 <Route path="/weekly_case" element={<WeeklyCases />} />
                 <Route path="/redesign_cases" element={<Redesign_cases />} />
-
+                <Route path="/orderDeatails/:id" element={<OrderDetails />} />
             </Routes>
         </DesignerProvider>
     )

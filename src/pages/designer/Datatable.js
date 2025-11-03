@@ -6,6 +6,8 @@ import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 
+import { Link } from "react-router-dom";
+
 export default function Datatable({
     columns = [],
     data = [],
@@ -315,7 +317,12 @@ export default function Datatable({
                                                         }}
                                                     >
                                                         {
-                                                            col.header === 'Message' ? (
+
+                                                            col.header === 'Order Id' ? (
+                                                                <div>
+                                                                    <Link to={`/designer/orderDeatails/${row.orderid}`}> {row.orderid} </Link>
+                                                                </div>
+                                                            ) : col.header === 'Message' ? (
                                                                 <div className="w-full flex justify-center items-center relative mt-4">
                                                                     <img
                                                                         src="/img/messages.png"
