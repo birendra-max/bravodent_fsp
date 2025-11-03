@@ -200,13 +200,20 @@ export default function Datatable({
     };
 
     const downloadFile = (filename, path) => {
+        const parts = path.split('/');
+        const encodedFile = encodeURIComponent(parts.pop());
+        const encodedUrl = parts.join('/') + '/' + encodedFile;
+
+        console.log('Encoded URL:', encodedUrl);
+
         const link = document.createElement('a');
-        link.href = path;
+        link.href = encodedUrl;
         link.download = filename;
+        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link)
-    }
+        document.body.removeChild(link);
+    };
 
     return (
         <>

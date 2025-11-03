@@ -204,14 +204,22 @@ export default function Datatable({
     };
 
     const downloadFile = (filename, path) => {
+        // Encode only the last part of the URL (the filename)
+        const parts = path.split('/');
+        const encodedFile = encodeURIComponent(parts.pop()); // safely encode the filename
+        const encodedUrl = parts.join('/') + '/' + encodedFile; // rebuild the full URL
+
+        console.log('Encoded URL:', encodedUrl);
+
         const link = document.createElement('a');
-        link.href = path;
+        link.href = encodedUrl;
         link.download = filename;
-        link.target = '__blank'
+        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link)
-    }
+        document.body.removeChild(link);
+    };
+
 
     const sendRedesign = async (orderId, status) => {
         if (status === 'Completed') {
