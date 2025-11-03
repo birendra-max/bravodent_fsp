@@ -320,7 +320,7 @@ export default function Datatable({
 
                                                             col.header === 'Order Id' ? (
                                                                 <div>
-                                                                    <Link to={`/designer/orderDeatails/${row.orderid}`}> {row.orderid} </Link>
+                                                                    <Link to={`/designer/orderDeatails/${row.orderid}`} className="text-blue-600 hover:text-blue-800 hover:underline" > {row.orderid} </Link>
                                                                 </div>
                                                             ) : col.header === 'Message' ? (
                                                                 <div className="w-full flex justify-center items-center relative mt-4">
