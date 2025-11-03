@@ -5,6 +5,10 @@ import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { fetchWithAuth } from '../../utils/userapi';
+import {
+    faRepeat
+} from '@fortawesome/free-solid-svg-icons';
 
 export default function Datatable({
     columns = [],
@@ -203,11 +207,33 @@ export default function Datatable({
         const link = document.createElement('a');
         link.href = path;
         link.download = filename;
-        link.target='__blank'
+        link.target = '__blank'
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link)
     }
+
+    const sendRedesign = async (orderId, status) => {
+        if (status === 'Completed') {
+            try {
+                const data = await fetchWithAuth(`send-for-redesign/${orderId}`, {
+                    method: "GET",
+                });
+
+                // data is already the parsed JSON response
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    console.log(data.message);
+                }
+            } catch (error) {
+                console.error("Error fetching cases:", error);
+            }
+        } else {
+            alert(`${orderId} is not completed yet! You can't send it for redesign.`);
+        }
+    };
+
 
     return (
         <>
@@ -389,6 +415,9 @@ export default function Datatable({
                                                                             case 'qc':
                                                                                 statusColor = 'bg-purple-600';
                                                                                 break;
+                                                                            case 'redesign':
+                                                                                statusColor = 'bg-orange-500'
+                                                                                break;
                                                                             default:
                                                                                 statusColor = 'bg-gray-400';
                                                                                 break;
@@ -402,6 +431,13 @@ export default function Datatable({
                                                                             </span>
                                                                         );
                                                                     })()}
+                                                                </div>
+                                                            ) : col.header === 'Redesign' ? (
+                                                                <div className="flex justify-center items-center">
+                                                                    <button onClick={() => sendRedesign(row.orderid, row.status)} className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-semibold rounded-lg shadow-md hover:from-orange-600 hover:to-amber-700 hover:shadow-lg active:scale-95 transition duration-200">
+                                                                        <FontAwesomeIcon icon={faRepeat} />
+                                                                        Redesign
+                                                                    </button>
                                                                 </div>
                                                             ) : (
                                                                 row[col.accessor] ?? "-"

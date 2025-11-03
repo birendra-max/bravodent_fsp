@@ -21,6 +21,7 @@ export default function Yesterday_cases() {
         { header: "Date", accessor: "order_date" },
         { header: "Message", accessor: "message" },
         { header: "Download", accessor: "file_path" },
+        { header: "Redesign", accessor: "redesign" },
     ];
 
 
