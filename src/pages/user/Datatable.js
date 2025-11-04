@@ -417,7 +417,7 @@ export default function Datatable({
                                                                             case 'new':
                                                                                 statusColor = 'bg-blue-500';
                                                                                 break;
-                                                                            case 'cancel':
+                                                                            case 'cancelled':
                                                                                 statusColor = 'bg-red-600';
                                                                                 break;
                                                                             case 'qc':
