@@ -137,16 +137,12 @@ export default function OrderDetails() {
     return (
         <>
             <Hd />
-            <main
-                id="main"
-                className={`flex-grow px-4 transition-colors duration-300 ${theme === "light" ? "bg-gray-50 text-black" : "text-white"
-                    } pt-16 sm:pt-22 px-8`}
-            >
+            <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-22 px-8`}>
                 <div className="max-w-8xl mx-auto space-y-8">
                     {/* Header */}
                     <div
                         className={`rounded-2xl shadow-sm border px-8 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${theme === "light"
-                            ? "bg-white border-gray-200"
+                            ? "bg-gray-200 border-gray-200"
                             : "bg-gray-800 border-gray-700"
                             }`}
                     >
@@ -221,7 +217,7 @@ export default function OrderDetails() {
                         {/* LEFT PANEL */}
                         <div
                             className={`col-span-2 rounded-2xl shadow-xl border p-8 transition-all duration-300 ${theme === "light"
-                                ? "bg-white border-gray-200"
+                                ? "bg-gray-200 border-gray-200"
                                 : "bg-gray-800 border-gray-700"
                                 }`}
                         >
@@ -305,7 +301,7 @@ export default function OrderDetails() {
                             {/* Status Update */}
                             <div
                                 className={`rounded-2xl shadow-md border p-6 ${theme === "light"
-                                    ? "bg-white border-gray-200"
+                                    ? "bg-gray-200 border-gray-200"
                                     : "bg-gray-800 border-gray-700"
                                     }`}
                             >
@@ -341,7 +337,7 @@ export default function OrderDetails() {
                             {/* Upload Section */}
                             <div
                                 className={`rounded-2xl shadow-md border p-6 ${theme === "light"
-                                    ? "bg-white border-gray-200"
+                                    ? "bg-gray-200 border-gray-200"
                                     : "bg-gray-800 border-gray-700"
                                     }`}
                             >
@@ -364,10 +360,11 @@ export default function OrderDetails() {
 
 /* Subcomponents */
 function DetailItem({ label, value }) {
+    const { theme } = useContext(ThemeContext)
     return (
-        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
-            <span className="text-gray-200 dark:text-gray-400 font-medium">{label}</span>
-            <span className="text-gray-900 dark:text-gray-400 font-semibold truncate">{value}</span>
+        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-8">
+            <span className={`font-medium ${theme == 'light' ? 'text-gray-800' : 'text-gray-200'} `}>{label}</span>
+            <span className={`font-semibold truncate ${theme == 'light' ? 'text-gray-800' : 'text-gray-200'}`}>{value}</span>
         </div>
     );
 }
