@@ -12,12 +12,12 @@ import Rush from '../pages/designer/Rush';
 import Qc from "../pages/designer/Qc";
 import Hold from "../pages/designer/Hold";
 import TodayCases from "../pages/designer/TodayCases";
-import Yesterday_cases from '../pages/designer/Yestearday_cases';
+import YesteardayCases from '../pages/designer/YesteardayCases';
 import WeeklyCases from '../pages/designer/WeeklyCases';
 import Profile from "../pages/designer/Profile";
 import MultiSearch from "../pages/designer/MultiSearch";
 import Reports from "../pages/designer/Reports";
-import Redesign_cases from '../pages/designer/Redesign_cases';
+import RedesignCases from '../pages/designer/RedesignCases';
 import { DesignerProvider } from "../Context/DesignerContext";
 import OrderDetails from "../pages/designer/OrderDetails";
 
@@ -41,10 +41,10 @@ export default function DesignerRoutes() {
                 <Route path="/rush_cases" element={<Rush />} />
                 <Route path="/qc_required" element={<Qc />} />
                 <Route path="/case_on_hold" element={<Hold />} />
-                <Route path="/yesterday_cases" element={<Yesterday_cases />} />
+                <Route path="/yesterday_cases" element={<YesteardayCases />} />
                 <Route path="/today_cases" element={<TodayCases />} />
                 <Route path="/weekly_case" element={<WeeklyCases />} />
-                <Route path="/redesign_cases" element={<Redesign_cases />} />
+                <Route path="/redesign_cases" element={<RedesignCases />} />
                 <Route path="/orderDeatails/:id" element={<OrderDetails />} />
             </Routes>
         </DesignerProvider>

@@ -1,12 +1,12 @@
-import { useContext, useEffect, useState } from "react";
-import Hd from './Hd';
-import Foot from './Foot';
-import Datatable from "./Datatable";
-import Dashboard from "./Dashboard";
 import { ThemeContext } from "../../Context/ThemeContext";
-import { fetchWithAuth } from '../../utils/userapi';
+import Hd from "./Hd";
+import Foot from "./Foot";
+import Dashboard from "./Dashboard";
+import { useContext, useState, useEffect } from "react";
+import Datatable from "./Datatable";
+import { fetchWithAuth } from '../../utils/designerapi';
 
-export default function Yesterday_cases() {
+export default function RedesignCases() {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
@@ -21,16 +21,15 @@ export default function Yesterday_cases() {
         { header: "Date", accessor: "order_date" },
         { header: "Message", accessor: "message" },
         { header: "Download", accessor: "file_path" },
-        { header: "Redesign", accessor: "redesign" },
     ];
 
-
     useEffect(() => {
-        async function fetchYestearCases() {
+        async function fetchNewCases() {
             try {
-                const data = await fetchWithAuth('yesterday-cases', {
+                const data = await fetchWithAuth('/get-redesign-cases', {
                     method: "GET",
                 });
+
                 // data is already the parsed JSON response
                 if (data && data.status === 'success') {
                     setData(data.new_cases);
@@ -43,8 +42,9 @@ export default function Yesterday_cases() {
             }
         }
 
-        fetchYestearCases();
+        fetchNewCases();
     }, []);
+
 
 
     return (
@@ -56,5 +56,5 @@ export default function Yesterday_cases() {
             </main>
             <Foot />
         </>
-    );
+    )
 }
