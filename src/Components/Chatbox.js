@@ -34,7 +34,7 @@ export default function Chatbox({ orderid }) {
     const eventSourceRef = useRef(null);
     const lastMessageIdRef = useRef(0);
     const posRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
-    
+
     // Track recently sent messages to avoid duplicates
     const recentlySentMessagesRef = useRef(new Set());
 
@@ -52,7 +52,7 @@ export default function Chatbox({ orderid }) {
         setNewMessage('');
         lastMessageIdRef.current = 0;
         recentlySentMessagesRef.current.clear();
-        
+
         // Close existing connection
         if (eventSourceRef.current) {
             eventSourceRef.current.close();
@@ -72,7 +72,7 @@ export default function Chatbox({ orderid }) {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            
+
             if (data.status === 'success' && data.data) {
                 const formatted = data.data.map(msg => {
                     const isClient = msg.user_type === 'Client';
@@ -93,12 +93,12 @@ export default function Chatbox({ orderid }) {
                 });
 
                 setMessages(formatted);
-                
+
                 // Set the last message ID for SSE
                 if (formatted.length > 0) {
                     lastMessageIdRef.current = Math.max(...formatted.map(m => m.id));
                 }
-                
+
                 // Start SSE connection after loading history
                 startSSEConnection();
             }
@@ -110,7 +110,7 @@ export default function Chatbox({ orderid }) {
 
     const formatTimestamp = (dateString) => {
         if (!dateString) return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
+
         try {
             const date = new Date(dateString);
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -124,7 +124,7 @@ export default function Chatbox({ orderid }) {
         if (!orderid || !token || eventSourceRef.current) return;
 
         const url = `http://localhost/bravodent_ci/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}`;
-        
+
         try {
             eventSourceRef.current = new EventSource(url);
 
@@ -139,7 +139,7 @@ export default function Chatbox({ orderid }) {
 
                 try {
                     const data = JSON.parse(event.data);
-                    
+
                     if (data.messages && Array.isArray(data.messages)) {
                         const newMessages = data.messages.map(msg => {
                             const isClient = msg.user_type === 'Client';
@@ -162,7 +162,7 @@ export default function Chatbox({ orderid }) {
                         setMessages(prev => {
                             const existingIds = new Set(prev.map(m => m.id));
                             const unique = newMessages.filter(m => !existingIds.has(m.id));
-                            
+
                             if (unique.length > 0) {
                                 lastMessageIdRef.current = Math.max(...unique.map(m => m.id));
                                 return [...prev, ...unique];
@@ -189,7 +189,7 @@ export default function Chatbox({ orderid }) {
             eventSourceRef.current.onerror = (err) => {
                 console.error("❌ SSE error:", err);
                 setIsConnected(false);
-                
+
                 // Attempt to reconnect after 3 seconds
                 setTimeout(() => {
                     if (eventSourceRef.current) {
@@ -227,7 +227,7 @@ export default function Chatbox({ orderid }) {
         if (!newMessage.trim() || !orderid || !userId) return;
 
         const messageText = newMessage.trim();
-        
+
         // Create a unique identifier for this message to track duplicates
         const messageKey = `${messageText}_${Date.now()}`;
         recentlySentMessagesRef.current.add(messageKey);
@@ -235,30 +235,30 @@ export default function Chatbox({ orderid }) {
         try {
             const response = await fetch('http://localhost/bravodent_ci/chat/send-message', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${token}` 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ 
-                    orderid, 
+                body: JSON.stringify({
+                    orderid,
                     text: messageText
                 }),
             });
-            
+
             const data = await response.json();
-            
+
             if (data.status !== 'success') {
                 console.error("❌ Message send failed:", data.message);
             }
-            
+
             // Clear input regardless of success/failure
             setNewMessage('');
-            
+
             // Remove the message key after some time
             setTimeout(() => {
                 recentlySentMessagesRef.current.delete(messageKey);
             }, 5000);
-            
+
         } catch (err) {
             console.error("❌ Network error:", err);
             setNewMessage(''); // Still clear input on error
@@ -288,10 +288,10 @@ export default function Chatbox({ orderid }) {
                 if (res.status !== 'success') {
                     console.error("❌ Upload failed:", res.message);
                 }
-                
+
                 // Clear file input
                 e.target.value = '';
-                
+
                 // Remove the file key after some time
                 setTimeout(() => {
                     recentlySentMessagesRef.current.delete(fileKey);
@@ -304,26 +304,38 @@ export default function Chatbox({ orderid }) {
     };
 
     const triggerFileInput = () => fileInputRef.current?.click();
-    
+
     // Updated handleKeyDown for textarea
-    const handleKeyDown = (e) => { 
-        if (e.key === 'Enter' && !e.shiftKey) { 
-            e.preventDefault(); 
-            sendMessage(); 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
         }
         // Allow Shift+Enter for new line
     };
 
     const downloadFile = (url, name) => {
-        if (!url) return;
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = name || 'download';
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if (!url) {
+            alert('File Not Found!');
+            return;
+        }
+
+        try {
+            const parts = url.split('/');
+            const encodedFile = encodeURIComponent(parts.pop());
+            const encodedUrl = parts.join('/') + '/' + encodedFile;
+            const link = document.createElement('a');
+            link.href = encodedUrl;
+            link.download = name || 'download';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            alert('⚠️ Error while downloading file:', error);
+        }
     };
+
 
     // Draggable chatbox
     useEffect(() => {
@@ -402,7 +414,7 @@ export default function Chatbox({ orderid }) {
                                 <div className={`max-w-[85%] p-2 rounded-lg shadow-md ${isRight
                                     ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none'
                                     : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-bl-none'
-                                }`}>
+                                    }`}>
                                     {msg.hasAttachment && msg.file_path ? (
                                         <div className="flex items-center gap-2 p-1">
                                             <FontAwesomeIcon icon={faFile} className="text-blue-200" />
