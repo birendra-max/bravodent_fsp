@@ -94,9 +94,8 @@ export default function OrderDetails() {
             <>
                 <Hd />
                 <main
-                    className={`min-h-screen flex flex-col items-center justify-center ${
-                        theme === "light" ? "bg-gray-50 text-gray-900" : "bg-gray-900 text-white"
-                    }`}
+                    className={`min-h-screen flex flex-col items-center justify-center ${theme === "light" ? "bg-gray-50 text-gray-900" : "bg-gray-900 text-white"
+                        }`}
                 >
                     <Loder status="show" />
                 </main>
@@ -109,9 +108,8 @@ export default function OrderDetails() {
             <>
                 <Hd />
                 <main
-                    className={`min-h-screen flex flex-col items-center justify-center ${
-                        theme === "light" ? "bg-gray-50 text-gray-900" : "bg-gray-900 text-white"
-                    }`}
+                    className={`min-h-screen flex flex-col items-center justify-center ${theme === "light" ? "bg-gray-50 text-gray-900" : "bg-gray-900 text-white"
+                        }`}
                 >
                     <FontAwesomeIcon icon={faTimesCircle} className="text-red-500 text-6xl mb-4" />
                     <h2 className="text-2xl font-bold mb-2">Error Loading Order</h2>
@@ -127,9 +125,8 @@ export default function OrderDetails() {
             <Hd />
             <main
                 id="main"
-                className={`flex-grow px-4 transition-colors duration-300 ${
-                    theme === "light" ? "bg-white text-black" : "bg-black text-white"
-                } pt-16 sm:pt-22 px-8`}
+                className={`flex-grow px-4 transition-colors duration-300 ${theme === "light" ? "bg-white text-black" : "bg-black text-white"
+                    } pt-16 sm:pt-22 px-8`}
             >
                 <motion.div
                     className="max-w-8xl mx-auto space-y-8"
@@ -139,11 +136,10 @@ export default function OrderDetails() {
                 >
                     {/* Header */}
                     <div
-                        className={`rounded-2xl shadow-sm border px-8 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${
-                            theme === "light"
+                        className={`rounded-2xl shadow-sm border px-8 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${theme === "light"
                                 ? "bg-gray-200 border-gray-200"
                                 : "bg-gray-800 border-gray-700"
-                        }`}
+                            }`}
                     >
                         <div>
                             <h1 className="text-3xl font-bold mb-1">Order Details</h1>
@@ -169,11 +165,10 @@ export default function OrderDetails() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left */}
                         <div
-                            className={`col-span-2 rounded-2xl shadow-xl border p-8 ${
-                                theme === "light"
+                            className={`col-span-2 rounded-2xl shadow-xl border p-8 ${theme === "light"
                                     ? "bg-gray-200 border-gray-200"
                                     : "bg-gray-800 border-gray-700"
-                            }`}
+                                }`}
                         >
                             <OrderSummary order={order} theme={theme} />
                         </div>
@@ -208,9 +203,8 @@ function StatusBadge({ status }) {
     const s = map[status?.toLowerCase()] || { color: "bg-gray-500", icon: faInfoCircle };
     return (
         <div
-            className={`px-4 py-2 rounded-full flex items-center gap-2 font-semibold ${s.color} ${
-                s.text || "text-white"
-            }`}
+            className={`px-4 py-2 rounded-full flex items-center gap-2 font-semibold ${s.color} ${s.text || "text-white"
+                }`}
         >
             <FontAwesomeIcon icon={s.icon} />
             <span className="capitalize">{status}</span>
@@ -233,10 +227,9 @@ function OrderSummary({ order, theme }) {
                     Order Summary
                 </h2>
                 <span
-                    className={`px-4 py-1.5 rounded-full text-xs font-semibold ${
-                        turnaroundConfig[order?.tduration?.toLowerCase()] ||
+                    className={`px-4 py-1.5 rounded-full text-xs font-semibold ${turnaroundConfig[order?.tduration?.toLowerCase()] ||
                         "bg-gray-600 text-white"
-                    }`}
+                        }`}
                 >
                     {order?.tduration || "N/A"} Delivery
                 </span>
@@ -302,16 +295,14 @@ function DetailItem({ label, value }) {
     return (
         <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-8">
             <span
-                className={`font-bold ${
-                    theme === "light" ? "text-gray-800" : "text-gray-200"
-                }`}
+                className={`font-bold ${theme === "light" ? "text-gray-800" : "text-gray-200"
+                    }`}
             >
                 {label}
             </span>
             <span
-                className={`font-medium truncate ${
-                    theme === "light" ? "text-gray-800" : "text-gray-200"
-                }`}
+                className={`font-medium truncate ${theme === "light" ? "text-gray-800" : "text-gray-200"
+                    }`}
             >
                 {value}
             </span>
@@ -337,11 +328,10 @@ function FileCard({ icon, gradient, label, url }) {
     return (
         <motion.div
             whileHover={{ scale: 1.05 }}
-            className={`relative overflow-hidden group rounded-xl border shadow-md transition-all duration-300 ${
-                url
+            className={`relative overflow-hidden group rounded-xl border shadow-md transition-all duration-300 ${url
                     ? "cursor-pointer hover:shadow-xl"
                     : "opacity-60 cursor-not-allowed"
-            } border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700`}
+                } border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700`}
         >
             <div className="p-5 flex items-start gap-4">
                 <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg`}>
@@ -371,11 +361,10 @@ function FileCard({ icon, gradient, label, url }) {
 function StatusUpdater({ theme, selectedStatus, setSelectedStatus, handleStatusUpdate }) {
     return (
         <div
-            className={`rounded-2xl shadow-md border p-6 ${
-                theme === "light"
+            className={`rounded-2xl shadow-md border p-6 ${theme === "light"
                     ? "bg-gray-200 border-gray-200"
                     : "bg-gray-800 border-gray-700"
-            }`}
+                }`}
         >
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <FontAwesomeIcon icon={faCheckCircle} className="text-blue-500" />
@@ -384,17 +373,18 @@ function StatusUpdater({ theme, selectedStatus, setSelectedStatus, handleStatusU
             <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className={`w-full p-3 rounded-lg border text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                    theme === "light"
+                className={`w-full p-3 rounded-lg border text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ${theme === "light"
                         ? "bg-gray-50 border-gray-300 text-gray-900"
                         : "bg-gray-700 border-gray-600 text-white"
-                }`}
+                    }`}
             >
-                <option value="pending">Pending</option>
-                <option value="qc">QC</option>
-                <option value="redesign">Redesign</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="New">New</option>
+                <option value="Pending">Pending</option>
+                <option value="Qc">QC</option>
+                <option value="Hold">Hold</option>
+                <option value="Redesign">Redesign</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
             </select>
             <button
                 onClick={handleStatusUpdate}
@@ -409,11 +399,10 @@ function StatusUpdater({ theme, selectedStatus, setSelectedStatus, handleStatusU
 function FileUploader({ theme }) {
     return (
         <div
-            className={`rounded-2xl shadow-md border p-6 ${
-                theme === "light"
+            className={`rounded-2xl shadow-md border p-6 ${theme === "light"
                     ? "bg-gray-200 border-gray-200"
                     : "bg-gray-800 border-gray-700"
-            }`}
+                }`}
         >
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <FontAwesomeIcon icon={faUpload} className="text-green-500" />
@@ -465,11 +454,10 @@ function UploadBox({ type, theme }) {
 
     return (
         <div
-            className={`p-5 rounded-lg border-2 border-dashed mb-4 text-center transition-all hover:shadow-lg ${
-                theme === "light"
+            className={`p-5 rounded-lg border-2 border-dashed mb-4 text-center transition-all hover:shadow-lg ${theme === "light"
                     ? "border-gray-300 bg-gray-50 hover:bg-gray-100"
                     : "border-gray-600 bg-gray-700/30 hover:bg-gray-700/60"
-            }`}
+                }`}
         >
             <FontAwesomeIcon icon={icon} className={`text-3xl mb-2 ${color}`} />
             <p className="text-sm mb-3">Upload {type} File</p>

@@ -62,8 +62,6 @@ export default function MultiSearch() {
         { header: "Lab Name", accessor: "labname" },
         { header: "Date", accessor: "order_date" },
         { header: "Message", accessor: "message" },
-        { header: "Download", accessor: "file_path" },
-        { header: "Redesign", accessor: "redesign" },
     ];
 
     const filterButtons = [

@@ -5,8 +5,11 @@ import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
-
-import { Link } from "react-router-dom";
+import { fetchWithAuth } from '../../utils/designerapi';
+import {
+    faRepeat
+} from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 
 export default function Datatable({
     columns = [],
@@ -17,11 +20,13 @@ export default function Datatable({
     const [status, setStatus] = useState("show");
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(
-        rowsPerPageOptions.length > 0 ? rowsPerPageOptions[0] : 5
-    );
+    const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [orderid, setOrderid] = useState(null);
+
+    // ✅ NEW STATES for multi-select & dropdown
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [fileType, setFileType] = useState("finish");
 
     // Filter & Sort
     const filteredData = useMemo(() => {
@@ -202,9 +207,10 @@ export default function Datatable({
     };
 
     const downloadFile = (filename, path) => {
+        // Encode only the last part of the URL (the filename)
         const parts = path.split('/');
-        const encodedFile = encodeURIComponent(parts.pop());
-        const encodedUrl = parts.join('/') + '/' + encodedFile;
+        const encodedFile = encodeURIComponent(parts.pop()); // safely encode the filename
+        const encodedUrl = parts.join('/') + '/' + encodedFile; // rebuild the full URL
 
         console.log('Encoded URL:', encodedUrl);
 
@@ -217,13 +223,106 @@ export default function Datatable({
         document.body.removeChild(link);
     };
 
+
+    const sendRedesign = async (orderId, status) => {
+        if (status === 'Completed') {
+            try {
+                const data = await fetchWithAuth(`send-for-redesign/${orderId}`, {
+                    method: "GET",
+                });
+
+                // data is already the parsed JSON response
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    console.log(data.message);
+                }
+            } catch (error) {
+                console.error("Error fetching cases:", error);
+            }
+        } else {
+            alert(`${orderId} is not completed yet! You can't send it for redesign.`);
+        }
+    };
+
+    // ✅ Multi-select logic
+    const toggleSelectRow = (id) =>
+        setSelectedRows((prev) =>
+            prev.includes(id)
+                ? prev.filter((x) => x !== id)
+                : [...prev, id]
+        );
+
+
+    const toggleSelectAll = () => {
+        const visibleIds = paginatedData.map((r) => r.orderid);
+        if (paginatedData.every((r) => selectedRows.includes(r.orderid))) {
+            setSelectedRows(selectedRows.filter((id) => !visibleIds.includes(id)));
+        } else {
+            setSelectedRows([...new Set([...selectedRows, ...visibleIds])]);
+        }
+    };
+
+
+    const handleBulkDownload = () => {
+        if (!selectedRows.length) return alert("Please select at least one record!");
+
+        let missingFiles = [];
+        let downloadedCount = 0;
+
+        selectedRows.forEach((id) => {
+            const row = data.find((r) => r.orderid === id);
+            if (!row) return;
+
+            let path = null;
+
+            if (fileType === "initial") path = row.file_path;
+            else if (fileType === "stl") path = row.stl_file_path;
+            else if (fileType === "finish") path = row.finish_file_path;
+
+            // ✅ Check if valid path exists
+            if (path && path.trim() !== "") {
+                try {
+                    // ✅ Use your symbol-safe download logic
+                    const parts = path.split("/");
+                    const encodedFile = encodeURIComponent(parts.pop());
+                    const encodedUrl = parts.join("/") + "/" + encodedFile;
+
+                    const link = document.createElement("a");
+                    link.href = encodedUrl;
+                    link.download = `${fileType}_${id}`;
+                    link.target = "_blank";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    downloadedCount++;
+                } catch (err) {
+                    console.error("Download error:", err);
+                    missingFiles.push(id);
+                }
+            } else {
+                missingFiles.push(id);
+            }
+        });
+
+        // ✅ Final alert summary
+        if (missingFiles.length > 0) {
+            alert(`File not available for these record(s): ${missingFiles.join(", ")}`);
+        } else if (downloadedCount === 0) {
+            alert("No files available for the selected type.");
+        }
+    };
+
+
+
     return (
         <>
             <Loder status={status} />
             <Chatbox orderid={orderid} />
             {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
-                <div
+                <section
                     style={{ padding: "20px" }}
                     className={`overflow-scroll md:overflow-hidden rounded-xl mt-4 ${getBackgroundClass()}`}
                 >
@@ -282,6 +381,22 @@ export default function Datatable({
                             <table id="datatable" style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <thead>
                                     <tr className={getTableHeaderClass()}>
+                                        {/* ✅ Fixed checkbox column only */}
+                                        <th style={{
+                                            width: "10vh",
+                                            minWidth: "10vh",
+                                            maxWidth: "10vh",
+                                            textAlign: "center",
+                                            padding: "8px"
+                                        }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={paginatedData.length > 0 && paginatedData.every((r) => selectedRows.includes(r.orderid))}
+                                                onChange={toggleSelectAll}
+                                                style={{ transform: "scale(1.3)", cursor: "pointer" }}
+                                            />
+                                        </th>
+
                                         {columns.map((col) => (
                                             <th
                                                 key={col.accessor}
@@ -302,6 +417,22 @@ export default function Datatable({
                                     {paginatedData.length > 0 ? (
                                         paginatedData.map((row, idx) => (
                                             <tr key={idx} className={getTableRowClass(idx)}>
+                                                {/* ✅ Fixed checkbox cell only */}
+                                                <td style={{
+                                                    textAlign: "center",
+                                                    padding: "8px",
+                                                    width: "40px",
+                                                    minWidth: "40px",
+                                                    maxWidth: "40px"
+                                                }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedRows.includes(row.orderid)}
+                                                        onChange={() => toggleSelectRow(row.orderid)}
+                                                        style={{ transform: "scale(1.3)", cursor: "pointer" }}
+                                                    />
+                                                </td>
+
                                                 {columns.map((col) => (
                                                     <td
                                                         key={col.accessor}
@@ -317,7 +448,6 @@ export default function Datatable({
                                                         }}
                                                     >
                                                         {
-
                                                             col.header === 'Order Id' ? (
                                                                 <div>
                                                                     <Link to={`/designer/orderDeatails/${row.orderid}`} className="text-blue-600 hover:text-blue-800 hover:underline" > {row.orderid} </Link>
@@ -347,38 +477,6 @@ export default function Datatable({
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                            ) : col.header === 'Download' ? (
-                                                                <div className="flex justify-center items-center gap-2">
-                                                                    {/* Initial File */}
-                                                                    {row.file_path && row.file_path !== '' && (
-                                                                        <button title="Download Initial File"
-                                                                            onClick={() => downloadFile('initial', row.file_path)}
-                                                                            className="bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
-                                                                        >
-                                                                            Initial
-                                                                        </button>
-                                                                    )}
-
-                                                                    {/* Finish File */}
-                                                                    {row.finish_file_path && row.finish_file_path !== '' && (
-                                                                        <button title="Download Fisnish File"
-                                                                            onClick={() => downloadFile('finish', row.finish_file_path)}
-                                                                            className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
-                                                                        >
-                                                                            Finish
-                                                                        </button>
-                                                                    )}
-
-                                                                    {/* STL File */}
-                                                                    {row.stl_file_path && row.stl_file_path !== '' && (
-                                                                        <button title="Download Stl File"
-                                                                            onClick={() => downloadFile('stl', row.stl_file_path)}
-                                                                            className="bg-orange-500 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs"
-                                                                        >
-                                                                            STL
-                                                                        </button>
-                                                                    )}
-                                                                </div>
                                                             ) : col.header === 'Status' ? (
                                                                 <div className="flex justify-center items-center">
                                                                     {(() => {
@@ -401,6 +499,9 @@ export default function Datatable({
                                                                                 break;
                                                                             case 'qc':
                                                                                 statusColor = 'bg-purple-600';
+                                                                                break;
+                                                                            case 'redesign':
+                                                                                statusColor = 'bg-orange-500'
                                                                                 break;
                                                                             default:
                                                                                 statusColor = 'bg-gray-400';
@@ -479,9 +580,43 @@ export default function Datatable({
                                     </div>
                                 </div>
                             )}
+
+                            {/* ✅ Floating Toolbar */}
+                            {selectedRows.length > 0 && (
+                                <div
+                                    className={`fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-xl shadow-lg ${theme === "dark"
+                                        ? "bg-gradient-to-r from-gray-800 to-gray-700 text-white border border-gray-600"
+                                        : "bg-gradient-to-r from-blue-50 to-white border border-gray-300 text-gray-800"
+                                        }`}
+                                >
+                                    <span className="font-semibold">
+                                        ✅ {selectedRows.length} selected
+                                    </span>
+
+                                    <select
+                                        value={fileType}
+                                        onChange={(e) => setFileType(e.target.value)}
+                                        className={`p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-400 ${theme === "dark"
+                                            ? "bg-gray-700 border-gray-600 text-white"
+                                            : "bg-white border-gray-300 text-gray-800"
+                                            }`}
+                                    >
+                                        <option value="initial">Initial Files</option>
+                                        <option value="stl">STL Files</option>
+                                        <option value="finish">Finished Files</option>
+                                    </select>
+
+                                    <button
+                                        onClick={handleBulkDownload}
+                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md flex items-center gap-2 transition"
+                                    >
+                                        <FontAwesomeIcon icon={faDownload} /> Download All
+                                    </button>
+                                </div>
+                            )}
                         </>
                     )}
-                </div>
+                </section>
             )}
         </>
     );
