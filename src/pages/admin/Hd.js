@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { UserContext } from "../../Context/UserContext";
+import { AdminContext } from "../../Context/AdminContext";
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -19,11 +19,11 @@ import {
 export default function Hd() {
 
     useEffect(() => {
-        const data = localStorage.getItem('user') ? localStorage.getItem('user') : "";
+        const data = localStorage.getItem('admin') ? localStorage.getItem('admin') : "";
         const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
 
         if (data === '' && token === '') {
-            navigate('/user');
+            navigate('/admin');
         }
     })
 
@@ -31,7 +31,7 @@ export default function Hd() {
     const [mode, setMode] = useState('light');
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useContext(UserContext);
+    const { admin, logout } = useContext(AdminContext);
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activePage, setActivePage] = useState("index");
@@ -293,7 +293,7 @@ export default function Hd() {
                                 >
                                     <div className="relative">
                                         <img
-                                            src={user?.pic && user.pic !== '' ? user.pic : '/img/user.webp'}
+                                            src={admin?.pic && admin.pic !== '' ? admin.pic : '/img/user.webp'}
                                             alt="User profile"
                                             className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 rounded-full border-2 border-orange-400 object-cover hover:border-orange-300 transition-colors"
                                             onError={(e) => {
@@ -308,10 +308,10 @@ export default function Hd() {
                                     <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-gray-800 rounded-xl shadow-2xl py-2 border border-gray-700 z-50 cursor-pointer backdrop-blur-sm">
                                         <div className="px-4 py-3 border-b border-gray-700">
                                             <div className="text-white font-semibold truncate text-sm sm:text-base">
-                                                {user?.name || 'User'}
+                                                {admin?.name || 'Admin'}
                                             </div>
                                             <div className="text-gray-400 text-xs sm:text-sm truncate mt-1">
-                                                {user?.email || ''}
+                                                {admin?.email || ''}
                                             </div>
                                         </div>
                                         <div className="py-1">
