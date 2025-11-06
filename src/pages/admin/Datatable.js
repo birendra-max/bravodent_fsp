@@ -191,31 +191,36 @@ export default function Datatable({
 
 
     const deleteUser = async (userId) => {
+        if (!window.confirm("Are you sure you want to delete this client?")) return;
+
         try {
             const res = await fetch(`${base_url}/delete-user/${userId}`, {
-                method: "DELETE", // Important!
+                method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
             });
 
-            const data = await res.json(); // Must await here
+            const data = await res.json();
 
             if (res.ok && data.status === "success") {
-                window.location.reload(); // Refresh after successful delete
+                setTableData((prev) => prev.filter((item) => item.userid !== userId));
+                alert("✅ Client deleted successfully!");
             } else {
-                alert(data.message || "Failed to delete user");
+                alert(data.message || "Failed to delete client");
             }
         } catch (error) {
-            console.error("Error deleting user:", error);
-            alert("Something went wrong. Please try again.");
+            console.error("Error deleting client:", error);
+            alert("⚠️ Something went wrong. Please try again.");
         }
     };
 
+
+
     // ✅ Theme-based styling helpers
     const getBackgroundClass = () =>
-        theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-800';
+        theme === 'dark' ? 'bg-gray-900 text-white p-4 rounded-2xl shadow-lg' : 'p-4 bg-white text-gray-800 rounded-2xl shadow-lg';
     const getTableHeaderClass = () =>
         theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-blue-600 text-white';
     const getTableRowClass = (idx) =>
@@ -239,7 +244,7 @@ export default function Datatable({
             <Chatbox orderid={orderid} />
 
             {status === "hide" && (
-                <section className={`overflow-scroll md:overflow-hidden mt-4 ${getBackgroundClass()}`} style={{ padding: "2px" }}>
+                <section className={`overflow-scroll md:overflow-hidden mt-4 ${getBackgroundClass()}`}>
                     {columns.length === 0 ? (
                         <div className={`p-5 text-center rounded-lg ${getNoDataClass()}`}>
                             ⚠️ No columns provided.
@@ -307,7 +312,7 @@ export default function Datatable({
                                         paginatedData.map((row, idx) => (
                                             <tr key={idx} className={getTableRowClass(idx)}>
                                                 {columns.map((col) => (
-                                                    <td key={col.accessor} className="border border-gray-300 py-2 px-3 text-center text-sm">
+                                                    <td key={col.accessor} className="border border-gray-300 py-2 px-3 text-center text-[12px]">
                                                         {col.header === "Message" ? (
                                                             <div className="flex justify-center items-center relative">
                                                                 <img

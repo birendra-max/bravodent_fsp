@@ -93,7 +93,7 @@ export default function Sidebar() {
     const sidebarClasses = `
     ${collapsed ? "w-20" : "w-64"} 
     ${theme === "dark" ? "bg-gray-900 text-gray-200" : "bg-gray-100 text-gray-800"} 
-    mt-16 min-h-screen flex flex-col transition-all duration-300 relative shadow-lg border-r 
+    mt-16 min-h-screen fixed flex flex-col transition-all duration-300 relative shadow-lg border-r 
     ${theme === "dark" ? "border-gray-800" : "border-gray-200"}
   `;
 

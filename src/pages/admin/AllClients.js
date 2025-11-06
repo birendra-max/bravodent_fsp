@@ -55,8 +55,10 @@ export default function AllClients() {
                 : "bg-gray-200 text-gray-800"
                 }`}
             >
-                <Sidebar />
-                <div className="flex-1 p-6 mt-16">
+                <div className="fixed top-0 left-0 h-full w-64 z-20">
+                    <Sidebar />
+                </div>
+                <div className="flex-1 ml-64 flex flex-col min-h-screen p-4 mt-16">
                     {/* Header */}
                     <div className="mb-6">
                         <h1
