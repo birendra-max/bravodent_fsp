@@ -1,4 +1,4 @@
-import { useContext, useState,useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Hd from "./Hd";
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -7,12 +7,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
-import {fetchWithAuth} from '../../utils/adminapi';
-
-export default function AddClients() {
+import { fetchWithAuth } from '../../utils/adminapi';
+export default function AllClients() {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
-
 
     const columns = [
         { header: "Client Id", accessor: "userid" },
@@ -23,6 +21,7 @@ export default function AddClients() {
         { header: "Lab Name", accessor: "labname" },
         { header: "Mobile", accessor: "mobile" },
         { header: "Status", accessor: "status" },
+        { header: "Delete", accessor: "delete" },
     ];
 
 
@@ -35,7 +34,6 @@ export default function AddClients() {
 
                 // data is already the parsed JSON response
                 if (data && data.status === 'success') {
-                    console.log(data);
                     setData(data.clients)
                 } else {
                     setData([]);
@@ -65,14 +63,14 @@ export default function AddClients() {
                             className={`text-3xl font-semibold flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-gray-800"
                                 }`}
                         >
-                            <FontAwesomeIcon icon={faUserPlus} className="text-blue-500 text-2xl" />
+                            <FontAwesomeIcon icon={faUserPlus} className="text-blue-500" />
                             Add Clients
                         </h1>
                         <p
                             className={`${theme === "dark" ? "text-gray-400" : "text-gray-500"
                                 }`}
                         >
-                            Add and monitor your registered client accounts.
+                            Manage and monitor your registered client accounts.
                         </p>
                     </div>
 

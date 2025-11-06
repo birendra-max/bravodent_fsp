@@ -21,6 +21,7 @@ export default function AllClients() {
         { header: "Lab Name", accessor: "labname" },
         { header: "Mobile", accessor: "mobile" },
         { header: "Status", accessor: "status" },
+        { header: "Delete", accessor: "delete" },
     ];
 
 
@@ -33,7 +34,6 @@ export default function AllClients() {
 
                 // data is already the parsed JSON response
                 if (data && data.status === 'success') {
-                    console.log(data);
                     setData(data.clients)
                 } else {
                     setData([]);

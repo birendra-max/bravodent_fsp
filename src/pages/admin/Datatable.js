@@ -4,11 +4,7 @@ import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload } from "@fortawesome/free-solid-svg-icons";
-import { fetchWithAuth } from '../../utils/userapi';
-import {
-    faRepeat
-} from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
 export default function Datatable({
     columns = [],
@@ -22,14 +18,19 @@ export default function Datatable({
     const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [orderid, setOrderid] = useState(null);
+    const [tableData, setTableData] = useState(data); // ✅ Maintain local UI data
 
-    // ✅ NEW STATES for multi-select & dropdown
-    const [selectedRows, setSelectedRows] = useState([]);
-    const [fileType, setFileType] = useState("finish");
+    const token = localStorage.getItem('token');
+    const base_url = localStorage.getItem('base_url');
 
-    // Filter & Sort
+    // ✅ Update local data when parent data changes
+    useEffect(() => {
+        setTableData(data);
+    }, [data]);
+
+    // ✅ Filter & Sort
     const filteredData = useMemo(() => {
-        let filtered = data || [];
+        let filtered = tableData || [];
 
         if (search) {
             filtered = filtered.filter((row) =>
@@ -45,26 +46,21 @@ export default function Datatable({
             filtered = [...filtered].sort((a, b) => {
                 const aVal = a[sortConfig.key];
                 const bVal = b[sortConfig.key];
-
                 if (aVal === null || aVal === undefined) return 1;
                 if (bVal === null || bVal === undefined) return -1;
 
                 const isNumeric = !isNaN(aVal) && !isNaN(bVal);
-
-                if (isNumeric) {
-                    return sortConfig.direction === "asc"
+                return isNumeric
+                    ? sortConfig.direction === "asc"
                         ? Number(aVal) - Number(bVal)
-                        : Number(bVal) - Number(aVal);
-                } else {
-                    return sortConfig.direction === "asc"
+                        : Number(bVal) - Number(aVal)
+                    : sortConfig.direction === "asc"
                         ? String(aVal).localeCompare(String(bVal))
                         : String(bVal).localeCompare(String(aVal));
-                }
             });
         }
-
         return filtered;
-    }, [search, data, columns, sortConfig]);
+    }, [search, tableData, columns, sortConfig]);
 
     const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
 
@@ -73,17 +69,13 @@ export default function Datatable({
         return filteredData.slice(start, start + rowsPerPage);
     }, [currentPage, filteredData, rowsPerPage]);
 
-    // ✅ Spinner control: hide loader once data is ready
+    // ✅ Spinner control
     useEffect(() => {
-        if (data && data.length > 0) {
+        if (tableData && tableData.length > 0) {
             setStatus("hide");
         }
-
-        setTimeout(() => {
-            setStatus('hide');
-        }, 1000)
-
-    }, [data]);
+        setTimeout(() => setStatus("hide"), 1000);
+    }, [tableData]);
 
     const handleSearch = (e) => {
         setSearch(e.target.value);
@@ -109,62 +101,6 @@ export default function Datatable({
     const handleRowsPerPageChange = (e) => {
         setRowsPerPage(parseInt(e.target.value));
         setCurrentPage(1);
-    };
-
-    const getPageNumbers = (totalPages, currentPage) => {
-        const maxButtons = 5;
-        const pages = [];
-
-        if (totalPages <= maxButtons) {
-            return Array.from({ length: totalPages }, (_, i) => i + 1);
-        }
-
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, currentPage + 2);
-
-        if (startPage > 1) pages.push(1, "...");
-        for (let i = startPage; i <= endPage; i++) pages.push(i);
-        if (endPage < totalPages) pages.push("...", totalPages);
-
-        return pages;
-    };
-
-    function openPopup(id) {
-        setOrderid(id);
-        document.getElementById('chatbox').style.display = "block"
-    }
-
-    // Theme-based styling functions
-    const getBackgroundClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-900 text-white'
-            : 'bg-gray-200 text-gray-800';
-    };
-
-    const getTableHeaderClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 text-white'
-            : 'bg-blue-600 text-white';
-    };
-
-    const getTableRowClass = (idx) => {
-        if (theme === 'dark') {
-            return idx % 2 === 0 ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white';
-        } else {
-            return idx % 2 === 0 ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-800';
-        }
-    };
-
-    const getInputClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500';
-    };
-
-    const getSelectClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 border-gray-600 text-white'
-            : 'bg-white border-gray-300 text-gray-800';
     };
 
     const getPaginationButtonStyle = (isActive = false) => {
@@ -199,40 +135,38 @@ export default function Datatable({
             : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
     };
 
-    const getNoDataClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-800 text-gray-300'
-            : 'bg-gray-100 text-gray-600';
+
+    const getPageNumbers = (totalPages, currentPage) => {
+        const maxButtons = 5;
+        const pages = [];
+        if (totalPages <= maxButtons)
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+        if (startPage > 1) pages.push(1, "...");
+        for (let i = startPage; i <= endPage; i++) pages.push(i);
+        if (endPage < totalPages) pages.push("...", totalPages);
+        return pages;
     };
 
-    // ✅ Multi-select logic
-    const toggleSelectRow = (id) =>
-        setSelectedRows((prev) =>
-            prev.includes(id)
-                ? prev.filter((x) => x !== id)
-                : [...prev, id]
+    const openPopup = (id) => {
+        setOrderid(id);
+        document.getElementById('chatbox').style.display = "block";
+    };
+
+    // ✅ Status Toggle with Instant UI Update
+    const handleStatusToggle = async (userid, currentStatus) => {
+        const newStatus = currentStatus?.toLowerCase() === "active" ? "inactive" : "active";
+
+        // ✅ Instantly update UI
+        setTableData((prev) =>
+            prev.map((item) =>
+                item.userid === userid ? { ...item, status: newStatus } : item
+            )
         );
 
-
-    const toggleSelectAll = () => {
-        const visibleIds = paginatedData.map((r) => r.orderid);
-        if (paginatedData.every((r) => selectedRows.includes(r.orderid))) {
-            setSelectedRows(selectedRows.filter((id) => !visibleIds.includes(id)));
-        } else {
-            setSelectedRows([...new Set([...selectedRows, ...visibleIds])]);
-        }
-    };
-
-
-    const token = localStorage.getItem('token');
-    const base_url = localStorage.getItem('base_url');
-
-    const handleStatusToggle = async (userid, currentStatus) => {
-        const newStatus = currentStatus === "active" ? "inactive" : "active";
-
         try {
-            // Send update to backend (adjust API URL accordingly)
-            await fetch(`${base_url}/clients/${userid}/status`, {
+            const res = await fetch(`${base_url}/update-status/${userid}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -241,38 +175,80 @@ export default function Datatable({
                 body: JSON.stringify({ status: newStatus }),
             });
 
-            // Optional success notification
-            console.log(`Status updated: ${newStatus}`);
-        } catch (error) {
-            console.error("Failed to update status:", error);
+            if (!res.ok) throw new Error("Failed to update");
+
+            const result = await res.json().catch(() => null);
+            if (result?.status !== "success") throw new Error("Update failed");
+        } catch {
+            // ❌ Revert UI on failure
+            setTableData((prev) =>
+                prev.map((item) =>
+                    item.userid === userid ? { ...item, status: currentStatus } : item
+                )
+            );
         }
     };
 
+
+    const deleteUser = async (userId) => {
+        try {
+            const res = await fetch(`${base_url}/delete-user/${userId}`, {
+                method: "DELETE", // Important!
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const data = await res.json(); // Must await here
+
+            if (res.ok && data.status === "success") {
+                window.location.reload(); // Refresh after successful delete
+            } else {
+                alert(data.message || "Failed to delete user");
+            }
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            alert("Something went wrong. Please try again.");
+        }
+    };
+
+    // ✅ Theme-based styling helpers
+    const getBackgroundClass = () =>
+        theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-800';
+    const getTableHeaderClass = () =>
+        theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-blue-600 text-white';
+    const getTableRowClass = (idx) =>
+        theme === 'dark'
+            ? idx % 2 === 0 ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white'
+            : idx % 2 === 0 ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-800';
+    const getInputClass = () =>
+        theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500';
+    const getSelectClass = () =>
+        theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white'
+            : 'bg-white border-gray-300 text-gray-800';
+    const getNoDataClass = () =>
+        theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600';
 
     return (
         <>
             <Loder status={status} />
             <Chatbox orderid={orderid} />
-            {/* Table is only shown after loader is hidden */}
+
             {status === "hide" && (
-                <section
-                    style={{padding:"2px"}}
-                    className={`overflow-scroll md:overflow-hidden  mt-4 ${getBackgroundClass()}`}
-                >
-                    {(!Array.isArray(columns) || columns.length === 0) && (
+                <section className={`overflow-scroll md:overflow-hidden mt-4 ${getBackgroundClass()}`} style={{ padding: "2px" }}>
+                    {columns.length === 0 ? (
                         <div className={`p-5 text-center rounded-lg ${getNoDataClass()}`}>
                             ⚠️ No columns provided.
                         </div>
-                    )}
-
-                    {Array.isArray(columns) && columns.length > 0 && (
+                    ) : (
                         <>
-                            {/* Search + Rows per page */}
-                            <div
-                                style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}
-                            >
-                                <div className="flex justify-around items-center gap-4">
-                                    {/* Rows per page dropdown */}
+                            {/* Controls */}
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center gap-4">
                                     <label className={theme === "dark" ? "text-white" : "text-gray-800"}>
                                         Rows per page:{" "}
                                         <select
@@ -289,40 +265,36 @@ export default function Datatable({
                                     </label>
 
                                     <button
-                                        onClick={() => exportToExcel(data, "Reports")}
-                                        className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-800 text-white text-sm font-medium rounded-md border border-green-600 transition-all duration-200 shadow-sm hover:shadow-md">
-                                        <FontAwesomeIcon icon={faDownload} className="text-white text-base" />
+                                        onClick={() => exportToExcel(tableData, "Reports")}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-700 text-white text-sm font-medium rounded-md border border-green-600 transition-all duration-200"
+                                    >
+                                        <FontAwesomeIcon icon={faDownload} />
                                         Download Report
                                     </button>
-
                                 </div>
 
-                                {/* Search bar */}
-                                <div>
-                                    <input
-                                        type="text"
-                                        placeholder="Search..."
-                                        value={search}
-                                        onChange={handleSearch}
-                                        className={`p-2 w-64 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${getInputClass()}`}
-                                    />
-                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    value={search}
+                                    onChange={handleSearch}
+                                    className={`p-2 w-64 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${getInputClass()}`}
+                                />
                             </div>
 
-
                             {/* Table */}
-                            <table id="datatable" style={{ width: "100%", borderCollapse: "collapse" }}>
+                            <table id="datatable" className="w-full border-collapse">
                                 <thead>
                                     <tr className={getTableHeaderClass()}>
                                         {columns.map((col) => (
                                             <th
                                                 key={col.accessor}
                                                 onClick={() => handleSort(col.accessor)}
-                                                style={{ border: "1px solid #ddd", padding: "12px", cursor: "pointer" }}
+                                                className="py-3 px-4 border border-gray-300 cursor-pointer text-sm"
                                             >
                                                 {col.header}
                                                 {sortConfig.key === col.accessor && (
-                                                    <span style={{ marginLeft: "5px" }}>
+                                                    <span className="ml-1">
                                                         {sortConfig.direction === "asc" ? "▲" : "▼"}
                                                     </span>
                                                 )}
@@ -335,98 +307,50 @@ export default function Datatable({
                                         paginatedData.map((row, idx) => (
                                             <tr key={idx} className={getTableRowClass(idx)}>
                                                 {columns.map((col) => (
-                                                    <td
-                                                        key={col.accessor}
-                                                        style={{
-                                                            border: "1px solid #ddd",
-                                                            padding: "10px",
-                                                            wordBreak: "break-word",
-                                                            maxWidth: "200px",
-                                                            overflowWrap: "break-word",
-                                                            whiteSpace: "normal",
-                                                            fontSize: "12px",
-                                                            textAlign: "center",
-                                                        }}
-                                                    >
-                                                        {
-                                                            col.header === 'Message' ? (
-                                                                <div className="w-full flex justify-center items-center relative mt-4">
-                                                                    <img
-                                                                        src="/img/messages.png"
-                                                                        alt="Message"
-                                                                        className="w-8 h-8 cursor-pointer hover:scale-110 transition-transform duration-200"
-                                                                        onClick={() => openPopup(`${row.orderid}`)}
-                                                                    />
-
-                                                                    {/* 🔹 Stylish message count badge */}
-                                                                    {row.totalMessages > 0 && (
-                                                                        <span
-                                                                            className="
-                                                                                    absolute -top-2 right-5
-                                                                                    bg-gradient-to-r from-red-600 to-red-700
-                                                                                    text-white text-[10px] font-bold
-                                                                                    rounded-full min-w-[18px] h-[18px]
-                                                                                    flex items-center justify-center
-                                                                                    shadow-lg animate-pulse
-                                                                                "
-                                                                        >
-                                                                            {row.totalMessages > 99 ? '99+' : row.totalMessages}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            ) : col.header === "Status" ? (
-                                                                <div className="flex justify-center items-center">
-                                                                    {(() => {
-                                                                        const status = row.status?.toLowerCase();
-                                                                        let statusColor = "";
-                                                                        let textColor = "text-white";
-
-                                                                        // ✅ If status is "active" or "inactive", show a switch button
-                                                                        if (status === "active" || status === "inactive") {
-                                                                            return (
-                                                                                <label className="relative inline-flex items-center cursor-pointer group">
-                                                                                    <input
-                                                                                        type="checkbox"
-                                                                                        checked={status === "active"}
-                                                                                        // onChange={() => handleStatusToggle(row.userid, status)} // 👈 define this function
-                                                                                        className="sr-only peer"
-                                                                                    />
-                                                                                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-300"></div>
-                                                                                    <span
-                                                                                        className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-5 shadow-md`}
-                                                                                    ></span>
-                                                                                    <span className="ml-3 text-xs font-semibold text-gray-600 dark:text-gray-300">
-                                                                                        {status === "active" ? "Active" : "Inactive"}
-                                                                                    </span>
-                                                                                </label>
-                                                                            );
-                                                                        }
-
-                                                                        return (
-                                                                            <span
-                                                                                className={`px-3 py-1 text-xs font-bold rounded-full shadow-md ${statusColor} ${textColor}`}
-                                                                            >
-                                                                                {row.status ? row.status : "Unknown"}
-                                                                            </span>
-                                                                        );
-                                                                    })()}
-                                                                </div>
-                                                            )
-                                                                : (
-                                                                    row[col.accessor] ?? "-"
-                                                                )
-                                                        }
-
+                                                    <td key={col.accessor} className="border border-gray-300 py-2 px-3 text-center text-sm">
+                                                        {col.header === "Message" ? (
+                                                            <div className="flex justify-center items-center relative">
+                                                                <img
+                                                                    src="/img/messages.png"
+                                                                    alt="Message"
+                                                                    className="w-7 h-7 cursor-pointer hover:scale-110 transition-transform"
+                                                                    onClick={() => openPopup(`${row.orderid}`)}
+                                                                />
+                                                                {row.totalMessages > 0 && (
+                                                                    <span className="absolute -top-1 right-5 bg-red-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                                                                        {row.totalMessages > 99 ? "99+" : row.totalMessages}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ) : col.header === "Status" ? (
+                                                            <div className="flex justify-center items-center">
+                                                                {["active", "inactive"].includes(row.status?.toLowerCase()) && (
+                                                                    <label className="relative inline-flex items-center cursor-pointer group">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={row.status?.toLowerCase() === "active"}
+                                                                            onChange={() => handleStatusToggle(row.userid, row.status)}
+                                                                            className="sr-only peer"
+                                                                        />
+                                                                        <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-all duration-300"></div>
+                                                                        <span className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-5 shadow-md"></span>
+                                                                    </label>
+                                                                )}
+                                                            </div>
+                                                        ) : col.header === 'Delete' ? (
+                                                            <button className="cursor-pointer" onClick={() => deleteUser(row.userid)}>
+                                                                <FontAwesomeIcon icon={faTrashCan} className="text-red-500 text-lg" />
+                                                            </button>
+                                                        ) : (
+                                                            row[col.accessor] ?? "-"
+                                                        )}
                                                     </td>
                                                 ))}
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td
-                                                colSpan={columns.length}
-                                                className={`p-5 text-center ${getNoDataClass()}`}
-                                            >
+                                            <td colSpan={columns.length} className={`p-5 text-center ${getNoDataClass()}`}>
                                                 📭 No records found.
                                             </td>
                                         </tr>
@@ -475,7 +399,6 @@ export default function Datatable({
                                     </div>
                                 </div>
                             )}
-
                         </>
                     )}
                 </section>
