@@ -9,16 +9,15 @@ import {
 import Sidebar from "./Sidebar";
 import Hd from "./Hd";
 import { ThemeContext } from "../../Context/ThemeContext";
-import Loder from "../../Components/Loder"; // ✅ Import your loader
+import Loder from "../../Components/Loder";
 
 export default function Dashboard() {
     const { theme } = useContext(ThemeContext);
     const [filesystems, setFilesystems] = useState([]);
     const [memory, setMemory] = useState(null);
-    const [loading, setLoading] = useState(true); // ✅ Loader state
+    const [loading, setLoading] = useState(true);
     const base_url = localStorage.getItem("base_url");
     const token = localStorage.getItem("token");
-    const isDark = theme === "dark";
 
     useEffect(() => {
         const fetchData = async () => {
@@ -35,7 +34,7 @@ export default function Dashboard() {
             } catch (error) {
                 console.error("Failed to load server info:", error);
             } finally {
-                setLoading(false); // ✅ Hide loader after data load
+                setLoading(false);
             }
         };
         fetchData();
@@ -53,12 +52,13 @@ export default function Dashboard() {
             <>
                 <Hd />
                 <main
-                    className={`min-h-screen flex items-center justify-center transition-all duration-300 ${isDark
-                        ? "bg-gray-950 text-gray-100"
-                        : "bg-gray-50 text-gray-800"
+                    className={`min-h-screen flex items-center justify-center transition-all duration-300 ${theme === "dark"
+                            ? "bg-gray-950 text-gray-100"
+                            : "bg-gray-200 text-gray-800"
                         }`}
                 >
-                    <Loder status="show" /> {/* 👈 Loader visible during fetch */}
+                    <Sidebar />
+                    <Loder status="show" />
                 </main>
             </>
         );
@@ -68,24 +68,27 @@ export default function Dashboard() {
         <>
             <Hd />
             <main
-                className={`min-h-screen flex mt-16 transition-all duration-300 ${isDark
-                    ? "bg-gray-950 text-gray-100"
-                    : "bg-gray-50 text-gray-800"
+                className={`min-h-screen flex transition-all duration-300 ${theme === "dark"
+                        ? "bg-gray-950 text-gray-100"
+                        : "bg-gray-200 text-gray-800"
                     }`}
             >
                 <Sidebar />
 
-                <div className="flex-1 p-6">
+                <div className="flex-1 p-6 mt-16">
                     {/* Header */}
                     <div className="mb-6">
                         <h1
-                            className={`text-3xl font-semibold flex items-center gap-2 ${isDark ? "text-white" : "text-gray-800"
+                            className={`text-3xl font-semibold flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-gray-800"
                                 }`}
                         >
                             <FontAwesomeIcon icon={faGauge} className="text-blue-500" />
                             Dashboard
                         </h1>
-                        <p className={`${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                        <p
+                            className={`${theme === "dark" ? "text-gray-400" : "text-gray-500"
+                                }`}
+                        >
                             Server Configuration Overview
                         </p>
                     </div>
@@ -93,9 +96,9 @@ export default function Dashboard() {
                     {/* ✅ Root Drive Summary */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div
-                            className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${isDark
-                                ? "bg-gray-800 text-gray-100"
-                                : "bg-white text-gray-800"
+                            className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${theme === "dark"
+                                    ? "bg-gray-800 text-gray-100"
+                                    : "bg-white text-gray-800"
                                 }`}
                         >
                             <FontAwesomeIcon
@@ -109,9 +112,9 @@ export default function Dashboard() {
                         </div>
 
                         <div
-                            className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${isDark
-                                ? "bg-gray-800 text-gray-100"
-                                : "bg-white text-gray-800"
+                            className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${theme === "dark"
+                                    ? "bg-gray-800 text-gray-100"
+                                    : "bg-white text-gray-800"
                                 }`}
                         >
                             <FontAwesomeIcon
@@ -125,9 +128,9 @@ export default function Dashboard() {
                         </div>
 
                         <div
-                            className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${isDark
-                                ? "bg-gray-800 text-gray-100"
-                                : "bg-white text-gray-800"
+                            className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${theme === "dark"
+                                    ? "bg-gray-800 text-gray-100"
+                                    : "bg-white text-gray-800"
                                 }`}
                         >
                             <FontAwesomeIcon
@@ -143,14 +146,12 @@ export default function Dashboard() {
 
                     {/* ✅ Filesystem Table + RAM */}
                     <div
-                        className={`rounded-2xl shadow overflow-hidden ${isDark
-                            ? "bg-gray-800"
-                            : "bg-white"
+                        className={`rounded-2xl shadow overflow-hidden ${theme === "dark" ? "bg-gray-800" : "bg-white"
                             }`}
                     >
                         <table className="min-w-full text-sm">
                             <thead
-                                className={`uppercase text-xs ${isDark
+                                className={`uppercase text-xs ${theme === "dark"
                                         ? "bg-gray-700 text-gray-300"
                                         : "bg-gray-100 text-gray-700"
                                     }`}
@@ -168,9 +169,9 @@ export default function Dashboard() {
                                 {filesystems.map((item, index) => (
                                     <tr
                                         key={index}
-                                        className={`border-b transition ${isDark
-                                            ? "border-gray-700 hover:bg-gray-700"
-                                            : "border-gray-200 hover:bg-gray-50"
+                                        className={`border-b transition ${theme === "dark"
+                                                ? "border-gray-700 hover:bg-gray-700"
+                                                : "border-gray-200 hover:bg-gray-50"
                                             }`}
                                     >
                                         <td className="py-3 px-4 font-medium">{item.fs}</td>
@@ -185,9 +186,7 @@ export default function Dashboard() {
                                 {/* ✅ Add RAM Row */}
                                 {memory && (
                                     <tr
-                                        className={`border-t font-semibold ${isDark
-                                            ? "border-gray-700"
-                                            : "border-gray-200"
+                                        className={`border-t font-semibold ${theme === "dark" ? "border-gray-700" : "border-gray-200"
                                             }`}
                                     >
                                         <td className="py-3 px-4">Memory (RAM)</td>

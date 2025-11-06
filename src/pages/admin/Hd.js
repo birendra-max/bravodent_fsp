@@ -173,41 +173,48 @@ export default function Hd() {
                     <div className="relative dropdown-container">
                         <button
                             onClick={() => setDropdownOpen(!dropdownOpen)}
-                            className="relative focus:outline-none"
+                            className="flex items-center text-white hover:text-orange-300 transition-all duration-300 p-1 cursor-pointer rounded-lg hover:bg-gray-800"
                         >
-                            <img
-                                src={admin?.pic || "/img/user.webp"}
-                                alt="Profile"
-                                className="h-9 w-9 rounded-full border-2 border-orange-400 object-cover hover:border-orange-300 transition"
-                            />
-                            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+                            <div className="relative">
+                                <img
+                                    src={admin?.pic && admin.pic !== '' ? admin.pic : '/img/user.webp'}
+                                    alt="User profile"
+                                    className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 rounded-full border-2 border-orange-400 object-cover hover:border-orange-300 transition-colors"
+                                    onError={(e) => {
+                                        e.target.src = '/img/user.webp';
+                                    }}
+                                />
+                                <div className="absolute bottom-0 right-0 h-2 w-2 sm:h-2.5 sm:w-2.5 bg-green-500 rounded-full border-2 border-gray-900"></div>
+                            </div>
                         </button>
 
                         {dropdownOpen && (
-                            <div className="absolute right-0 mt-3 w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-50 animate-fadeIn">
+                            <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-gray-800 rounded-xl shadow-2xl py-2 border border-gray-700 z-50 cursor-pointer backdrop-blur-sm">
                                 <div className="px-4 py-3 border-b border-gray-700">
-                                    <p className="font-semibold text-sm truncate">
-                                        {admin?.name || "Admin"}
-                                    </p>
-                                    <p className="text-gray-400 text-xs truncate">
-                                        {admin?.email || ""}
-                                    </p>
+                                    <div className="text-white font-semibold truncate text-sm sm:text-base">
+                                        {admin?.name || 'User'}
+                                    </div>
+                                    <div className="text-gray-400 text-xs sm:text-sm truncate mt-1">
+                                        {admin?.email || ''}
+                                    </div>
                                 </div>
-                                <Link
-                                    to="/user/profile"
-                                    className="flex items-center px-4 py-2.5 hover:bg-gray-700 text-gray-300 transition-all text-sm"
-                                    onClick={() => setDropdownOpen(false)}
-                                >
-                                    <FontAwesomeIcon icon={faUser} className="mr-3 w-4 h-4" />
-                                    Profile
-                                </Link>
-                                <button
-                                    onClick={logout}
-                                    className="flex items-center w-full px-4 py-2.5 text-red-400 hover:bg-red-600 hover:text-white text-sm transition-all"
-                                >
-                                    <FontAwesomeIcon icon={faSignOutAlt} className="mr-3 w-4 h-4" />
-                                    Logout
-                                </button>
+                                <div className="py-1">
+                                    <Link
+                                        to="/user/profile"
+                                        className="block px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 flex items-center text-sm sm:text-base"
+                                        onClick={() => setDropdownOpen(false)}
+                                    >
+                                        <FontAwesomeIcon icon={faUser} className="w-4 h-4 mr-3" />
+                                        Profile
+                                    </Link>
+                                    <button
+                                        onClick={logout}
+                                        className="block w-full text-left px-4 py-3 text-red-400 hover:bg-red-600 hover:text-white transition-all duration-200 flex items-center text-sm sm:text-base"
+                                    >
+                                        <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4 mr-3" />
+                                        Logout
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

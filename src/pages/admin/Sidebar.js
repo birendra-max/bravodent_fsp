@@ -1,25 +1,25 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faGaugeHigh,
-    faServer,
-    faGear,
-    faRightFromBracket,
     faCircleInfo,
     faBars,
     faXmark,
     faChevronDown,
     faChevronUp,
     faFolderOpen,
+    faUsers,
+    faPalette,
 } from "@fortawesome/free-solid-svg-icons";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ThemeContext } from "../../Context/ThemeContext";
 
 export default function Sidebar() {
-    const { theme } = useContext(ThemeContext); // theme: "light" | "dark"
-    const [active, setActive] = useState("dashboard");
+    const { theme } = useContext(ThemeContext);
     const [collapsed, setCollapsed] = useState(false);
     const [openMenu, setOpenMenu] = useState(null);
+    const location = useLocation(); // ✅ get current URL path
+    const currentPath = location.pathname;
 
     const navItems = [
         {
@@ -31,18 +31,18 @@ export default function Sidebar() {
         },
         {
             name: "Clients",
-            icon: faServer,
+            icon: faUsers,
             id: "client",
             type: "dropdown",
             submenus: [
-                { name: "All Clients", link: "/admin/clients/all" },
-                { name: "Add New", link: "/admin/clients/add" },
+                { name: "All Clients", link: "/admin/all-clients" },
+                { name: "Add New", link: "/admin/add-client" },
                 { name: "Client Reports", link: "/admin/clients/reports" },
             ],
         },
         {
             name: "Designers",
-            icon: faGear,
+            icon: faPalette,
             id: "design",
             type: "dropdown",
             submenus: [
@@ -78,45 +78,54 @@ export default function Sidebar() {
         setOpenMenu(openMenu === id ? null : id);
     };
 
-    // Theme-based classes
-    const isDark = theme === "dark";
+    // ✅ Automatically open dropdown if current path matches submenu
+    useEffect(() => {
+        const foundMenu = navItems.find(
+            (item) =>
+                item.submenus &&
+                item.submenus.some((sub) => currentPath.includes(sub.link))
+        );
+        if (foundMenu) {
+            setOpenMenu(foundMenu.id);
+        }
+    }, [currentPath]);
 
     const sidebarClasses = `
     ${collapsed ? "w-20" : "w-64"} 
-    ${isDark ? "bg-gray-900 text-gray-200" : "bg-white text-gray-800"} 
-    flex flex-col transition-all duration-300 relative shadow-lg border-r 
-    ${isDark ? "border-gray-800" : "border-gray-200"}
+    ${theme === "dark" ? "bg-gray-900 text-gray-200" : "bg-gray-100 text-gray-800"} 
+    mt-16 min-h-screen flex flex-col transition-all duration-300 relative shadow-lg border-r 
+    ${theme === "dark" ? "border-gray-800" : "border-gray-200"}
   `;
 
     const navLinkClasses = (isActive) =>
         `flex items-center w-full gap-3 px-4 py-2 rounded-xl transition-all duration-200
     ${isActive
             ? "bg-blue-600 text-white shadow-md"
-            : isDark
+            : theme === "dark"
                 ? "text-gray-400 hover:bg-gray-800 hover:text-white"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
         }`;
 
     const dropdownHeaderClasses = (isOpen) =>
         `flex items-center justify-between w-full px-4 py-2 rounded-xl transition-all duration-200
     ${isOpen
             ? "bg-blue-600 text-white shadow-md"
-            : isDark
+            : theme === "dark"
                 ? "text-gray-400 hover:bg-gray-800 hover:text-white"
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
         }`;
 
     const submenuClasses = `
     ml-8 mt-2 space-y-1 border-l pl-3 
-    ${isDark ? "border-gray-700" : "border-gray-300"}
+    ${theme === "dark" ? "border-gray-700" : "border-gray-300"}
   `;
 
     return (
         <aside className={sidebarClasses}>
             {/* Header / Logo */}
             <div
-                className={`flex items-center justify-between p-5 border-b 
-        ${isDark ? "border-gray-800" : "border-gray-200"}`}
+                className={`flex items-center justify-between p-5 border-b ${theme === "dark" ? "border-gray-800" : "border-gray-200"
+                    }`}
             >
                 <div className={`flex items-center gap-2 ${collapsed ? "hidden" : "w-40"}`}>
                     <span className="font-semibold">Admin Dashboard</span>
@@ -125,7 +134,7 @@ export default function Sidebar() {
                 {/* Toggle Button */}
                 <button
                     onClick={() => setCollapsed(!collapsed)}
-                    className={`text-2xl ml-2 cursor-pointer ${isDark
+                    className={`text-2xl ml-2 cursor-pointer ${theme === "dark"
                             ? "text-gray-400 hover:text-white"
                             : "text-gray-500 hover:text-gray-800"
                         } transition`}
@@ -137,56 +146,65 @@ export default function Sidebar() {
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto py-4 px-3">
                 <ul className="space-y-2">
-                    {navItems.map((item) => (
-                        <li key={item.id}>
-                            {item.type === "single" ? (
-                                <Link
-                                    to={item.link}
-                                    onClick={() => setActive(item.id)}
-                                    className={navLinkClasses(active === item.id)}
-                                >
-                                    <FontAwesomeIcon icon={item.icon} className="text-lg" />
-                                    {!collapsed && <span>{item.name}</span>}
-                                </Link>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={() => toggleDropdown(item.id)}
-                                        className={dropdownHeaderClasses(openMenu === item.id)}
+                    {navItems.map((item) => {
+                        if (item.type === "single") {
+                            return (
+                                <li key={item.id}>
+                                    <Link
+                                        to={item.link}
+                                        className={navLinkClasses(currentPath === item.link)}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <FontAwesomeIcon icon={item.icon} className="text-lg" />
-                                            {!collapsed && <span>{item.name}</span>}
-                                        </div>
-                                        {!collapsed && (
-                                            <FontAwesomeIcon
-                                                icon={openMenu === item.id ? faChevronUp : faChevronDown}
-                                            />
-                                        )}
-                                    </button>
+                                        <FontAwesomeIcon icon={item.icon} className="text-lg" />
+                                        {!collapsed && <span>{item.name}</span>}
+                                    </Link>
+                                </li>
+                            );
+                        }
 
-                                    {openMenu === item.id && !collapsed && (
-                                        <ul className={submenuClasses}>
-                                            {item.submenus.map((sub, index) => (
-                                                <li key={index}>
-                                                    <Link
-                                                        to={sub.link}
-                                                        className={`block px-3 py-1.5 rounded-md text-sm transition-all
-                              ${isDark
+                        const isMenuOpen = openMenu === item.id;
+                        const isSubmenuActive = item.submenus?.some(
+                            (sub) => currentPath === sub.link
+                        );
+
+                        return (
+                            <li key={item.id}>
+                                <button
+                                    onClick={() => toggleDropdown(item.id)}
+                                    className={dropdownHeaderClasses(isMenuOpen || isSubmenuActive)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <FontAwesomeIcon icon={item.icon} className="text-lg" />
+                                        {!collapsed && <span>{item.name}</span>}
+                                    </div>
+                                    {!collapsed && (
+                                        <FontAwesomeIcon
+                                            icon={isMenuOpen ? faChevronUp : faChevronDown}
+                                        />
+                                    )}
+                                </button>
+
+                                {isMenuOpen && !collapsed && (
+                                    <ul className={submenuClasses}>
+                                        {item.submenus.map((sub, index) => (
+                                            <li key={index}>
+                                                <Link
+                                                    to={sub.link}
+                                                    className={`block px-3 py-1.5 rounded-md text-sm transition-all ${currentPath === sub.link
+                                                            ? "bg-blue-600 text-white"
+                                                            : theme === "dark"
                                                                 ? "text-gray-400 hover:text-white hover:bg-gray-800"
                                                                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                                                            }`}
-                                                    >
-                                                        {sub.name}
-                                                    </Link>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </>
-                            )}
-                        </li>
-                    ))}
+                                                        }`}
+                                                >
+                                                    {sub.name}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </li>
+                        );
+                    })}
                 </ul>
             </nav>
         </aside>
