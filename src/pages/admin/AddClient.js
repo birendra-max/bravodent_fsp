@@ -119,7 +119,7 @@ export default function AllClients() {
                     <Sidebar />
                 </div>
 
-                <div className="flex-1 ml-64 flex flex-col min-h-screen p-6 mt-16 space-y-8">
+                <div className="w-full flex-1 ml-64 flex flex-col min-h-screen p-6 mt-16 space-y-8">
                     {/* Header */}
                     <div>
                         <h1

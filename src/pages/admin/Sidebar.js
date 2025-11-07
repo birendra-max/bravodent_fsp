@@ -36,8 +36,8 @@ export default function Sidebar() {
             type: "dropdown",
             submenus: [
                 { name: "All Clients", link: "/admin/all-clients" },
-                { name: "Add New", link: "/admin/add-client" },
-                { name: "Client Reports", link: "/admin/clients/reports" },
+                { name: "Add Clients", link: "/admin/add-client" },
+                { name: "Client Reports", link: "/admin/clients-report" },
             ],
         },
         {
@@ -46,8 +46,8 @@ export default function Sidebar() {
             id: "design",
             type: "dropdown",
             submenus: [
-                { name: "All Designers", link: "/admin/designers/all" },
-                { name: "Add Designer", link: "/admin/designers/add" },
+                { name: "All Designers", link: "/admin/all-designer" },
+                { name: "Add Designer", link: "/admin/add-designers" },
             ],
         },
         {
@@ -127,20 +127,9 @@ export default function Sidebar() {
                 className={`flex items-center justify-between p-5 border-b ${theme === "dark" ? "border-gray-800" : "border-gray-200"
                     }`}
             >
-                <div className={`flex items-center gap-2 ${collapsed ? "hidden" : "w-40"}`}>
-                    <span className="font-semibold">Admin Dashboard</span>
+                <div className={`flex justify-center items-center gap-2 ${collapsed ? "hidden" : "w-full"}`}>
+                    <span className="font-semibold text-xl">Admin Dashboard</span>
                 </div>
-
-                {/* Toggle Button */}
-                <button
-                    onClick={() => setCollapsed(!collapsed)}
-                    className={`text-2xl ml-2 cursor-pointer ${theme === "dark"
-                            ? "text-gray-400 hover:text-white"
-                            : "text-gray-500 hover:text-gray-800"
-                        } transition`}
-                >
-                    <FontAwesomeIcon icon={collapsed ? faBars : faXmark} />
-                </button>
             </div>
 
             {/* Navigation */}
@@ -190,10 +179,10 @@ export default function Sidebar() {
                                                 <Link
                                                     to={sub.link}
                                                     className={`block px-3 py-1.5 rounded-md text-sm transition-all ${currentPath === sub.link
-                                                            ? "bg-blue-600 text-white"
-                                                            : theme === "dark"
-                                                                ? "text-gray-400 hover:text-white hover:bg-gray-800"
-                                                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                                        ? "bg-blue-600 text-white"
+                                                        : theme === "dark"
+                                                            ? "text-gray-400 hover:text-white hover:bg-gray-800"
+                                                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                                                         }`}
                                                 >
                                                     {sub.name}
