@@ -6,6 +6,7 @@ import AllClients from '../pages/admin/AllClients';
 import AddClient from '../pages/admin/AddClient';
 import ClientReports from '../pages/admin/ClientResports';
 import AllDesigner from '../pages/admin/AllDesigner';
+import AddDesigner from '../pages/admin/AddDesigner';
 export default function Adminroutes() {
     return (
         <AdminProvider>
@@ -16,6 +17,7 @@ export default function Adminroutes() {
                 <Route path='/add-client' element={<AddClient />} />
                 <Route path='/clients-report' element={<ClientReports />} />
                 <Route path='/all-designer' element={<AllDesigner />} />
+                <Route path='/add-designer' element={<AddDesigner />} />
             </Routes>
         </AdminProvider>
     )

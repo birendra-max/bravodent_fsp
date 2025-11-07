@@ -2,17 +2,17 @@ import { useContext, useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Hd from "./Hd";
 import { ThemeContext } from "../../Context/ThemeContext";
-import Datatable from "./Datatable";
+import DesignerDatatable from "./DesignerDatatable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserPlus, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from "../../utils/adminapi";
 
-export default function AllClients() {
+export default function AddDesigner() {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
-    const [showPassword, setShowPassword] = useState(false); // 👈 For toggle
+    const [showPassword, setShowPassword] = useState(false); // 👈 toggle state
 
     const [formData, setFormData] = useState({
         name: "",
@@ -29,7 +29,7 @@ export default function AllClients() {
     });
 
     const columns = [
-        { header: "Client Id", accessor: "userid" },
+        { header: "Designer Id", accessor: "desiid" },
         { header: "Name", accessor: "name" },
         { header: "Designation", accessor: "designation" },
         { header: "Email", accessor: "email" },
@@ -42,7 +42,7 @@ export default function AllClients() {
 
     const getClients = async () => {
         try {
-            const res = await fetchWithAuth("/get-all-clients", { method: "GET" });
+            const res = await fetchWithAuth("/get-all-designer", { method: "GET" });
             if (res && res.status === "success") setData(res.clients);
             else setData([]);
         } catch (error) {
@@ -69,7 +69,7 @@ export default function AllClients() {
         setMessage({ text: "", type: "" });
 
         try {
-            const resp = await fetch(`${base_url}/add-client`, {
+            const resp = await fetch(`${base_url}/add-designer`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -111,8 +111,8 @@ export default function AllClients() {
             <Hd />
             <main
                 className={`min-h-screen flex transition-all duration-300 ${theme === "dark"
-                        ? "bg-gray-950 text-gray-100"
-                        : "bg-gray-100 text-gray-800"
+                    ? "bg-gray-950 text-gray-100"
+                    : "bg-gray-100 text-gray-800"
                     }`}
             >
                 <div className="fixed top-0 left-0 h-full w-64 z-20">
@@ -126,25 +126,22 @@ export default function AllClients() {
                             className={`text-3xl font-semibold flex items-center gap-3 ${theme === "dark" ? "text-white" : "text-gray-800"
                                 }`}
                         >
-                            <FontAwesomeIcon
-                                icon={faUserPlus}
-                                className="text-blue-500"
-                            />
-                            Add Client
+                            <FontAwesomeIcon icon={faUserPlus} className="text-blue-500" />
+                            Add Designer
                         </h1>
                         <p
                             className={`mt-1 ${theme === "dark" ? "text-gray-400" : "text-gray-500"
                                 }`}
                         >
-                            Register a new client below. Fill in all required details.
+                            Register a new designer below. Fill in all required details.
                         </p>
                     </div>
 
                     {/* Form Card */}
                     <div
                         className={`p-8 rounded-2xl shadow-lg border ${theme === "dark"
-                                ? "bg-gray-900 border-gray-800"
-                                : "bg-white border-gray-200"
+                            ? "bg-gray-900 border-gray-800"
+                            : "bg-white border-gray-200"
                             }`}
                     >
                         <form
@@ -173,15 +170,15 @@ export default function AllClients() {
                                         required
                                         placeholder={field.placeholder}
                                         className={`w-full p-3 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
-                                                ? "bg-gray-800 border-gray-700"
-                                                : "bg-gray-50 border-gray-300"
+                                            ? "bg-gray-800 border-gray-700"
+                                            : "bg-gray-50 border-gray-300"
                                             }`}
                                     />
                                 </div>
                             ))}
 
                             {/* ✅ Password Field with Eye Toggle */}
-                            <div className="relative">
+                            <div>
                                 <label className="font-semibold block mb-2">Password</label>
                                 <div className="relative">
                                     <input
@@ -192,8 +189,8 @@ export default function AllClients() {
                                         required
                                         placeholder="Enter password"
                                         className={`w-full p-3 pr-10 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
-                                                ? "bg-gray-800 border-gray-700"
-                                                : "bg-gray-50 border-gray-300"
+                                            ? "bg-gray-800 border-gray-700"
+                                            : "bg-gray-50 border-gray-300"
                                             }`}
                                     />
                                     <button
@@ -217,20 +214,21 @@ export default function AllClients() {
                                     placeholder="Enter remarks"
                                     rows={3}
                                     className={`w-full p-3 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
-                                            ? "bg-gray-800 border-gray-700"
-                                            : "bg-gray-50 border-gray-300"
+                                        ? "bg-gray-800 border-gray-700"
+                                        : "bg-gray-50 border-gray-300"
                                         }`}
                                 ></textarea>
                             </div>
 
                             {/* Submit Section */}
                             <div className="md:col-span-2 flex items-center justify-end mt-6 space-x-4">
+
                                 {/* Message Alert */}
                                 {message.text && (
                                     <div
                                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${message.type === "success"
-                                                ? "bg-green-100 text-green-700 border border-green-300"
-                                                : "bg-red-100 text-red-700 border border-red-300"
+                                            ? "bg-green-100 text-green-700 border border-green-300"
+                                            : "bg-red-100 text-red-700 border border-red-300"
                                             }`}
                                     >
                                         {message.text}
@@ -242,18 +240,18 @@ export default function AllClients() {
                                     type="submit"
                                     disabled={loading}
                                     className={`px-8 py-2.5 rounded-lg font-semibold transition-all ${loading
-                                            ? "bg-blue-400 text-white cursor-not-allowed"
-                                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                                        ? "bg-blue-400 text-white cursor-not-allowed"
+                                        : "bg-blue-600 hover:bg-blue-700 text-white"
                                         }`}
                                 >
-                                    {loading ? "Adding..." : "Save Client"}
+                                    {loading ? "Adding..." : "Save Designer"}
                                 </button>
                             </div>
                         </form>
                     </div>
 
-                    {/* Client Table */}
-                    <Datatable columns={columns} data={data} rowsPerPage={10} />
+                    {/* Designer Table */}
+                    <DesignerDatatable columns={columns} data={data} rowsPerPage={10} />
                 </div>
             </main>
         </>

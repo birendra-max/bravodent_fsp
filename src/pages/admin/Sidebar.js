@@ -47,7 +47,7 @@ export default function Sidebar() {
             type: "dropdown",
             submenus: [
                 { name: "All Designers", link: "/admin/all-designer" },
-                { name: "Add Designer", link: "/admin/add-designers" },
+                { name: "Add Designer", link: "/admin/add-designer" },
             ],
         },
         {

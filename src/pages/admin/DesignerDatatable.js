@@ -6,7 +6,7 @@ import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
-export default function Datatable({
+export default function DesignerDatatable({
     columns = [],
     data = [],
     rowsPerPageOptions = [10, 25, 50],
@@ -149,20 +149,19 @@ export default function Datatable({
         return pages;
     };
 
-
     // ✅ Status Toggle with Instant UI Update
-    const handleStatusToggle = async (userid, currentStatus) => {
+    const handleStatusToggle = async (desiid, currentStatus) => {
         const newStatus = currentStatus?.toLowerCase() === "active" ? "inactive" : "active";
 
         // ✅ Instantly update UI
         setTableData((prev) =>
             prev.map((item) =>
-                item.userid === userid ? { ...item, status: newStatus } : item
+                item.desiid === desiid ? { ...item, status: newStatus } : item
             )
         );
 
         try {
-            const res = await fetch(`${base_url}/update-status/${userid}`, {
+            const res = await fetch(`${base_url}/update-status-designer/${desiid}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -179,18 +178,18 @@ export default function Datatable({
             // ❌ Revert UI on failure
             setTableData((prev) =>
                 prev.map((item) =>
-                    item.userid === userid ? { ...item, status: currentStatus } : item
+                    item.desiid === desiid ? { ...item, status: currentStatus } : item
                 )
             );
         }
     };
 
 
-    const deleteUser = async (userId) => {
+    const deleteUser = async (desiId) => {
         if (!window.confirm("Are you sure you want to delete this client?")) return;
 
         try {
-            const res = await fetch(`${base_url}/delete-user/${userId}`, {
+            const res = await fetch(`${base_url}/delete-designer/${desiId}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -201,13 +200,13 @@ export default function Datatable({
             const data = await res.json();
 
             if (res.ok && data.status === "success") {
-                setTableData((prev) => prev.filter((item) => item.userid !== userId));
-                alert("✅ Client deleted successfully!");
+                setTableData((prev) => prev.filter((item) => item.desiId !== desiId));
+                alert("✅ Designer deleted successfully!");
             } else {
-                alert(data.message || "Failed to delete client");
+                alert(data.message || "Failed to delete designer");
             }
         } catch (error) {
-            console.error("Error deleting client:", error);
+            console.error("Error deleting designer:", error);
             alert("⚠️ Something went wrong. Please try again.");
         }
     };
@@ -316,7 +315,7 @@ export default function Datatable({
                                                                         <input
                                                                             type="checkbox"
                                                                             checked={row.status?.toLowerCase() === "active"}
-                                                                            onChange={() => handleStatusToggle(row.userid, row.status)}
+                                                                            onChange={() => handleStatusToggle(row.desiid, row.status)}
                                                                             className="sr-only peer"
                                                                         />
                                                                         <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-all duration-300"></div>
@@ -325,7 +324,7 @@ export default function Datatable({
                                                                 )}
                                                             </div>
                                                         ) : col.header === 'Delete' ? (
-                                                            <button className="cursor-pointer" onClick={() => deleteUser(row.userid)}>
+                                                            <button className="cursor-pointer" onClick={() => deleteUser(row.desiid)}>
                                                                 <FontAwesomeIcon icon={faTrashCan} className="text-red-500 text-lg" />
                                                             </button>
                                                         ) : (
