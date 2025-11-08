@@ -10,7 +10,7 @@ import {
     faRepeat
 } from '@fortawesome/free-solid-svg-icons';
 
-export default function Datatable({
+export default function CasesDatatable({
     columns = [],
     data = [],
     rowsPerPageOptions = [10, 25, 50],
@@ -137,8 +137,8 @@ export default function Datatable({
     // Theme-based styling functions
     const getBackgroundClass = () => {
         return theme === 'dark'
-            ? 'bg-gray-900 text-white'
-            : 'bg-gray-200 text-gray-800';
+            ? 'bg-gray-900 text-white p-4 rounded-2xl shadow-lg'
+            : 'p-4 bg-white text-gray-800 rounded-2xl shadow-lg';
     };
 
     const getTableHeaderClass = () => {
@@ -387,7 +387,7 @@ export default function Datatable({
                                             maxWidth: "10vh",
                                             textAlign: "center",
                                             padding: "8px"
-                                        }}>
+                                        }} className="border border-gray-300">
                                             <input
                                                 type="checkbox"
                                                 checked={paginatedData.length > 0 && paginatedData.every((r) => selectedRows.includes(r.orderid))}
@@ -445,7 +445,7 @@ export default function Datatable({
                                                             fontSize: "12px",
                                                             textAlign: "center",
                                                         }}
-                                                        className="border border-gray-300" >
+                                                    >
                                                         {
                                                             col.header === 'Message' ? (
                                                                 <div className="w-full flex justify-center items-center relative mt-4">

@@ -56,9 +56,8 @@ export default function Sidebar() {
             id: "cases",
             type: "dropdown",
             submenus: [
-                { name: "All Cases", link: "/admin/cases/all" },
-                { name: "Open Cases", link: "/admin/cases/open" },
-                { name: "Closed Cases", link: "/admin/cases/closed" },
+                { name: "All Cases", link: "/admin/all-cases" },
+                { name: "Reports", link: "/admin/cases-reports" },
             ],
         },
         {
