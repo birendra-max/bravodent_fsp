@@ -20,7 +20,6 @@ export default function AllClients() {
         { header: "Tooth", accessor: "tooth" },
         { header: "Lab Name", accessor: "labname" },
         { header: "Date", accessor: "order_date" },
-        { header: "Message", accessor: "message" },
     ];
 
     useEffect(() => {

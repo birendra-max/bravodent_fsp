@@ -446,75 +446,49 @@ export default function CasesDatatable({
                                                             textAlign: "center",
                                                         }}
                                                     >
-                                                        {
-                                                            col.header === 'Message' ? (
-                                                                <div className="w-full flex justify-center items-center relative mt-4">
-                                                                    <img
-                                                                        src="/img/messages.png"
-                                                                        alt="Message"
-                                                                        className="w-8 h-8 cursor-pointer hover:scale-110 transition-transform duration-200"
-                                                                        onClick={() => openPopup(`${row.orderid}`)}
-                                                                    />
+                                                        {col.header === 'Status' ? (
+                                                            <div className="flex justify-center items-center">
+                                                                {(() => {
+                                                                    let statusColor = '';
+                                                                    let textColor = 'text-white';
 
-                                                                    {/* 🔹 Stylish message count badge */}
-                                                                    {row.totalMessages > 0 && (
+                                                                    switch (row.status?.toLowerCase()) {
+                                                                        case 'completed':
+                                                                            statusColor = 'bg-green-600';
+                                                                            break;
+                                                                        case 'pending':
+                                                                            statusColor = 'bg-yellow-500';
+                                                                            textColor = 'text-black';
+                                                                            break;
+                                                                        case 'new':
+                                                                            statusColor = 'bg-blue-500';
+                                                                            break;
+                                                                        case 'cancelled':
+                                                                            statusColor = 'bg-red-600';
+                                                                            break;
+                                                                        case 'qc':
+                                                                            statusColor = 'bg-purple-600';
+                                                                            break;
+                                                                        case 'redesign':
+                                                                            statusColor = 'bg-orange-500'
+                                                                            break;
+                                                                        default:
+                                                                            statusColor = 'bg-gray-400';
+                                                                            break;
+                                                                    }
+
+                                                                    return (
                                                                         <span
-                                                                            className="
-                                                                                    absolute -top-2 right-5
-                                                                                    bg-gradient-to-r from-red-600 to-red-700
-                                                                                    text-white text-[10px] font-bold
-                                                                                    rounded-full min-w-[18px] h-[18px]
-                                                                                    flex items-center justify-center
-                                                                                    shadow-lg animate-pulse
-                                                                                "
+                                                                            className={`px-3 py-1 text-xs font-bold rounded-full shadow-md ${statusColor} ${textColor}`}
                                                                         >
-                                                                            {row.totalMessages > 99 ? '99+' : row.totalMessages}
+                                                                            {row.status ? row.status : 'Unknown'}
                                                                         </span>
-                                                                    )}
-                                                                </div>
-                                                            ) : col.header === 'Status' ? (
-                                                                <div className="flex justify-center items-center">
-                                                                    {(() => {
-                                                                        let statusColor = '';
-                                                                        let textColor = 'text-white';
-
-                                                                        switch (row.status?.toLowerCase()) {
-                                                                            case 'completed':
-                                                                                statusColor = 'bg-green-600';
-                                                                                break;
-                                                                            case 'pending':
-                                                                                statusColor = 'bg-yellow-500';
-                                                                                textColor = 'text-black';
-                                                                                break;
-                                                                            case 'new':
-                                                                                statusColor = 'bg-blue-500';
-                                                                                break;
-                                                                            case 'cancelled':
-                                                                                statusColor = 'bg-red-600';
-                                                                                break;
-                                                                            case 'qc':
-                                                                                statusColor = 'bg-purple-600';
-                                                                                break;
-                                                                            case 'redesign':
-                                                                                statusColor = 'bg-orange-500'
-                                                                                break;
-                                                                            default:
-                                                                                statusColor = 'bg-gray-400';
-                                                                                break;
-                                                                        }
-
-                                                                        return (
-                                                                            <span
-                                                                                className={`px-3 py-1 text-xs font-bold rounded-full shadow-md ${statusColor} ${textColor}`}
-                                                                            >
-                                                                                {row.status ? row.status : 'Unknown'}
-                                                                            </span>
-                                                                        );
-                                                                    })()}
-                                                                </div>
-                                                            ) : (
-                                                                row[col.accessor] ?? "-"
-                                                            )
+                                                                    );
+                                                                })()}
+                                                            </div>
+                                                        ) : (
+                                                            row[col.accessor] ?? "-"
+                                                        )
                                                         }
 
                                                     </td>

@@ -3,8 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faGaugeHigh,
     faCircleInfo,
-    faBars,
-    faXmark,
     faChevronDown,
     faChevronUp,
     faFolderOpen,
@@ -18,7 +16,8 @@ export default function Sidebar() {
     const { theme } = useContext(ThemeContext);
     const [collapsed, setCollapsed] = useState(false);
     const [openMenu, setOpenMenu] = useState(null);
-    const location = useLocation(); // ✅ get current URL path
+    const [animatingMenu, setAnimatingMenu] = useState(null);
+    const location = useLocation();
     const currentPath = location.pathname;
 
     const navItems = [
@@ -74,7 +73,17 @@ export default function Sidebar() {
     ];
 
     const toggleDropdown = (id) => {
-        setOpenMenu(openMenu === id ? null : id);
+        if (openMenu === id) {
+            // closing the same menu
+            setAnimatingMenu(id);
+            setTimeout(() => {
+                setOpenMenu(null);
+                setAnimatingMenu(null);
+            }, 300); // smooth close duration
+        } else {
+            // opening new menu
+            setOpenMenu(id);
+        }
     };
 
     // ✅ Automatically open dropdown if current path matches submenu
@@ -90,15 +99,15 @@ export default function Sidebar() {
     }, [currentPath]);
 
     const sidebarClasses = `
-    ${collapsed ? "w-20" : "w-64"} 
-    ${theme === "dark" ? "bg-gray-900 text-gray-200" : "bg-gray-100 text-gray-800"} 
-    mt-16 min-h-screen fixed flex flex-col transition-all duration-300 relative shadow-lg border-r 
-    ${theme === "dark" ? "border-gray-800" : "border-gray-200"}
-  `;
+        ${collapsed ? "w-20" : "w-64"} 
+        ${theme === "dark" ? "bg-gray-900 text-gray-200" : "bg-gray-100 text-gray-800"} 
+        mt-16 min-h-screen fixed flex flex-col transition-all duration-300 relative shadow-lg border-r 
+        ${theme === "dark" ? "border-gray-800" : "border-gray-200"}
+    `;
 
     const navLinkClasses = (isActive) =>
         `flex items-center w-full gap-3 px-4 py-2 rounded-xl transition-all duration-200
-    ${isActive
+        ${isActive
             ? "bg-blue-600 text-white shadow-md"
             : theme === "dark"
                 ? "text-gray-400 hover:bg-gray-800 hover:text-white"
@@ -107,7 +116,7 @@ export default function Sidebar() {
 
     const dropdownHeaderClasses = (isOpen) =>
         `flex items-center justify-between w-full px-4 py-2 rounded-xl transition-all duration-200
-    ${isOpen
+        ${isOpen
             ? "bg-blue-600 text-white shadow-md"
             : theme === "dark"
                 ? "text-gray-400 hover:bg-gray-800 hover:text-white"
@@ -115,9 +124,9 @@ export default function Sidebar() {
         }`;
 
     const submenuClasses = `
-    ml-8 mt-2 space-y-1 border-l pl-3 
-    ${theme === "dark" ? "border-gray-700" : "border-gray-300"}
-  `;
+        ml-8 mt-2 space-y-1 border-l pl-3 
+        ${theme === "dark" ? "border-gray-700" : "border-gray-300"}
+    `;
 
     return (
         <aside className={sidebarClasses}>
@@ -126,7 +135,10 @@ export default function Sidebar() {
                 className={`flex items-center justify-between p-5 border-b ${theme === "dark" ? "border-gray-800" : "border-gray-200"
                     }`}
             >
-                <div className={`flex justify-center items-center gap-2 ${collapsed ? "hidden" : "w-full"}`}>
+                <div
+                    className={`flex justify-center items-center gap-2 ${collapsed ? "hidden" : "w-full"
+                        }`}
+                >
                     <span className="font-semibold text-xl">Admin Dashboard</span>
                 </div>
             </div>
@@ -150,6 +162,7 @@ export default function Sidebar() {
                         }
 
                         const isMenuOpen = openMenu === item.id;
+                        const isClosing = animatingMenu === item.id;
                         const isSubmenuActive = item.submenus?.some(
                             (sub) => currentPath === sub.link
                         );
@@ -171,25 +184,33 @@ export default function Sidebar() {
                                     )}
                                 </button>
 
-                                {isMenuOpen && !collapsed && (
+                                {/* ✅ Smooth open & smooth close */}
+                                <div
+                                    className={`overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ${
+                                        (isMenuOpen && !collapsed) || isClosing
+                                            ? "max-h-96 opacity-100 mt-2"
+                                            : "max-h-0 opacity-0"
+                                    }`}
+                                >
                                     <ul className={submenuClasses}>
                                         {item.submenus.map((sub, index) => (
                                             <li key={index}>
                                                 <Link
                                                     to={sub.link}
-                                                    className={`block px-3 py-1.5 rounded-md text-sm transition-all ${currentPath === sub.link
-                                                        ? "bg-blue-600 text-white"
-                                                        : theme === "dark"
-                                                            ? "text-gray-400 hover:text-white hover:bg-gray-800"
-                                                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                                                        }`}
+                                                    className={`block px-3 py-1.5 rounded-md text-sm transition-all ${
+                                                        currentPath === sub.link
+                                                            ? "bg-blue-600 text-white"
+                                                            : theme === "dark"
+                                                                ? "text-gray-400 hover:text-white hover:bg-gray-800"
+                                                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                                    }`}
                                                 >
                                                     {sub.name}
                                                 </Link>
                                             </li>
                                         ))}
                                     </ul>
-                                )}
+                                </div>
                             </li>
                         );
                     })}
