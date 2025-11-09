@@ -19,6 +19,7 @@ import {
     faPlusCircle,
     faSearch,
     faInfoCircle,
+    faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function OrderDetails() {
@@ -28,6 +29,10 @@ export default function OrderDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selectedStatus, setSelectedStatus] = useState("");
+    const [fileHistory, setFileHistory] = useState({
+        stl_files: [],
+        finished_files: []
+    });
 
     const base_url = localStorage.getItem("base_url");
     const token = localStorage.getItem("token");
@@ -50,6 +55,8 @@ export default function OrderDetails() {
                 if (resp.status === "success") {
                     setOrder(resp.order);
                     setSelectedStatus(resp.order.status);
+                    // Fetch file history after order details
+                    await fetchFileHistory();
                 } else {
                     setError(resp.message || "Failed to fetch order details");
                 }
@@ -58,6 +65,30 @@ export default function OrderDetails() {
                 setError("Failed to fetch order details");
             } finally {
                 setLoading(false);
+            }
+        }
+
+        // Fetch file history
+        async function fetchFileHistory() {
+            try {
+                const response = await fetch(`${base_url}/get-file-history`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ orderid: id }),
+                });
+
+                const resp = await response.json();
+                if (resp.status === "success") {
+                    setFileHistory({
+                        stl_files: resp.stl_files || [],
+                        finished_files: resp.finished_files || []
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching file history:", error);
             }
         }
 
@@ -85,6 +116,61 @@ export default function OrderDetails() {
         } catch (error) {
             console.error("Error updating status:", error);
             toast.error("Error updating order status");
+        }
+    };
+
+    const handleDeleteFile = async (fileId, type) => {
+        if (!window.confirm("Are you sure you want to delete this file?")) return;
+
+        toast.loading("Deleting file...");
+        try {
+            const response = await fetch(`${base_url}/delete-file`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    file_id: fileId,
+                    file_type: type
+                }),
+            });
+
+            const resp = await response.json();
+            toast.dismiss();
+            if (resp.status === "success") {
+                toast.success("File deleted successfully!");
+                // Refresh file history
+                await fetchFileHistory();
+            } else {
+                toast.error("Failed to delete file");
+            }
+        } catch (error) {
+            console.error("Error deleting file:", error);
+            toast.error("Error deleting file");
+        }
+    };
+
+    const fetchFileHistory = async () => {
+        try {
+            const response = await fetch(`${base_url}/get-file-history`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ orderid: id }),
+            });
+
+            const resp = await response.json();
+            if (resp.status === "success") {
+                setFileHistory({
+                    stl_files: resp.stl_files || [],
+                    finished_files: resp.finished_files || []
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching file history:", error);
         }
     };
 
@@ -137,8 +223,8 @@ export default function OrderDetails() {
                     {/* Header */}
                     <div
                         className={`rounded-2xl shadow-sm border px-8 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${theme === "light"
-                                ? "bg-gray-200 border-gray-200"
-                                : "bg-gray-800 border-gray-700"
+                            ? "bg-gray-200 border-gray-200"
+                            : "bg-gray-800 border-gray-700"
                             }`}
                     >
                         <div>
@@ -166,22 +252,37 @@ export default function OrderDetails() {
                         {/* Left */}
                         <div
                             className={`col-span-2 rounded-2xl shadow-xl border p-8 ${theme === "light"
-                                    ? "bg-gray-200 border-gray-200"
-                                    : "bg-gray-800 border-gray-700"
+                                ? "bg-gray-200 border-gray-200"
+                                : "bg-gray-800 border-gray-700"
                                 }`}
                         >
-                            <OrderSummary order={order} theme={theme} />
+                            <OrderSummary
+                                order={order}
+                                theme={theme}
+                                fileHistory={fileHistory}
+                                onDeleteFile={handleDeleteFile}
+                                onRefreshFiles={fetchFileHistory}
+                            />
                         </div>
 
                         {/* Right */}
                         <div className="space-y-6">
+                            {/* Initial File Download - Moved to top */}
+                            <InitialFileDownload
+                                order={order}
+                                theme={theme}
+                            />
+
                             <StatusUpdater
                                 theme={theme}
                                 selectedStatus={selectedStatus}
                                 setSelectedStatus={setSelectedStatus}
                                 handleStatusUpdate={handleStatusUpdate}
                             />
-                            <FileUploader theme={theme} />
+                            <FileUploader
+                                theme={theme}
+                                onFileUpload={fetchFileHistory}
+                            />
                         </div>
                     </div>
                 </motion.div>
@@ -212,7 +313,7 @@ function StatusBadge({ status }) {
     );
 }
 
-function OrderSummary({ order, theme }) {
+function OrderSummary({ order, theme, fileHistory, onDeleteFile, onRefreshFiles }) {
     const turnaroundConfig = {
         rush: "bg-red-100 text-red-700 border border-red-200",
         standard: "bg-blue-100 text-blue-700 border border-blue-200",
@@ -257,34 +358,25 @@ function OrderSummary({ order, theme }) {
                 </div>
             </div>
 
-            <div className="mt-10 pt-6">
-                <h3 className="text-xl font-semibold mb-5 flex items-center gap-2">
-                    <FontAwesomeIcon icon={faDownload} className="text-blue-500" />
-                    File Downloads
-                </h3>
+            {/* File History Tables */}
+            <div className="mt-10 space-y-8">
+                <FileHistoryTable
+                    title="STL Files History"
+                    icon={faCube}
+                    files={fileHistory.stl_files}
+                    fileType="stl"
+                    theme={theme}
+                    onDeleteFile={onDeleteFile}
+                />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <FileCard
-                        icon={faBoxArchive}
-                        gradient="from-blue-500 to-cyan-500"
-                        label="Initial File"
-                        url={order?.file_path}
-                    />
-                    <FileCard
-                        icon={faCube}
-                        gradient="from-green-500 to-emerald-500"
-                        label="STL File"
-                        url={order?.stl_file_path}
-                    />
-                    {order?.finish_file_path && (
-                        <FileCard
-                            icon={faCheckCircle}
-                            gradient="from-purple-500 to-pink-500"
-                            label="Finished File"
-                            url={order?.finish_file_path}
-                        />
-                    )}
-                </div>
+                <FileHistoryTable
+                    title="Finished Files History"
+                    icon={faCheckCircle}
+                    files={fileHistory.finished_files}
+                    fileType="finished"
+                    theme={theme}
+                    onDeleteFile={onDeleteFile}
+                />
             </div>
         </>
     );
@@ -309,8 +401,8 @@ function DetailItem({ label, value }) {
         </div>
     );
 }
-
-function FileCard({ icon, gradient, label, url }) {
+// Clean & Professional Initial File Download Component
+function InitialFileDownload({ order, theme }) {
     const downloadFile = (filename, path) => {
         if (!path) return;
         const parts = path.split("/");
@@ -325,36 +417,165 @@ function FileCard({ icon, gradient, label, url }) {
         document.body.removeChild(link);
     };
 
-    return (
-        <motion.div
-            whileHover={{ scale: 1.05 }}
-            className={`relative overflow-hidden group rounded-xl border shadow-md transition-all duration-300 ${url
-                    ? "cursor-pointer hover:shadow-xl"
-                    : "opacity-60 cursor-not-allowed"
-                } border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700`}
-        >
-            <div className="p-5 flex items-start gap-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg`}>
-                    <FontAwesomeIcon icon={icon} size="lg" />
-                </div>
-                <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">{label}</h4>
-                </div>
-            </div>
+    const isLight = theme === "light";
 
-            <div className="absolute bottom-0 left-0 right-0 p-3 text-right">
-                {url ? (
-                    <button
-                        onClick={() => downloadFile(`${label}.zip`, url)}
-                        className="text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline"
+    return (
+        <div
+            className={`rounded-2xl shadow-md border p-6 transition-all duration-300 ${isLight ? "bg-gray-200 border-gray-200" : "bg-gray-800 border-gray-200"
+                } p-6`}
+        >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    <div
+                        className={`p-2 rounded-md ${isLight ? "bg-blue-100 text-blue-700" : "bg-blue-800 text-blue-200"
+                            }`}
                     >
-                        <FontAwesomeIcon icon={faDownload} /> Download
-                    </button>
-                ) : (
-                    <span className="text-sm text-gray-400">Not Available</span>
+                        <FontAwesomeIcon icon={faBoxArchive} />
+                    </div>
+                    <h2 className={`text-lg font-bold ${isLight ? "text-gray-900" : "text-gray-100"}`}>
+                        Initial File
+                    </h2>
+                </div>
+
+                {order?.file_path && (
+                    <span
+                        className={`text-xs px-3 py-1 rounded-full font-medium ${isLight
+                            ? "bg-green-100 text-green-700"
+                            : "bg-green-800 text-green-300"
+                            }`}
+                    >
+                        Available
+                    </span>
                 )}
             </div>
-        </motion.div>
+
+            {/* File Info */}
+            <div>
+                <h2 className={`font-medium text-lg mb-1 truncate ${isLight ? "text-gray-900" : "text-gray-100"}`}>
+                    {order?.fname || "Initial File"}
+                </h2>
+
+                {/* Download Button or Placeholder */}
+                {order?.file_path ? (
+                    <button
+                        onClick={() =>
+                            downloadFile(order.fname || "initial_file.zip", order.file_path)
+                        }
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isLight
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                            }`}
+                    >
+                        <FontAwesomeIcon icon={faDownload} />
+                        Download File
+                    </button>
+                ) : (
+                    <span
+                        className={`inline-block text-sm italic ${isLight ? "text-gray-400" : "text-gray-500"
+                            }`}
+                    >
+                        Not available
+                    </span>
+                )}
+            </div>
+
+            {/* Footer Info */}
+            {order?.file_path && (
+                <div
+                    className={`mt-4 flex justify-between items-center text-xs ${isLight ? "text-gray-500" : "text-gray-400"
+                        }`}
+                >
+                    <span>
+                        {order?.upload_date
+                            ? new Date(order.upload_date).toLocaleDateString()
+                            : "Upload date unavailable"}
+                    </span>
+                    <span className="uppercase font-medium tracking-wide">
+                        {order?.file_path?.split(".").pop() || "ZIP"} File
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+
+
+function FileHistoryTable({ title, icon, files, fileType, theme, onDeleteFile }) {
+    const downloadFile = (url, filename) => {
+        if (!url) return;
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return (
+        <div className={`rounded-2xl shadow-md border p-6 ${theme === "light"
+            ? "bg-gray-50 border-gray-200"
+            : "bg-gray-800 border-gray-700"
+            }`}>
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <FontAwesomeIcon icon={icon} className="text-blue-500" />
+                {title} ({files.length})
+            </h3>
+
+            {files.length > 0 ? (
+                <div className="overflow-x-auto">
+                    <table className={`w-full text-sm ${theme === "light" ? "text-gray-900" : "text-white"}`}>
+                        <thead>
+                            <tr className={`border-b ${theme === "light" ? "border-gray-300" : "border-gray-600"}`}>
+                                <th className="py-3 px-4 text-left">ID</th>
+                                <th className="py-3 px-4 text-left">File Name</th>
+                                <th className="py-3 px-4 text-left">Upload Date</th>
+                                <th className="py-3 px-4 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {files.map((file, index) => (
+                                <tr
+                                    key={file.id}
+                                    className={`border-b ${theme === "light" ? "border-gray-200 hover:bg-gray-100" : "border-gray-700 hover:bg-gray-750"}`}
+                                >
+                                    <td className="py-3 px-4">{index + 1}</td>
+                                    <td className="py-3 px-4 font-medium break-words max-w-xs">{file.fname}</td>
+                                    <td className="py-3 px-4">
+                                        {file.upload_date ? new Date(file.upload_date).toLocaleDateString() : 'N/A'}
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => downloadFile(file.url || file.path, file.fname)}
+                                                className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                            >
+                                                <FontAwesomeIcon icon={faDownload} size="xs" />
+                                                Download
+                                            </button>
+                                            <button
+                                                onClick={() => onDeleteFile(file.id, fileType)}
+                                                className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                            >
+                                                <FontAwesomeIcon icon={faTrash} size="xs" />
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className={`text-center py-8 ${theme === "light" ? "text-gray-500" : "text-gray-400"}`}>
+                    <FontAwesomeIcon icon={icon} className="text-4xl mb-2 opacity-50" />
+                    <p>No {fileType} files found</p>
+                </div>
+            )}
+        </div>
     );
 }
 
@@ -362,8 +583,8 @@ function StatusUpdater({ theme, selectedStatus, setSelectedStatus, handleStatusU
     return (
         <div
             className={`rounded-2xl shadow-md border p-6 ${theme === "light"
-                    ? "bg-gray-200 border-gray-200"
-                    : "bg-gray-800 border-gray-700"
+                ? "bg-gray-200 border-gray-200"
+                : "bg-gray-800 border-gray-700"
                 }`}
         >
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -374,8 +595,8 @@ function StatusUpdater({ theme, selectedStatus, setSelectedStatus, handleStatusU
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className={`w-full p-3 rounded-lg border text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ${theme === "light"
-                        ? "bg-gray-50 border-gray-300 text-gray-900"
-                        : "bg-gray-700 border-gray-600 text-white"
+                    ? "bg-gray-50 border-gray-300 text-gray-900"
+                    : "bg-gray-700 border-gray-600 text-white"
                     }`}
             >
                 <option value="New">New</option>
@@ -396,43 +617,24 @@ function StatusUpdater({ theme, selectedStatus, setSelectedStatus, handleStatusU
     );
 }
 
-function FileUploader({ theme }) {
-    return (
-        <div
-            className={`rounded-2xl shadow-md border p-6 ${theme === "light"
-                    ? "bg-gray-200 border-gray-200"
-                    : "bg-gray-800 border-gray-700"
-                }`}
-        >
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <FontAwesomeIcon icon={faUpload} className="text-green-500" />
-                Upload Files
-            </h2>
-            {["ZIP", "STL"].map((type) => (
-                <UploadBox key={type} type={type} theme={theme} />
-            ))}
-        </div>
-    );
-}
-
-function UploadBox({ type, theme }) {
-    const icon = type === "ZIP" ? faBoxArchive : faCube;
-    const color = type === "ZIP" ? "text-blue-500" : "text-green-500";
+function FileUploader({ theme, onFileUpload }) {
+    const { id } = useParams();
     const base_url = localStorage.getItem("base_url");
     const token = localStorage.getItem("token");
 
-    const handleFile = async (event) => {
+    const handleFileUpload = async (event, type) => {
         const file = event.target.files[0];
         if (!file) return toast.error("No file selected!");
 
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("orderid", id);
         formData.append("type", type);
 
-        toast.loading(`Uploading ${type}...`);
+        toast.loading(`Uploading ${type} file...`);
 
         try {
-            const response = await fetch(`${base_url}/new-orders`, {
+            const response = await fetch(`${base_url}/upload-order-file`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -443,9 +645,12 @@ function UploadBox({ type, theme }) {
             const result = await response.json();
             toast.dismiss();
 
-            if (result.status === "success")
+            if (result.status === "success") {
                 toast.success(`${file.name} uploaded successfully!`);
-            else toast.error("Upload failed");
+                onFileUpload(); // Refresh file history
+            } else {
+                toast.error(result.message || "Upload failed");
+            }
         } catch (error) {
             toast.dismiss();
             toast.error("Upload error!");
@@ -454,26 +659,60 @@ function UploadBox({ type, theme }) {
 
     return (
         <div
-            className={`p-5 rounded-lg border-2 border-dashed mb-4 text-center transition-all hover:shadow-lg ${theme === "light"
-                    ? "border-gray-300 bg-gray-50 hover:bg-gray-100"
-                    : "border-gray-600 bg-gray-700/30 hover:bg-gray-700/60"
+            className={`rounded-2xl shadow-md border p-6 ${theme === "light"
+                ? "bg-gray-200 border-gray-200"
+                : "bg-gray-800 border-gray-700"
                 }`}
         >
-            <FontAwesomeIcon icon={icon} className={`text-3xl mb-2 ${color}`} />
-            <p className="text-sm mb-3">Upload {type} File</p>
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <FontAwesomeIcon icon={faUpload} className="text-green-500" />
+                Upload Files
+            </h2>
+            {[
+                { type: "stl", label: "STL File", icon: faCube, color: "text-green-500" },
+                { type: "finished", label: "Finished File", icon: faCheckCircle, color: "text-purple-500" }
+            ].map((fileType) => (
+                <UploadBox
+                    key={fileType.type}
+                    type={fileType}
+                    theme={theme}
+                    onFileUpload={handleFileUpload}
+                />
+            ))}
+        </div>
+    );
+}
+
+function UploadBox({ type, theme, onFileUpload }) {
+    // Define allowed file types based on the type
+    const acceptedFileTypes = {
+        zip: ".zip,.rar,.7z",
+        stl: ".stl",
+        finished: ".zip,.rar,.7z,.stl", // if finished files can be multiple types
+    };
+
+    return (
+        <div
+            className={`p-5 rounded-lg border-2 border-dashed mb-4 text-center transition-all hover:shadow-lg ${theme === "light"
+                ? "border-gray-300 bg-gray-50 hover:bg-gray-100"
+                : "border-gray-600 bg-gray-700/30 hover:bg-gray-700/60"
+                }`}
+        >
+            <FontAwesomeIcon icon={type.icon} className={`text-3xl mb-2 ${type.color}`} />
+            <p className="text-sm mb-3">Upload {type.label}</p>
 
             <input
                 type="file"
-                id={`${type}-upload`}
+                id={`${type.type}-upload`}
+                accept={acceptedFileTypes[type.type] || "*/*"}
                 className="hidden"
-                onChange={handleFile}
+                onChange={(e) => onFileUpload(e, type.type)}
             />
-
             <label
-                htmlFor={`${type}-upload`}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer"
+                htmlFor={`${type.type}-upload`}
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition-all"
             >
-                Upload {type}
+                Upload {type.label}
             </label>
         </div>
     );
