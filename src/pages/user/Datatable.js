@@ -460,7 +460,7 @@ export default function Datatable({
                                                                     {row.totalMessages > 0 && (
                                                                         <span
                                                                             className="
-                                                                                    absolute -top-2 right-5
+                                                                                    absolute -top-2 right-7
                                                                                     bg-gradient-to-r from-red-600 to-red-700
                                                                                     text-white text-[10px] font-bold
                                                                                     rounded-full min-w-[18px] h-[18px]
