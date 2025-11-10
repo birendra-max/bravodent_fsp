@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AdminContext } from "../../Context/AdminContext";
 import { ThemeContext } from "../../Context/ThemeContext";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faSearch,

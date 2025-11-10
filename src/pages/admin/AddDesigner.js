@@ -151,7 +151,7 @@ export default function AddDesigner() {
                         >
                             {/* Common input component */}
                             {[
-                                { label: "Full Name", name: "name", placeholder: "Enter client's name" },
+                                { label: "Full Name", name: "name", placeholder: "Enter designer's name" },
                                 { label: "Designation", name: "designation", placeholder: "e.g., Dentist, Technician" },
                                 { label: "Email Address", name: "email", type: "email", placeholder: "Enter email" },
                                 { label: "Occlusion", name: "occlusion", placeholder: "Enter occlusion" },

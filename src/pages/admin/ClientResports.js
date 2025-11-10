@@ -8,11 +8,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChartBar } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from "../../utils/adminapi";
 
-export default function AllClients() {
+export default function ClientReports() {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
-    const token = localStorage.getItem("token");
-    const base_url = localStorage.getItem("base_url");
 
     const columns = [
         { header: "Client Id", accessor: "userid" },

@@ -5,7 +5,6 @@ import { ThemeContext } from "../../Context/ThemeContext";
 import CasesDatatable from "./CasesDatatable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faUsers,
     faCalendarAlt,
     faSearch,
     faFilter,
@@ -14,7 +13,7 @@ import {
 import { fetchWithAuth } from "../../utils/adminapi";
 import Sidebar from "./Sidebar";
 
-export default function Reports() {
+export default function CasesReports() {
     const { theme } = useContext(ThemeContext);
     const [selectedFilter, setSelectedFilter] = useState();
     const [isLoading, setIsLoading] = useState(false);
@@ -166,8 +165,8 @@ export default function Reports() {
                                     key={btn.value}
                                     onClick={() => handleSearch(btn.value)}
                                     className={`px-5 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all duration-300 ${selectedFilter === btn.value
-                                            ? `${themeClasses.button.filterActive} scale-105`
-                                            : themeClasses.button.filterInactive
+                                        ? `${themeClasses.button.filterActive} scale-105`
+                                        : themeClasses.button.filterInactive
                                         }`}
                                 >
                                     <FontAwesomeIcon icon={faCalendarAlt} />
@@ -198,7 +197,7 @@ export default function Reports() {
                     </div>
                 )}
             </main>
-            <Foot/>
+            <Foot />
         </>
     );
 }

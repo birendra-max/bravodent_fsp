@@ -5,7 +5,6 @@ import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
-import { fetchWithAuth } from '../../utils/userapi';
 
 export default function CasesDatatable({
     columns = [],

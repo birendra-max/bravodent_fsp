@@ -388,9 +388,9 @@ export default function Chatbox({ orderid }) {
                     </div>
                 </div>
                 <div className="flex items-center gap-1">
-                    <button className="w-6 h-6 flex items-center justify-center text-white/60 hover:text-green-300 hover:bg-green-500/20 rounded">
+                    {/* <button className="w-6 h-6 flex items-center justify-center text-white/60 hover:text-green-300 hover:bg-green-500/20 rounded">
                         <FontAwesomeIcon icon={faVideo} />
-                    </button>
+                    </button> */}
                     <button
                         onClick={() => document.getElementById('chatbox').style.display = "none"}
                         className="w-6 h-6 flex items-center justify-center text-white/60 hover:text-red-300 hover:bg-red-500/20 rounded"

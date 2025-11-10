@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers, faEye, faEyeSlash, faKey } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from "../../utils/adminapi";
 
-export default function AllClients() {
+export default function AllDesigner() {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
     const [resetEmail, setResetEmail] = useState("");
