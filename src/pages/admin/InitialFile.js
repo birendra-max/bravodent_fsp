@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 import Hd from "./Hd";
 import Foot from "./Foot";
 import { ThemeContext } from "../../Context/ThemeContext";
-import CasesDatatable from "./CasesDatatable";
+import FileDatatable from "./FileDatatable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from "../../utils/adminapi";
@@ -17,6 +17,7 @@ export default function InitialFile() {
         { header: "File Name", accessor: "fname" },
         { header: "Order Date", accessor: "order_date" },
         { header: "Status", accessor: "status" },
+        { header: "File", accessor: "is_initial_file_deleted" },
     ];
 
     const getClients = async () => {
@@ -69,7 +70,7 @@ export default function InitialFile() {
                     </div>
 
                     {/* Client Table */}
-                    <CasesDatatable columns={columns} data={data} rowsPerPage={10} />
+                    <FileDatatable columns={columns} data={data} rowsPerPage={10} />
                 </div>
             </main>
             <Foot />

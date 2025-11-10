@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBriefcase } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from "../../utils/adminapi";
 
-export default function AllClients() {
+export default function AllCases() {
     const { theme } = useContext(ThemeContext);
     const [data, setData] = useState([]);
 
@@ -79,7 +79,7 @@ export default function AllClients() {
                     <CasesDatatable columns={columns} data={data} rowsPerPage={10} />
                 </div>
             </main>
-            <Foot/>
+            <Foot />
         </>
     );
 }

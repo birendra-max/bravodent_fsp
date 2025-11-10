@@ -6,6 +6,9 @@ import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from '../../utils/userapi';
+import {
+    faTrash
+} from '@fortawesome/free-solid-svg-icons';
 
 export default function CasesDatatable({
     columns = [],
@@ -197,6 +200,28 @@ export default function CasesDatatable({
             : 'bg-gray-100 text-gray-600';
     };
 
+
+    const sendRedesign = async (orderId, status) => {
+        if (status.toLowerCase() === 'completed') {
+            try {
+                const data = await fetchWithAuth(`send-for-redesign/${orderId}`, {
+                    method: "GET",
+                });
+
+                // data is already the parsed JSON response
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    console.log(data.message);
+                }
+            } catch (error) {
+                console.error("Error fetching cases:", error);
+            }
+        } else {
+            alert(`${orderId} is not completed yet! You can't send it for redesign.`);
+        }
+    };
+
     // ✅ Multi-select logic
     const toggleSelectRow = (id) =>
         setSelectedRows((prev) =>
@@ -226,11 +251,7 @@ export default function CasesDatatable({
             const row = data.find((r) => r.orderid === id);
             if (!row) return;
 
-            let path = null;
-
-            if (fileType === "initial") path = row.file_path;
-            else if (fileType === "stl") path = row.stl_file_path;
-            else if (fileType === "finish") path = row.finish_file_path;
+            let path = row.file_path;
 
             // ✅ Check if valid path exists
             if (path && path.trim() !== "") {
@@ -257,8 +278,6 @@ export default function CasesDatatable({
                 missingFiles.push(id);
             }
         });
-
-        // ✅ Final alert summary
         if (missingFiles.length > 0) {
             alert(`File not available for these record(s): ${missingFiles.join(", ")}`);
         } else if (downloadedCount === 0) {
@@ -266,6 +285,40 @@ export default function CasesDatatable({
         }
     };
 
+    const handleDelete = async (orderid, fname) => {
+        try {
+            const resp = await fetchWithAuth('/delete-initial-file', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ orderid, filename: fname })
+            });
+            const data = await resp.json();
+
+            if (data.status === 'success') {
+                alert(`${data.message}`);
+            } else {
+                alert(`${data.message}`);
+            }
+        } catch (err) {
+            console.error("Error deleting file:", err);
+        }
+    };
+
+
+    const handleBulkDelete = () => {
+        if (!selectedRows.length) return alert("Please select at least one record!");
+        const selectedRowsData = data.filter(row => selectedRows.includes(row.orderid));
+        const confirmMessage = `Are you sure you want to delete files for ${selectedRows.length} selected records?\n\nSelected Order IDs: ${selectedRows.join(", ")}`;
+
+        if (window.confirm(confirmMessage)) {
+            selectedRowsData.forEach(row => {
+                handleDelete(row.orderid, row.fname);
+            });
+            setSelectedRows([]);
+        }
+    };
 
 
     return (
@@ -439,6 +492,16 @@ export default function CasesDatatable({
                                                                     );
                                                                 })()}
                                                             </div>
+                                                        ) : col.header === 'File' ? (
+                                                            Number(row.is_initial_file_deleted) === 0 ? (
+                                                                <span className="px-2 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full">
+                                                                    Available
+                                                                </span>
+                                                            ) : (
+                                                                <span className="px-2 py-1 bg-red-100 text-red-700 text-sm font-bold rounded-full">
+                                                                    Deleted
+                                                                </span>
+                                                            )
                                                         ) : (
                                                             row[col.accessor] ?? "-"
                                                         )
@@ -515,24 +578,25 @@ export default function CasesDatatable({
                                         ✅ {selectedRows.length} selected
                                     </span>
 
-                                    <select
-                                        value={fileType}
-                                        onChange={(e) => setFileType(e.target.value)}
-                                        className={`p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-400 ${theme === "dark"
-                                            ? "bg-gray-700 border-gray-600 text-white"
-                                            : "bg-white border-gray-300 text-gray-800"
-                                            }`}
-                                    >
-                                        <option value="initial">Initial Files</option>
-                                        <option value="stl">STL Files</option>
-                                        <option value="finish">Finished Files</option>
-                                    </select>
-
                                     <button
                                         onClick={handleBulkDownload}
                                         className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md flex items-center gap-2 transition"
                                     >
                                         <FontAwesomeIcon icon={faDownload} /> Download All
+                                    </button>
+
+                                    <button
+                                        onClick={handleBulkDelete}
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-md flex items-center gap-2 transition"
+                                    >
+                                        <FontAwesomeIcon icon={faTrash} /> Delete File
+                                    </button>
+
+                                    <button
+                                        onClick={handleBulkDelete}
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-md flex items-center gap-2 transition"
+                                    >
+                                        <FontAwesomeIcon icon={faTrash} /> Delete row with File
                                     </button>
                                 </div>
                             )}
