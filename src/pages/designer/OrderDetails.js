@@ -544,7 +544,7 @@ function FileHistoryTable({ title, icon, files, fileType, theme, onDeleteFile })
                                     <td className="py-3 px-4">{index + 1}</td>
                                     <td className="py-3 px-4 font-medium break-words max-w-xs">{file.fname}</td>
                                     <td className="py-3 px-4">
-                                        {file.upload_date ? new Date(file.upload_date).toLocaleDateString() : 'N/A'}
+                                        {file.upload_date ? file.upload_date : 'N/A'}
                                     </td>
                                     <td className="py-3 px-4">
                                         <div className="flex gap-2">
