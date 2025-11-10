@@ -9,6 +9,9 @@ import AllDesigner from '../pages/admin/AllDesigner';
 import AddDesigner from '../pages/admin/AddDesigner';
 import AllCases from '../pages/admin/AllCases';
 import CasesReports from '../pages/admin/CasesReports';
+import InitialFile from '../pages/admin/InitialFile';
+import FinishedFile from '../pages/admin/FinishedFile';
+import StlFile from '../pages/admin/StlFile';
 export default function Adminroutes() {
     return (
         <AdminProvider>
@@ -22,6 +25,9 @@ export default function Adminroutes() {
                 <Route path='/add-designer' element={<AddDesigner />} />
                 <Route path='/all-cases' element={<AllCases />} />
                 <Route path='/cases-reports' element={<CasesReports />} />
+                <Route path='/initial-files' element={<InitialFile />} />
+                <Route path='/stl-files' element={<FinishedFile />} />
+                <Route path='/finished-files' element={<StlFile />} />
             </Routes>
         </AdminProvider>
     )
