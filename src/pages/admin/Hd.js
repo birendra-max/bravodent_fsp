@@ -200,7 +200,7 @@ export default function Hd() {
                                 </div>
                                 <div className="py-1">
                                     <Link
-                                        to="/user/profile"
+                                        to="/admin/profile"
                                         className="block px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 flex items-center text-sm sm:text-base"
                                         onClick={() => setDropdownOpen(false)}
                                     >

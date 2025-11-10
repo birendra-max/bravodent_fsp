@@ -12,6 +12,7 @@ import CasesReports from '../pages/admin/CasesReports';
 import InitialFile from '../pages/admin/InitialFile';
 import FinishedFile from '../pages/admin/FinishedFile';
 import StlFile from '../pages/admin/StlFile';
+import Profile from '../pages/admin/Profile';
 export default function Adminroutes() {
     return (
         <AdminProvider>
@@ -26,8 +27,9 @@ export default function Adminroutes() {
                 <Route path='/all-cases' element={<AllCases />} />
                 <Route path='/cases-reports' element={<CasesReports />} />
                 <Route path='/initial-files' element={<InitialFile />} />
-                <Route path='/stl-files' element={<FinishedFile />} />
-                <Route path='/finished-files' element={<StlFile />} />
+                <Route path='/stl-files' element={<StlFile />} />
+                <Route path='/finished-files' element={<FinishedFile />} />
+                <Route path='/profile' element={<Profile />} />
             </Routes>
         </AdminProvider>
     )

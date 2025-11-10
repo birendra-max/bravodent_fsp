@@ -10,7 +10,7 @@ import {
     faTrash
 } from '@fortawesome/free-solid-svg-icons';
 
-export default function FileDatatable({
+export default function CommanDatatable({
     columns = [],
     data = [],
     rowsPerPageOptions = [10, 25, 50],
@@ -200,6 +200,28 @@ export default function FileDatatable({
             : 'bg-gray-100 text-gray-600';
     };
 
+
+    const sendRedesign = async (orderId, status) => {
+        if (status.toLowerCase() === 'completed') {
+            try {
+                const data = await fetchWithAuth(`send-for-redesign/${orderId}`, {
+                    method: "GET",
+                });
+
+                // data is already the parsed JSON response
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    console.log(data.message);
+                }
+            } catch (error) {
+                console.error("Error fetching cases:", error);
+            }
+        } else {
+            alert(`${orderId} is not completed yet! You can't send it for redesign.`);
+        }
+    };
+
     // ✅ Multi-select logic
     const toggleSelectRow = (id) =>
         setSelectedRows((prev) =>
@@ -265,7 +287,7 @@ export default function FileDatatable({
 
     const handleDelete = async (orderid, fname) => {
         try {
-            const resp = await fetchWithAuth('/delete-initial-file', {
+            const resp = await fetchWithAuth('/delete-file', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
