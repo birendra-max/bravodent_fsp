@@ -53,7 +53,7 @@ export default function Dashboard() {
             <>
                 <Hd />
                 <main
-                    className={`min-h-screen flex items-center justify-center transition-all duration-300 ${theme === "dark"
+                    className={`flex items-center justify-center transition-all duration-300 ${theme === "dark"
                         ? "bg-gray-950 text-gray-100"
                         : "bg-gray-200 text-gray-800"
                         }`}
@@ -69,7 +69,7 @@ export default function Dashboard() {
         <>
             <Hd />
             <main
-                className={`min-h-screen flex transition-all duration-300 ${theme === "dark"
+                className={`flex transition-all duration-300 ${theme === "dark"
                     ? "bg-gray-950 text-gray-100"
                     : "bg-gray-200 text-gray-800"
                     }`}
