@@ -1,6 +1,7 @@
 import { useContext, useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Hd from "./Hd";
+import Foot from "./Foot";
 import { ThemeContext } from "../../Context/ThemeContext";
 import DesignerDatatable from "./DesignerDatatable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -254,6 +255,7 @@ export default function AddDesigner() {
                     <DesignerDatatable columns={columns} data={data} rowsPerPage={10} />
                 </div>
             </main>
+            <Foot />
         </>
     );
 }

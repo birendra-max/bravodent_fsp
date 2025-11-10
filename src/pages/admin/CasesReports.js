@@ -1,5 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import Hd from "./Hd";
+import Foot from './Foot';
 import { ThemeContext } from "../../Context/ThemeContext";
 import CasesDatatable from "./CasesDatatable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -197,6 +198,7 @@ export default function Reports() {
                     </div>
                 )}
             </main>
+            <Foot/>
         </>
     );
 }

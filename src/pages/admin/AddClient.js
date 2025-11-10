@@ -1,6 +1,7 @@
 import { useContext, useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Hd from "./Hd";
+import Foot from "./Foot";
 import { ThemeContext } from "../../Context/ThemeContext";
 import Datatable from "./Datatable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -256,6 +257,7 @@ export default function AllClients() {
                     <Datatable columns={columns} data={data} rowsPerPage={10} />
                 </div>
             </main>
+            <Foot/>
         </>
     );
 }

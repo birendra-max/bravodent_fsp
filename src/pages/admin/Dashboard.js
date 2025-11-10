@@ -8,6 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Sidebar from "./Sidebar";
 import Hd from "./Hd";
+import Foot from "./Foot";
 import { ThemeContext } from "../../Context/ThemeContext";
 import Loder from "../../Components/Loder";
 
@@ -53,8 +54,8 @@ export default function Dashboard() {
                 <Hd />
                 <main
                     className={`min-h-screen flex items-center justify-center transition-all duration-300 ${theme === "dark"
-                            ? "bg-gray-950 text-gray-100"
-                            : "bg-gray-200 text-gray-800"
+                        ? "bg-gray-950 text-gray-100"
+                        : "bg-gray-200 text-gray-800"
                         }`}
                 >
                     <Sidebar />
@@ -69,8 +70,8 @@ export default function Dashboard() {
             <Hd />
             <main
                 className={`min-h-screen flex transition-all duration-300 ${theme === "dark"
-                        ? "bg-gray-950 text-gray-100"
-                        : "bg-gray-200 text-gray-800"
+                    ? "bg-gray-950 text-gray-100"
+                    : "bg-gray-200 text-gray-800"
                     }`}
             >
                 <Sidebar />
@@ -97,8 +98,8 @@ export default function Dashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div
                             className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${theme === "dark"
-                                    ? "bg-gray-800 text-gray-100"
-                                    : "bg-white text-gray-800"
+                                ? "bg-gray-800 text-gray-100"
+                                : "bg-white text-gray-800"
                                 }`}
                         >
                             <FontAwesomeIcon
@@ -113,8 +114,8 @@ export default function Dashboard() {
 
                         <div
                             className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${theme === "dark"
-                                    ? "bg-gray-800 text-gray-100"
-                                    : "bg-white text-gray-800"
+                                ? "bg-gray-800 text-gray-100"
+                                : "bg-white text-gray-800"
                                 }`}
                         >
                             <FontAwesomeIcon
@@ -129,8 +130,8 @@ export default function Dashboard() {
 
                         <div
                             className={`p-5 rounded-2xl shadow hover:shadow-lg transition ${theme === "dark"
-                                    ? "bg-gray-800 text-gray-100"
-                                    : "bg-white text-gray-800"
+                                ? "bg-gray-800 text-gray-100"
+                                : "bg-white text-gray-800"
                                 }`}
                         >
                             <FontAwesomeIcon
@@ -152,8 +153,8 @@ export default function Dashboard() {
                         <table className="min-w-full text-sm">
                             <thead
                                 className={`uppercase text-xs ${theme === "dark"
-                                        ? "bg-gray-700 text-gray-300"
-                                        : "bg-gray-100 text-gray-700"
+                                    ? "bg-gray-700 text-gray-300"
+                                    : "bg-gray-100 text-gray-700"
                                     }`}
                             >
                                 <tr>
@@ -170,8 +171,8 @@ export default function Dashboard() {
                                     <tr
                                         key={index}
                                         className={`border-b transition ${theme === "dark"
-                                                ? "border-gray-700 hover:bg-gray-700"
-                                                : "border-gray-200 hover:bg-gray-50"
+                                            ? "border-gray-700 hover:bg-gray-700"
+                                            : "border-gray-200 hover:bg-gray-50"
                                             }`}
                                     >
                                         <td className="py-3 px-4 font-medium">{item.fs}</td>
@@ -202,6 +203,7 @@ export default function Dashboard() {
                     </div>
                 </div>
             </main>
+            <Foot />
         </>
     );
 }
