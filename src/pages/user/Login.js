@@ -40,7 +40,7 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch("http://localhost/bravodent_ci/validate-user", {
+            const res = await fetch("https://fsp.bravodentdesigns.com/validate-user", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),

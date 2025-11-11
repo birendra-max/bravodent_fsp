@@ -39,7 +39,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost/bravodent_ci/admin/login", {
+      const res = await fetch("https://fsp.bravodentdesigns.com/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
