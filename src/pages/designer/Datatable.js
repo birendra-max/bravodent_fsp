@@ -586,7 +586,7 @@ export default function Datatable({
                             {/* ✅ Floating Toolbar */}
                             {selectedRows.length > 0 && (
                                 <div
-                                    className={`fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-xl shadow-lg ${theme === "dark"
+                                    className={`w-[33%] fixed flex justify-center items-center bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-xl shadow-lg ${theme === "dark"
                                         ? "bg-gradient-to-r from-gray-800 to-gray-700 text-white border border-gray-600"
                                         : "bg-gradient-to-r from-blue-50 to-white border border-gray-300 text-gray-800"
                                         }`}

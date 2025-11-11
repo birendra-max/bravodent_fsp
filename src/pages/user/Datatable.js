@@ -8,7 +8,8 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from '../../utils/userapi';
 import {
     faRepeat,
-    faFolderOpen
+    faFolderOpen,
+    faArrowsRotate
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Datatable({
@@ -23,6 +24,8 @@ export default function Datatable({
     const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [orderid, setOrderid] = useState(null);
+    const [deliveryType, setDeliveryType] = useState("Rush");
+
 
     // ✅ NEW STATES for multi-select & dropdown
     const [selectedRows, setSelectedRows] = useState([]);
@@ -206,22 +209,37 @@ export default function Datatable({
             : 'bg-gray-100 text-gray-600';
     };
 
-    const downloadFile = (filename, path) => {
-        // Encode only the last part of the URL (the filename)
-        const parts = path.split('/');
-        const encodedFile = encodeURIComponent(parts.pop()); // safely encode the filename
-        const encodedUrl = parts.join('/') + '/' + encodedFile; // rebuild the full URL
+    const updateDeliveryType = async () => {
+        if (!selectedRows.length)
+            return alert("Please select at least one record!");
 
-        console.log('Encoded URL:', encodedUrl);
+        if (!deliveryType)
+            return alert("Please select a delivery type!");
 
-        const link = document.createElement('a');
-        link.href = encodedUrl;
-        link.download = filename;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        try {
+            const payload = {
+                order_ids: selectedRows,
+                delivery_type: deliveryType,
+            };
+
+            const response = await fetchWithAuth(`update-delivery-type`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.status === "success") {
+                alert(`✅ Successfully updated ${selectedRows.length} orders to "${deliveryType}".`);
+            } else {
+                alert(response.message || "❌ Failed to update delivery type.");
+            }
+        } catch (error) {
+            console.error("Error updating delivery type:", error);
+            alert("Something went wrong while updating.");
+        }
     };
+
+
 
 
     const sendRedesign = async (orderId, status) => {
@@ -583,7 +601,7 @@ export default function Datatable({
                             {/* ✅ Floating Toolbar */}
                             {selectedRows.length > 0 && (
                                 <div
-                                    className={`fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-xl shadow-lg ${theme === "dark"
+                                    className={`w-[70%] fixed flex justify-center items-center bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-xl shadow-lg ${theme === "dark"
                                         ? "bg-gradient-to-r from-gray-800 to-gray-700 text-white border border-gray-600"
                                         : "bg-gradient-to-r from-blue-50 to-white border border-gray-300 text-gray-800"
                                         }`}
@@ -633,6 +651,29 @@ export default function Datatable({
                                     >
                                         <FontAwesomeIcon icon={faRepeat} /> Send for Redesign
                                     </button>
+
+
+                                    <select
+                                        value={deliveryType}
+                                        onChange={(e) => setDeliveryType(e.target.value)}
+                                        className={`p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-400 ${theme === "dark"
+                                            ? "bg-gray-700 border-gray-600 text-white"
+                                            : "bg-white border-gray-300 text-gray-800"
+                                            }`}
+                                    >
+                                        <option value="Rush">Rush Delivery</option>
+                                        <option value="Same Day">Same Day</option>
+                                        <option value="Next Day">Next Day</option>
+                                    </select>
+
+                                    <button
+                                        onClick={updateDeliveryType}
+                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md flex items-center gap-2 transition"
+                                    >
+                                        <FontAwesomeIcon icon={faArrowsRotate} /> Update
+                                    </button>
+
+
                                 </div>
                             )}
 
