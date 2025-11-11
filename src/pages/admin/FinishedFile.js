@@ -70,7 +70,7 @@ export default function FinishedFile() {
                     </div>
 
                     {/* Client Table */}
-                    <CommanDatatable columns={columns} data={data} rowsPerPage={10} />
+                    <CommanDatatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
             </main>
             <Foot />

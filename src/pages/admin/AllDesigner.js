@@ -196,7 +196,7 @@ export default function AllDesigner() {
                     </div>
 
                     {/* 📊 Designer Table */}
-                    <DesignerDatatable columns={columns} data={data} rowsPerPage={10} />
+                    <DesignerDatatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
             </main>
             <Foot />

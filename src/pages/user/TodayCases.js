@@ -50,7 +50,7 @@ export default function TodayCases() {
             <Hd />
             <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-22`}>
                 <Dashboard />
-                <Datatable columns={columns} data={data} rowsPerPage={10} />
+                <Datatable columns={columns} data={data} rowsPerPage={50} />
             </main>
             <Foot />
         </>

@@ -70,7 +70,7 @@ export default function StlFile() {
                     </div>
 
                     {/* Client Table */}
-                    <CommanDatatable columns={columns} data={data} rowsPerPage={10} />
+                    <CommanDatatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
             </main>
             <Foot />

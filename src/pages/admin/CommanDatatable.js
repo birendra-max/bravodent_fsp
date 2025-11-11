@@ -13,7 +13,7 @@ import {
 export default function CommanDatatable({
     columns = [],
     data = [],
-    rowsPerPageOptions = [10, 25, 50],
+    rowsPerPageOptions = [50, 100, 200, 500],
 }) {
     const { theme } = useContext(ThemeContext);
     const [status, setStatus] = useState("show");

@@ -246,7 +246,7 @@ export default function Reports() {
 
                             {/* Data Table */}
                             <div className="mt-8">
-                                <Datatable columns={columns} data={data} />
+                                <Datatable columns={columns} data={data} rowsPerPage={50}/>
                             </div>
 
                         </div>

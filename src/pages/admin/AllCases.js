@@ -76,7 +76,7 @@ export default function AllCases() {
                         </p>
                     </div>
                     {/* 📊 Client Table */}
-                    <CasesDatatable columns={columns} data={data} rowsPerPage={10} />
+                    <CasesDatatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
             </main>
             <Foot />

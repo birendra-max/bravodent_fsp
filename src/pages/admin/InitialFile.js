@@ -70,7 +70,7 @@ export default function InitialFile() {
                     </div>
 
                     {/* Client Table */}
-                    <FileDatatable columns={columns} data={data} rowsPerPage={10} />
+                    <FileDatatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
             </main>
             <Foot />

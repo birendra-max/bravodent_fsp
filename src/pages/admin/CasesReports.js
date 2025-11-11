@@ -175,7 +175,7 @@ export default function CasesReports() {
                             ))}
                         </div>
                     </div>
-                    <CasesDatatable columns={columns} data={data} />
+                    <CasesDatatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
 
                 {/* Loading Overlay */}

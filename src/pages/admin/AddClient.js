@@ -254,7 +254,7 @@ export default function AllClients() {
                     </div>
 
                     {/* Client Table */}
-                    <Datatable columns={columns} data={data} rowsPerPage={10} />
+                    <Datatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
             </main>
             <Foot/>
