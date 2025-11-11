@@ -48,7 +48,6 @@ export default function Profile() {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`,
                 },
-                credentials: 'include',
             });
 
             const data = await response.json();
