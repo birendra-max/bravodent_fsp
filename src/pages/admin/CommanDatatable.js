@@ -4,7 +4,7 @@ import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faDownload ,faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from '../../utils/userapi';
 import {
     faTrash
@@ -515,9 +515,10 @@ export default function CommanDatatable({
                                         <tr>
                                             <td
                                                 colSpan={columns.length}
-                                                className={`p-5 text-center ${getNoDataClass()}`}
+                                                className={`pl-40 p-5 text-center`}
                                             >
-                                                📭 No records found.
+                                                <FontAwesomeIcon icon={faFolderOpen} size="lg" className="me-2 text-blue-500" />
+                                                No records found.
                                             </td>
                                         </tr>
                                     )}

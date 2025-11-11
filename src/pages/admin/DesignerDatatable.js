@@ -4,7 +4,7 @@ import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload, faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faTrashCan, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 
 export default function DesignerDatatable({
     columns = [],
@@ -336,8 +336,9 @@ export default function DesignerDatatable({
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={columns.length} className={`p-5 text-center ${getNoDataClass()}`}>
-                                                📭 No records found.
+                                            <td colSpan={columns.length} className={`pl-10 p-5 text-center ${getNoDataClass()}`}>
+                                                <FontAwesomeIcon icon={faFolderOpen} size="lg" className="me-2 text-blue-500" />
+                                                No records found.
                                             </td>
                                         </tr>
                                     )}

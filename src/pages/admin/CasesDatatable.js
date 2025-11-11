@@ -4,7 +4,7 @@ import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 
 export default function CasesDatatable({
     columns = [],
@@ -334,6 +334,7 @@ export default function CasesDatatable({
                                     <tr className={getTableHeaderClass()}>
                                         {/* ✅ Fixed checkbox column only */}
                                         <th style={{
+                                            border: "1px solid #ddd",
                                             width: "10vh",
                                             minWidth: "10vh",
                                             maxWidth: "10vh",
@@ -370,6 +371,7 @@ export default function CasesDatatable({
                                             <tr key={idx} className={getTableRowClass(idx)}>
                                                 {/* ✅ Fixed checkbox cell only */}
                                                 <td style={{
+                                                    border: "1px solid #ddd",
                                                     textAlign: "center",
                                                     padding: "8px",
                                                     width: "40px",
@@ -451,9 +453,10 @@ export default function CasesDatatable({
                                         <tr>
                                             <td
                                                 colSpan={columns.length}
-                                                className={`p-5 text-center ${getNoDataClass()}`}
+                                                className={`pl-40 p-5 text-center`}
                                             >
-                                                📭 No records found.
+                                                <FontAwesomeIcon icon={faFolderOpen} size="lg" className="me-2 text-blue-500" />
+                                                No records found.
                                             </td>
                                         </tr>
                                     )}
