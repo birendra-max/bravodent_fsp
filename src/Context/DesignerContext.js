@@ -20,7 +20,6 @@ export const DesignerProvider = ({ children }) => {
     }, [designer]);
 
     const logout = async () => {
-        // const resp = fetch('http://localhost/easycrm_ci/logout')
         setDesigner(null);
         localStorage.removeItem('designer');
         localStorage.removeItem('token');

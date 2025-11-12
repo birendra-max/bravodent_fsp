@@ -85,7 +85,8 @@ export default function NewRequest() {
       const response = await fetch(`${base_url}/new-orders`, {
         method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant': 'bravodent'
         },
         body: formData,
       });
@@ -179,6 +180,7 @@ export default function NewRequest() {
         headers: {
           "Content-Type": "application/json",
           'Authorization': `Bearer ${token}`,
+          'X-Tenant': 'bravodent'
         },
         body: JSON.stringify(filesWithDuration),
       });

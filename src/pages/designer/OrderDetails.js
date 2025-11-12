@@ -46,7 +46,8 @@ export default function OrderDetails() {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
+                        "Authorization": `Bearer ${token}`,
+                        'X-Tenant': 'bravodent'
                     },
                     body: JSON.stringify({ orderid: id }),
                 });
@@ -75,7 +76,8 @@ export default function OrderDetails() {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
+                        "Authorization": `Bearer ${token}`,
+                        'X-Tenant': 'bravodent'
                     },
                     body: JSON.stringify({ orderid: id }),
                 });
@@ -102,7 +104,8 @@ export default function OrderDetails() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    "Authorization": `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify({ orderid: id, status: selectedStatus }),
             });
@@ -128,7 +131,8 @@ export default function OrderDetails() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    "Authorization": `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify({
                     file_id: fileId,
@@ -157,7 +161,8 @@ export default function OrderDetails() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    "Authorization": `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify({ orderid: id }),
             });
@@ -637,7 +642,8 @@ function FileUploader({ theme, onFileUpload }) {
             const response = await fetch(`${base_url}/upload-order-file`, {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    "Authorization": `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: formData,
             });

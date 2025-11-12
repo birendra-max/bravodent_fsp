@@ -19,6 +19,7 @@ export async function fetchWithAuth(endpoint, options = {}) {
     const headers = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'X-Tenant': 'bravodent',
         ...options.headers,
     };
 

@@ -3,9 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { UserContext } from "../../Context/UserContext";
 import { useNavigate } from 'react-router-dom';
-
+import config from '../../config';
 
 export default function Login() {
+
     useEffect(() => {
         const data = localStorage.getItem('user') ? localStorage.getItem('user') : "";
         const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
@@ -40,9 +41,9 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`https://fsp.bravodentdesigns.com/validate-user`, {
+            const res = await fetch(`${config.API_BASE_URL}/validate-user`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", 'X-Tenant': 'bravodent' },
                 body: JSON.stringify(form),
             });
 

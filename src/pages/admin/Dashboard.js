@@ -27,6 +27,7 @@ export default function Dashboard() {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
+                        'X-Tenant': 'bravodent'
                     },
                 });
                 const data = await res.json();

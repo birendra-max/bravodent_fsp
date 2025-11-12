@@ -35,7 +35,9 @@ export default function AllDesigner() {
     useEffect(() => {
         async function getClients() {
             try {
-                const data = await fetchWithAuth("/get-all-designer", { method: "GET" });
+                const data = await fetchWithAuth("/get-all-designer", {
+                    method: "GET", 
+                });
                 if (data && data.status === "success") setData(data.clients);
                 else setData([]);
             } catch (error) {
@@ -58,6 +60,7 @@ export default function AllDesigner() {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify({
                     email: resetEmail,

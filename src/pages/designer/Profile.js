@@ -61,7 +61,8 @@ export default function Profile() {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 }
             });
 
@@ -99,7 +100,8 @@ export default function Profile() {
                 const profileresp = await fetch(`${base_url}/update-profile`, {
                     method: "POST",
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'X-Tenant': 'bravodent'
                     },
                     body: formData,
                 });
@@ -143,7 +145,8 @@ export default function Profile() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify(form),
             });

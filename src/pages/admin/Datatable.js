@@ -167,6 +167,7 @@ export default function Datatable({
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify({ status: newStatus }),
             });
@@ -195,6 +196,7 @@ export default function Datatable({
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
             });
 

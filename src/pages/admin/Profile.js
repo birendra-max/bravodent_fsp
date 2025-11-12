@@ -50,6 +50,7 @@ export default function Profile() {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
             });
 
@@ -80,6 +81,7 @@ export default function Profile() {
                     method: "POST",
                     headers: {
                         'Authorization': `Bearer ${token}`,
+                        'X-Tenant': 'bravodent'
                     },
                     body: formData,
                 });
@@ -125,6 +127,7 @@ export default function Profile() {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify(form),
             });

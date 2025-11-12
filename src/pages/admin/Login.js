@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useContext } from "react";
 import { AdminContext } from "../../Context/AdminContext";
 import { useNavigate } from "react-router-dom";
+import config from '../../config';
 
 export default function Login() {
   const apiUrl = process.env.base_url;
@@ -39,9 +40,12 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await fetch(`https://fsp.bravodentdesigns.com/admin/login`, {
+      const res = await fetch(`${config.API_BASE_URL}/admin/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          'X-Tenant': 'bravodent'
+        },
         body: JSON.stringify(form),
       });
 

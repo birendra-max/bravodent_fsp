@@ -75,7 +75,8 @@ export default function NewRequest() {
       const response = await fetch(`${base_url}/new-orders`, {
         method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant': 'bravodent'
         },
         body: formData,
       });

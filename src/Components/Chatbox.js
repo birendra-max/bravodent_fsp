@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faUser, faVideo, faTimes, faFile, faPaperclip, faPaperPlane, faDownload
+    faUser, faTimes, faFile, faPaperclip, faPaperPlane, faDownload
 } from "@fortawesome/free-solid-svg-icons";
 import { UserContext } from '../Context/UserContext';
 import { DesignerContext } from '../Context/DesignerContext';
+import config from '../config';
 
 export default function Chatbox({ orderid }) {
     const token = localStorage.getItem('token');
@@ -68,8 +69,8 @@ export default function Chatbox({ orderid }) {
     // Load initial chat history
     const loadChatHistory = async () => {
         try {
-            const response = await fetch(`https://fsp.bravodentdesigns.com/chat/get-chat-history/${orderid}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+            const response = await fetch(`${config.API_BASE_URL}/chat/get-chat-history/${orderid}`, {
+                headers: { 'Authorization': `Bearer ${token}`, 'X-Tenant': 'bravodent' }
             });
             const data = await response.json();
 
@@ -123,7 +124,7 @@ export default function Chatbox({ orderid }) {
     const startSSEConnection = () => {
         if (!orderid || !token || eventSourceRef.current) return;
 
-        const url = `https://fsp.bravodentdesigns.com/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}`;
+        const url = `${config.API_BASE_URL}/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}`;
 
         try {
             eventSourceRef.current = new EventSource(url);
@@ -233,11 +234,12 @@ export default function Chatbox({ orderid }) {
         recentlySentMessagesRef.current.add(messageKey);
 
         try {
-            const response = await fetch('https://fsp.bravodentdesigns.com/chat/send-message', {
+            const response = await fetch(`${config.API_BASE_URL}/chat/send-message`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify({
                     orderid,
@@ -278,9 +280,9 @@ export default function Chatbox({ orderid }) {
         const fileKey = `${file.name}_${Date.now()}`;
         recentlySentMessagesRef.current.add(fileKey);
 
-        fetch('https://fsp.bravodentdesigns.com/chat/chat-file', {
+        fetch(`${config.API_BASE_URL}/chat/chat-file`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 'Authorization': `Bearer ${token}`, 'X-Tenant': 'bravodent' },
             body: formData
         })
             .then(res => res.json())

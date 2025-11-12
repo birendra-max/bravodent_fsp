@@ -43,7 +43,9 @@ export default function AddDesigner() {
 
     const getClients = async () => {
         try {
-            const res = await fetchWithAuth("/get-all-designer", { method: "GET" });
+            const res = await fetchWithAuth("/get-all-designer", {
+                method: "GET",
+            });
             if (res && res.status === "success") setData(res.clients);
             else setData([]);
         } catch (error) {
@@ -75,6 +77,7 @@ export default function AddDesigner() {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify(formData),
             });

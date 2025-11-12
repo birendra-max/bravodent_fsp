@@ -4,7 +4,7 @@ import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload ,faFolderOpen } from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from '../../utils/adminapi';
 import {
     faTrash
@@ -295,28 +295,49 @@ export default function CommanDatatable({
                 body: JSON.stringify({ orderid, filename: fname })
             });
 
-            if (resp.status === 'success') {
-                alert(`${resp.message}`);
-            } else {
-                alert(`${resp.message}`);
-            }
+            return resp; // ✅ Return the response so caller can handle it
         } catch (err) {
             console.error("Error deleting file:", err);
+            return { status: 'error', message: `Error deleting file for order ${orderid}` };
         }
     };
 
 
-    const handleBulkDelete = () => {
+    const handleBulkDelete = async () => {
         if (!selectedRows.length) return alert("Please select at least one record!");
+
         const selectedRowsData = data.filter(row => selectedRows.includes(row.orderid));
         const confirmMessage = `Are you sure you want to delete files for ${selectedRows.length} selected records?\n\nSelected Order IDs: ${selectedRows.join(", ")}`;
 
-        if (window.confirm(confirmMessage)) {
-            selectedRowsData.forEach(row => {
-                handleDelete(row.orderid, row.fname);
-            });
-            setSelectedRows([]);
+        if (!window.confirm(confirmMessage)) return;
+
+        let successCount = 0;
+        let failedCount = 0;
+        let failedOrders = [];
+
+        // ✅ Use Promise.all to delete all files in parallel
+        const results = await Promise.all(
+            selectedRowsData.map(async (row) => {
+                const result = await handleDelete(row.orderid, row.fname);
+                if (result.status === 'success') successCount++;
+                else {
+                    failedCount++;
+                    failedOrders.push(row.orderid);
+                }
+            })
+        );
+
+        // ✅ Show one summary alert after all deletions
+        let message = `🗑️ Bulk Delete Summary:\n\n`;
+        message += `✅ Successfully deleted: ${successCount}\n`;
+        if (failedCount > 0) {
+            message += `❌ Failed to delete: ${failedCount}\n`;
+            message += `Failed Order IDs: ${failedOrders.join(", ")}\n`;
         }
+        alert(message);
+
+        // ✅ Clear selection
+        setSelectedRows([]);
     };
 
 

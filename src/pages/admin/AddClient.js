@@ -43,7 +43,9 @@ export default function AllClients() {
 
     const getClients = async () => {
         try {
-            const res = await fetchWithAuth("/get-all-clients", { method: "GET" });
+            const res = await fetchWithAuth("/get-all-clients", {
+                method: "GET",
+            });
             if (res && res.status === "success") setData(res.clients);
             else setData([]);
         } catch (error) {
@@ -75,6 +77,7 @@ export default function AllClients() {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify(formData),
             });
@@ -112,8 +115,8 @@ export default function AllClients() {
             <Hd />
             <main
                 className={`min-h-screen flex transition-all duration-300 ${theme === "dark"
-                        ? "bg-gray-950 text-gray-100"
-                        : "bg-gray-100 text-gray-800"
+                    ? "bg-gray-950 text-gray-100"
+                    : "bg-gray-100 text-gray-800"
                     }`}
             >
                 <div className="fixed top-0 left-0 h-full w-64 z-20">
@@ -144,8 +147,8 @@ export default function AllClients() {
                     {/* Form Card */}
                     <div
                         className={`p-8 rounded-2xl shadow-lg border ${theme === "dark"
-                                ? "bg-gray-900 border-gray-800"
-                                : "bg-white border-gray-200"
+                            ? "bg-gray-900 border-gray-800"
+                            : "bg-white border-gray-200"
                             }`}
                     >
                         <form
@@ -174,8 +177,8 @@ export default function AllClients() {
                                         required
                                         placeholder={field.placeholder}
                                         className={`w-full p-3 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
-                                                ? "bg-gray-800 border-gray-700"
-                                                : "bg-gray-50 border-gray-300"
+                                            ? "bg-gray-800 border-gray-700"
+                                            : "bg-gray-50 border-gray-300"
                                             }`}
                                     />
                                 </div>
@@ -193,8 +196,8 @@ export default function AllClients() {
                                         required
                                         placeholder="Enter password"
                                         className={`w-full p-3 pr-10 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
-                                                ? "bg-gray-800 border-gray-700"
-                                                : "bg-gray-50 border-gray-300"
+                                            ? "bg-gray-800 border-gray-700"
+                                            : "bg-gray-50 border-gray-300"
                                             }`}
                                     />
                                     <button
@@ -218,8 +221,8 @@ export default function AllClients() {
                                     placeholder="Enter remarks"
                                     rows={3}
                                     className={`w-full p-3 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
-                                            ? "bg-gray-800 border-gray-700"
-                                            : "bg-gray-50 border-gray-300"
+                                        ? "bg-gray-800 border-gray-700"
+                                        : "bg-gray-50 border-gray-300"
                                         }`}
                                 ></textarea>
                             </div>
@@ -230,8 +233,8 @@ export default function AllClients() {
                                 {message.text && (
                                     <div
                                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${message.type === "success"
-                                                ? "bg-green-100 text-green-700 border border-green-300"
-                                                : "bg-red-100 text-red-700 border border-red-300"
+                                            ? "bg-green-100 text-green-700 border border-green-300"
+                                            : "bg-red-100 text-red-700 border border-red-300"
                                             }`}
                                     >
                                         {message.text}
@@ -243,8 +246,8 @@ export default function AllClients() {
                                     type="submit"
                                     disabled={loading}
                                     className={`px-8 py-2.5 rounded-lg font-semibold transition-all ${loading
-                                            ? "bg-blue-400 text-white cursor-not-allowed"
-                                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                                        ? "bg-blue-400 text-white cursor-not-allowed"
+                                        : "bg-blue-600 hover:bg-blue-700 text-white"
                                         }`}
                                 >
                                     {loading ? "Adding..." : "Save Client"}
@@ -257,7 +260,7 @@ export default function AllClients() {
                     <Datatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
             </main>
-            <Foot/>
+            <Foot />
         </>
     );
 }

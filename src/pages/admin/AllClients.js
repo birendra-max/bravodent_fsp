@@ -35,7 +35,9 @@ export default function AllClients() {
     useEffect(() => {
         async function getClients() {
             try {
-                const data = await fetchWithAuth("/get-all-clients", { method: "GET" });
+                const data = await fetchWithAuth("/get-all-clients", {
+                    method: "GET",
+                });
                 if (data && data.status === "success") setData(data.clients);
                 else setData([]);
             } catch (error) {
@@ -58,6 +60,7 @@ export default function AllClients() {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify({
                     email: resetEmail,
@@ -86,11 +89,10 @@ export default function AllClients() {
         <>
             <Hd />
             <main
-                className={`min-h-screen flex transition-all duration-300 ${
-                    theme === "dark"
+                className={`min-h-screen flex transition-all duration-300 ${theme === "dark"
                         ? "bg-gray-950 text-gray-100"
                         : "bg-gray-200 text-gray-800"
-                }`}
+                    }`}
             >
                 <div className="fixed top-0 left-0 h-full w-64 z-20">
                     <Sidebar />
@@ -100,17 +102,15 @@ export default function AllClients() {
                     {/* Header */}
                     <div className="mb-6">
                         <h1
-                            className={`text-3xl font-semibold flex items-center gap-2 ${
-                                theme === "dark" ? "text-white" : "text-gray-800"
-                            }`}
+                            className={`text-3xl font-semibold flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-gray-800"
+                                }`}
                         >
                             <FontAwesomeIcon icon={faUsers} className="text-blue-500" />
                             All Clients
                         </h1>
                         <p
-                            className={`${
-                                theme === "dark" ? "text-gray-400" : "text-gray-500"
-                            }`}
+                            className={`${theme === "dark" ? "text-gray-400" : "text-gray-500"
+                                }`}
                         >
                             Manage and monitor your registered client accounts.
                         </p>
@@ -118,11 +118,10 @@ export default function AllClients() {
 
                     {/* 🔐 Reset Password Form */}
                     <div
-                        className={`p-6 mb-6 rounded-xl shadow-lg border ${
-                            theme === "dark"
+                        className={`p-6 mb-6 rounded-xl shadow-lg border ${theme === "dark"
                                 ? "bg-gray-900 border-gray-800"
                                 : "bg-white border-gray-300"
-                        }`}
+                            }`}
                     >
                         <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
                             <FontAwesomeIcon icon={faKey} className="text-yellow-500" />
@@ -142,11 +141,10 @@ export default function AllClients() {
                                     value={resetEmail}
                                     onChange={(e) => setResetEmail(e.target.value)}
                                     required
-                                    className={`w-full p-2.5 rounded-md border focus:ring-2 focus:ring-blue-500 ${
-                                        theme === "dark"
+                                    className={`w-full p-2.5 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
                                             ? "bg-gray-800 border-gray-700 text-white"
                                             : "bg-gray-50 border-gray-300 text-gray-800"
-                                    }`}
+                                        }`}
                                 />
                             </div>
 
@@ -159,18 +157,16 @@ export default function AllClients() {
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     required
-                                    className={`w-full p-2.5 rounded-md border focus:ring-2 focus:ring-blue-500 ${
-                                        theme === "dark"
+                                    className={`w-full p-2.5 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
                                             ? "bg-gray-800 border-gray-700 text-white"
                                             : "bg-gray-50 border-gray-300 text-gray-800"
-                                    }`}
+                                        }`}
                                 />
                                 <FontAwesomeIcon
                                     icon={showPassword ? faEyeSlash : faEye}
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className={`text-xl absolute right-3 top-11 cursor-pointer text-gray-500 ${
-                                        theme === "dark" ? "hover:text-gray-300" : "hover:text-gray-700"
-                                    }`}
+                                    className={`text-xl absolute right-3 top-11 cursor-pointer text-gray-500 ${theme === "dark" ? "hover:text-gray-300" : "hover:text-gray-700"
+                                        }`}
                                 />
                             </div>
 
@@ -179,11 +175,10 @@ export default function AllClients() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
-                                        loading
+                                    className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${loading
                                             ? "bg-blue-400 text-white cursor-not-allowed"
                                             : "bg-blue-600 hover:bg-blue-700 text-white"
-                                    }`}
+                                        }`}
                                 >
                                     {loading ? "Resetting..." : "Reset Password"}
                                 </button>
@@ -193,11 +188,10 @@ export default function AllClients() {
                         {/* Message */}
                         {message.text && (
                             <div
-                                className={`mt-4 inline-block px-4 py-2 rounded-md text-sm font-medium ${
-                                    message.type === "success"
+                                className={`mt-4 inline-block px-4 py-2 rounded-md text-sm font-medium ${message.type === "success"
                                         ? "bg-green-100 text-green-700 border border-green-300"
                                         : "bg-red-100 text-red-700 border border-red-300"
-                                }`}
+                                    }`}
                             >
                                 {message.text}
                             </div>
@@ -208,7 +202,7 @@ export default function AllClients() {
                     <Datatable columns={columns} data={data} rowsPerPage={50} />
                 </div>
             </main>
-            <Foot/>
+            <Foot />
         </>
     );
 }

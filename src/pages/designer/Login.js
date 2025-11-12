@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { DesignerContext } from '../../Context/DesignerContext';
 import { useNavigate } from "react-router-dom";
+import config from '../../config';
 
 export default function Login() {
     const { setDesigner } = useContext(DesignerContext);
@@ -37,9 +38,12 @@ export default function Login() {
     const handleForm = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`https://fsp.bravodentdesigns.com/designer/validate-designer`, {
+            const res = await fetch(`${config.API_BASE_URL}/designer/validate-designer`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    'X-Tenant': 'bravodent'
+                },
                 body: JSON.stringify(form),
             });
 

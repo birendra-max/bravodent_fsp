@@ -24,8 +24,6 @@ export default function ClientReports() {
         async function getClients() {
             try {
                 const data = await fetchWithAuth("/get-reports", { method: "GET" });
-
-                console.log(data.data);
                 if (data && data.status === "success") setData(data.data);
                 else setData([]);
             } catch (error) {
