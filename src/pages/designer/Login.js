@@ -5,6 +5,7 @@ import { DesignerContext } from '../../Context/DesignerContext';
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+    const apiUrl = process.env.base_url;
     const { setDesigner } = useContext(DesignerContext);
     const [activeIndex, setActiveIndex] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +38,7 @@ export default function Login() {
     const handleForm = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch("https://fsp.bravodentdesigns.com/designer/validate-designer", {
+            const res = await fetch(`${apiUrl}/designer/validate-designer`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),

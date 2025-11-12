@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 export default function Login() {
+    const apiUrl = process.env.base_url;
     useEffect(() => {
         const data = localStorage.getItem('user') ? localStorage.getItem('user') : "";
         const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
@@ -40,7 +41,7 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch("https://fsp.bravodentdesigns.com/validate-user", {
+            const res = await fetch(`${apiUrl}/validate-user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
@@ -55,7 +56,7 @@ export default function Login() {
             if (data.status === "success" && data.message === "Login successfully" && data.user?.userid) {
                 setUser(data.user);
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('base_url',data.base_url);
+                localStorage.setItem('base_url', data.base_url);
                 setStatus({ type: "success", message: data.message });
                 navigate('/user/home');
             } else {

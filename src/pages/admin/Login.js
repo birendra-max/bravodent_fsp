@@ -7,7 +7,7 @@ import { AdminContext } from "../../Context/AdminContext";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-
+  const apiUrl = process.env.base_url;
   useEffect(() => {
     const data = localStorage.getItem('admin') ? localStorage.getItem('admin') : "";
     const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
@@ -39,7 +39,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost/bravodent_ci/admin/login", {
+      const res = await fetch(`${apiUrl}/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
