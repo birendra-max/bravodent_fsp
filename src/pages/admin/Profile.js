@@ -54,7 +54,6 @@ export default function Profile() {
             });
 
             const data = await response.json();
-            console.log(data);
             if (data.status === 'success') {
                 setAdmin(data.admin);
                 setForm({
@@ -127,7 +126,6 @@ export default function Profile() {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`,
                 },
-                credentials: 'include',
                 body: JSON.stringify(form),
             });
 
