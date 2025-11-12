@@ -68,7 +68,7 @@ export default function Chatbox({ orderid }) {
     // Load initial chat history
     const loadChatHistory = async () => {
         try {
-            const response = await fetch(`http://localhost/bravodent_ci/chat/get-chat-history/${orderid}`, {
+            const response = await fetch(`https://fsp.bravodentdesigns.com/chat/get-chat-history/${orderid}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -123,7 +123,7 @@ export default function Chatbox({ orderid }) {
     const startSSEConnection = () => {
         if (!orderid || !token || eventSourceRef.current) return;
 
-        const url = `http://localhost/bravodent_ci/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}`;
+        const url = `https://fsp.bravodentdesigns.com/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}`;
 
         try {
             eventSourceRef.current = new EventSource(url);
@@ -233,7 +233,7 @@ export default function Chatbox({ orderid }) {
         recentlySentMessagesRef.current.add(messageKey);
 
         try {
-            const response = await fetch('http://localhost/bravodent_ci/chat/send-message', {
+            const response = await fetch('https://fsp.bravodentdesigns.com/chat/send-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -278,7 +278,7 @@ export default function Chatbox({ orderid }) {
         const fileKey = `${file.name}_${Date.now()}`;
         recentlySentMessagesRef.current.add(fileKey);
 
-        fetch('http://localhost/bravodent_ci/chat/chat-file', {
+        fetch('https://fsp.bravodentdesigns.com/chat/chat-file', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` },
             body: formData

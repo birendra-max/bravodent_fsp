@@ -180,7 +180,6 @@ export default function NewRequest() {
           "Content-Type": "application/json",
           'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify(filesWithDuration),
       });
 

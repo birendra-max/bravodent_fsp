@@ -51,7 +51,6 @@ export default function Dashboard() {
                     'Content-Type': "application/json",
                     'Authorization': `Bearer ${token}`
                 },
-                credentials: 'include',
                 body: JSON.stringify(form),
             })
 

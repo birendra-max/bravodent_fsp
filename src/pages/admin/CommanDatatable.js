@@ -5,7 +5,7 @@ import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload ,faFolderOpen } from "@fortawesome/free-solid-svg-icons";
-import { fetchWithAuth } from '../../utils/userapi';
+import { fetchWithAuth } from '../../utils/adminapi';
 import {
     faTrash
 } from '@fortawesome/free-solid-svg-icons';
