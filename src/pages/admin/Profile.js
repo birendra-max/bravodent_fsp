@@ -16,7 +16,10 @@ import {
     faSave,
     faKey,
     faExclamationTriangle,
-    faSpinner
+    faSpinner,
+    faCalendarAlt,
+    faIdCard,
+    faShieldAlt
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Profile() {
@@ -51,6 +54,7 @@ export default function Profile() {
             });
 
             const data = await response.json();
+            console.log(data);
             if (data.status === 'success') {
                 setAdmin(data.admin);
                 setForm({
@@ -84,21 +88,22 @@ export default function Profile() {
                 const data = await profileresp.json();
                 const statusEl = document.getElementById('profilestatus');
                 if (data.status === 'success') {
-                    statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${theme === 'light' ? 'text-green-700' : 'text-green-400'
+                    statusEl.className = `w-full px-2 py-2 text-xs font-medium text-center rounded-lg mb-2 ${theme === 'light' ? 'bg-green-100 text-green-800' : 'bg-green-900 text-green-300'
                         }`;
                     statusEl.innerText = data.message;
                     await fetchUserData();
                     setTimeout(() => {
                         statusEl.innerText = '';
+                        statusEl.className = '';
                     }, 3000);
                 } else {
-                    statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${theme === 'light' ? 'text-red-700' : 'text-red-400'
+                    statusEl.className = `w-full px-2 py-2 text-xs font-medium text-center rounded-lg mb-2 ${theme === 'light' ? 'bg-red-100 text-red-800' : 'bg-red-900 text-red-300'
                         }`;
                     statusEl.innerText = data.message;
                 }
             } catch (err) {
                 const statusEl = document.getElementById('profilestatus');
-                statusEl.className = `w-full px-2 sm:px-4 text-xs sm:text-sm font-bold text-center mb-2 ${theme === 'light' ? 'text-red-700' : 'text-red-400'
+                statusEl.className = `w-full px-2 py-2 text-xs font-medium text-center rounded-lg mb-2 ${theme === 'light' ? 'bg-red-100 text-red-800' : 'bg-red-900 text-red-300'
                     }`;
                 statusEl.innerText = 'Upload failed. Please try again.';
             } finally {
@@ -129,21 +134,22 @@ export default function Profile() {
             const resp = await response.json();
             const statusEl = document.getElementById('status');
             if (resp.status === 'success') {
-                statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${theme === 'light' ? 'text-green-700' : 'text-green-400'
+                statusEl.className = `w-full px-3 py-2 text-sm font-medium text-center rounded-lg mb-2 ${theme === 'light' ? 'bg-green-100 text-green-800' : 'bg-green-900 text-green-300'
                     }`;
                 statusEl.innerText = resp.message;
                 await fetchUserData();
                 setTimeout(() => {
                     statusEl.innerText = '';
+                    statusEl.className = '';
                 }, 3000);
             } else {
-                statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${theme === 'light' ? 'text-red-700' : 'text-red-400'
+                statusEl.className = `w-full px-3 py-2 text-sm font-medium text-center rounded-lg mb-2 ${theme === 'light' ? 'bg-red-100 text-red-800' : 'bg-red-900 text-red-300'
                     }`;
                 statusEl.innerText = resp.message;
             }
         } catch (error) {
             const statusEl = document.getElementById('status');
-            statusEl.className = `w-full px-2 sm:px-4 text-sm sm:text-base font-bold text-center mb-2 ${theme === 'light' ? 'text-red-700' : 'text-red-400'
+            statusEl.className = `w-full px-3 py-2 text-sm font-medium text-center rounded-lg mb-2 ${theme === 'light' ? 'bg-red-100 text-red-800' : 'bg-red-900 text-red-300'
                 }`;
             statusEl.innerText = 'Update failed. Please try again.';
         } finally {
@@ -154,68 +160,40 @@ export default function Profile() {
     // Theme-based styling functions
     const getMainClass = () => {
         return theme === 'light'
-            ? 'bg-gray-100 sm:bg-gray-200'
-            : 'bg-black';
-    };
-
-    const getHeaderClass = () => {
-        return theme === 'light'
-            ? 'bg-white border-gray-200 text-gray-800'
-            : 'bg-gray-800 border-gray-700 text-white';
+            ? 'bg-gradient-to-br from-gray-50 to-gray-100'
+            : 'bg-gradient-to-br from-gray-900 to-black';
     };
 
     const getCardClass = () => {
         return theme === 'light'
-            ? 'bg-white border-gray-200 text-gray-800'
-            : 'bg-gray-800 border-gray-700 text-white';
+            ? 'bg-white shadow-xl border border-gray-100'
+            : 'bg-gray-800 shadow-2xl border border-gray-700';
     };
 
     const getInputClass = () => {
         return theme === 'light'
-            ? 'bg-white border-gray-200 text-gray-800 focus:ring-blue-500 focus:border-blue-500'
-            : 'bg-gray-700 border-gray-600 text-white focus:ring-blue-500 focus:border-blue-500';
+            ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+            : 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
     };
 
     const getDisabledInputClass = () => {
         return theme === 'light'
-            ? 'bg-gray-50 border-gray-200 text-gray-500'
-            : 'bg-gray-600 border-gray-500 text-gray-400';
-    };
-
-    const getTabHeaderClass = () => {
-        return theme === 'light'
-            ? 'bg-gray-50 border-gray-200'
-            : 'bg-gray-700 border-gray-600';
-    };
-
-    const getTabButtonClass = (isActive) => {
-        if (isActive) {
-            return theme === 'light'
-                ? 'text-blue-600 border-blue-600'
-                : 'text-blue-400 border-blue-400';
-        } else {
-            return theme === 'light'
-                ? 'text-gray-500 border-transparent hover:text-blue-500'
-                : 'text-gray-400 border-transparent hover:text-blue-400';
-        }
+            ? 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed'
+            : 'bg-gray-600 border-gray-500 text-gray-400 cursor-not-allowed';
     };
 
     const getLabelClass = () => {
         return theme === 'light'
-            ? 'text-gray-700'
-            : 'text-gray-300';
+            ? 'text-gray-700 font-semibold'
+            : 'text-gray-200 font-semibold';
     };
 
-    const getBorderClass = () => {
-        return theme === 'light'
-            ? 'border-gray-200'
-            : 'border-gray-600';
+    const getTextClass = () => {
+        return theme === 'light' ? 'text-gray-600' : 'text-gray-300';
     };
 
-    const getDividerClass = () => {
-        return theme === 'light'
-            ? 'border-gray-100'
-            : 'border-gray-700';
+    const getHeadingClass = () => {
+        return theme === 'light' ? 'text-gray-800' : 'text-white';
     };
 
     if (!admin || Object.keys(admin).length === 0) {
@@ -223,13 +201,12 @@ export default function Profile() {
             <>
                 <Hd />
                 <main className={`min-h-screen transition-colors duration-300 ${getMainClass()}`}>
-                    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
-                        <div className="flex justify-center items-center min-h-80 sm:min-h-96">
-                            <div className="text-center px-4">
-                                <FontAwesomeIcon icon={faExclamationTriangle} className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-500 mb-3 sm:mb-4" />
-                                <h2 className={`text-xl sm:text-2xl font-bold mb-2 ${theme === 'light' ? 'text-gray-800' : 'text-white'
-                                    }`}>Admin Not Found</h2>
-                                <p className={theme === 'light' ? 'text-gray-600' : 'text-gray-400'}>
+                    <div className="container mx-auto px-4 py-8">
+                        <div className="flex justify-center items-center min-h-96">
+                            <div className="text-center max-w-md mx-auto">
+                                <FontAwesomeIcon icon={faExclamationTriangle} className="w-16 h-16 text-yellow-500 mb-4 mx-auto" />
+                                <h2 className={`text-2xl font-bold mb-3 ${getHeadingClass()}`}>Admin Not Found</h2>
+                                <p className={getTextClass()}>
                                     Please log in to view your profile.
                                 </p>
                             </div>
@@ -244,223 +221,307 @@ export default function Profile() {
     return (
         <>
             <Hd />
-            <main className={`min-h-screen transition-colors duration-300 py-22 ${getMainClass()}`}>
-                {/* Header Section */}
-                <header className={`border-b shadow-sm px-4 ${getHeaderClass()}`}>
-                    <div className="container mx-auto px-3 sm:px py-4 sm:py-3">
-                        <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="text-center sm:text-left">
-                                <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'text-gray-800' : 'text-white'
-                                    }`}>
-                                    Profile Overview
-                                </h1>
-                                <p className={`mt-1 text-sm sm:text-base ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'
-                                    }`}>Manage your account settings and preferences</p>
-                            </div>
-                            <nav className="flex justify-center sm:justify-start">
-                                <ol className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">
-                                    <li>
-                                        <Link to="/admin/dashboard" className={`hover:text-blue-800 transition-colors duration-300 flex items-center ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'
-                                            }`}>
-                                            <FontAwesomeIcon icon={faHome} className="w-3 h-3 mr-1 sm:mr-2" />
-                                            <span className="hidden xs:inline">Home</span>
-                                        </Link>
-                                    </li>
-                                    <li className="flex items-center">
-                                        <span className={`mx-1 sm:mx-2 ${theme === 'light' ? 'text-gray-400' : 'text-gray-500'
-                                            }`}>/</span>
-                                        <span className={`font-semibold truncate max-w-[120px] sm:max-w-none ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'
-                                            }`}>
-                                            {admin.name}
-                                        </span>
-                                    </li>
-                                </ol>
-                            </nav>
-                        </div>
-                    </div>
-                </header>
-
-                {/* Main Content */}
-                <div className="mx-auto py-4 sm:py-4 px-3 sm:px-4">
-                    <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-4">
-
-                        {/* Left Sidebar - Profile Card */}
-                        <div className="xl:col-span-1">
-                            <div className={`rounded-lg sm:rounded-xl shadow-md sm:shadow-lg border p-4 sm:p-6 ${getCardClass()}`}>
-                                {/* Profile Image */}
-                                <div className="text-center mb-4 sm:mb-6">
-                                    <div className="relative inline-block">
-                                        <div className="relative">
-                                            {!admin.pic || admin.pic === '' ? (
-                                                <img
-                                                    className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg sm:rounded-xl mx-auto border-4 shadow-md"
-                                                    src="/img/user.webp"
-                                                    alt="Admin profile"
-                                                />
-                                            ) : (
-                                                <img
-                                                    className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg sm:rounded-xl mx-auto border-4 shadow-md object-cover"
-                                                    src={`${admin.pic}`}
-                                                    alt="Admin profile"
-                                                />
-                                            )}
-                                            {profileLoading && (
-                                                <div className={`absolute inset-0 bg-opacity-70 rounded-lg sm:rounded-xl flex items-center justify-center ${theme === 'light' ? 'bg-white' : 'bg-gray-900'
-                                                    }`}>
-                                                    <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 animate-spin" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full border-2 sm:border-4 border-white shadow-lg flex items-center justify-center">
-                                            <FontAwesomeIcon icon={faCheckCircle} className="w-2 h-2 sm:w-3 sm:h-3 text-white" />
-                                        </div>
-                                    </div>
-
-                                    <h3 className={`text-lg sm:text-xl font-bold mt-3 sm:mt-4 truncate px-2 ${theme === 'light' ? 'text-gray-800' : 'text-white'
-                                        }`}>
-                                        {admin.name || 'Admin'}
-                                    </h3>
-                                    <p className={`text-xs sm:text-sm mt-1 font-medium ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'
-                                        }`}>Professional Account</p>
-                                    <div className="flex items-center justify-center mt-2">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
-                                        <span className="text-green-600 text-xs font-medium">Online</span>
-                                    </div>
+            <main className={`min-h-screen transition-colors duration-300 ${getMainClass()} pt-16`}>
+                {/* Full Screen Container */}
+                <div className="w-full min-h-[calc(100vh-4rem)] py-6 px-4">
+                    <div className="max-w-8xl mx-auto">
+                        
+                        {/* Header Section */}
+                        <div className="mb-8">
+                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                                <div className="mb-4 lg:mb-0">
+                                    <h1 className={`text-3xl lg:text-4xl font-bold ${getHeadingClass()} mb-2`}>
+                                        Profile Settings
+                                    </h1>
+                                    <p className={`text-lg ${getTextClass()}`}>
+                                        Manage your account information and security
+                                    </p>
                                 </div>
-
-                                {/* Profile Picture Upload */}
-                                <div className="space-y-3 sm:space-y-4">
-                                    <p id="profilestatus" className="w-full text-center text-xs sm:text-sm"></p>
-                                    <div>
-                                        <label className={`text-xs sm:text-sm font-semibold mb-2 flex items-center ${getLabelClass()}`}>
-                                            <FontAwesomeIcon icon={faCamera} className="w-3 h-3 mr-2 text-blue-500" />
-                                            Update Profile Picture
-                                        </label>
-                                        <div className="relative">
-                                            <input
-                                                type="file"
-                                                name="profile_pic"
-                                                accept='image/*'
-                                                onChange={handleFileChange}
-                                                disabled={profileLoading}
-                                                className={`w-full px-2 sm:px-3 py-2 border-2 border-dashed rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 file:mr-2 sm:file:mr-4 file:py-1 file:px-2 sm:file:px-3 file:rounded file:border-0 file:text-xs sm:file:text-sm file:font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'light'
-                                                    ? 'bg-gray-50 border-gray-300 text-gray-700 file:bg-blue-500 file:text-white hover:file:bg-blue-600'
-                                                    : 'bg-gray-700 border-gray-600 text-gray-300 file:bg-blue-600 file:text-white hover:file:bg-blue-700'
-                                                    }`}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                                <nav className="flex items-center space-x-2 text-sm">
+                                    <Link 
+                                        to="/admin/dashboard" 
+                                        className={`flex items-center transition-colors duration-200 ${theme === 'light' ? 'text-blue-600 hover:text-blue-800' : 'text-blue-400 hover:text-blue-300'}`}
+                                    >
+                                        <FontAwesomeIcon icon={faHome} className="w-4 h-4 mr-2" />
+                                        Dashboard
+                                    </Link>
+                                    <span className={getTextClass()}>/</span>
+                                    <span className={`font-semibold ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>
+                                        {admin.name}
+                                    </span>
+                                </nav>
                             </div>
                         </div>
 
-                        {/* Right Content - Personal Details */}
-                        <div className="xl:col-span-3">
-                            <div className={`rounded-lg sm:rounded-xl shadow-md sm:shadow-lg border overflow-hidden ${getCardClass()}`}>
-                                {/* Tab Header */}
-                                <div className={`px-4 sm:px-6 py-3 sm:py-4 border-b ${getTabHeaderClass()} ${getBorderClass()}`}>
-                                    <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto">
-                                        <button
-                                            onClick={() => setActiveTab('personal')}
-                                            className={`font-semibold pb-2 sm:pb-3 px-2 border-b-2 transition-all duration-300 flex items-center whitespace-nowrap flex-shrink-0 ${getTabButtonClass(activeTab === 'personal')}`}
-                                        >
-                                            <FontAwesomeIcon icon={faUser} className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                                            Personal Details
-                                        </button>
-                                    </nav>
-                                </div>
-
-                                {/* Tab Content */}
-                                <div className="p-4 sm:p-6">
-                                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                                        <input type="hidden" name="email" value={form.email} />
-
-                                        {/* Responsive Grid Layout */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-
-                                            <div className="flex flex-col space-y-2">
-                                                <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
-                                                    <FontAwesomeIcon icon={faEnvelope} className="w-3 h-3 text-blue-500 mr-2" />
-                                                    Email Address
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 cursor-not-allowed text-sm sm:text-base ${getDisabledInputClass()}`}
-                                                    value={form.email}
-                                                    readOnly
-                                                />
-                                            </div>
-
-
-                                            {/* Row 5 - Password field with eye button */}
-                                            <div className="md:col-span-1 flex flex-col space-y-2">
-                                                <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
-                                                    <FontAwesomeIcon icon={faKey} className="w-3 h-3 text-blue-500 mr-2" />
-                                                    Password
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type={showPassword ? "text" : "password"}
-                                                        name="password"
-                                                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm sm:text-base pr-10 sm:pr-12 ${getInputClass()}`}
-                                                        placeholder="Enter new password"
-                                                        value={form.password}
-                                                        onChange={handleProfile}
+                        {/* Main Content Grid */}
+                        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 lg:gap-8">
+                            
+                            {/* Profile Sidebar */}
+                            <div className="xl:col-span-1">
+                                <div className={`rounded-2xl p-6 ${getCardClass()} sticky top-6`}>
+                                    {/* Profile Header */}
+                                    <div className="text-center mb-8">
+                                        <div className="relative inline-block mb-4">
+                                            <div className="relative">
+                                                {!admin.pic || admin.pic === '' ? (
+                                                    <img
+                                                        className="w-32 h-32 rounded-2xl mx-auto border-4 shadow-lg object-cover"
+                                                        src="/img/user.webp"
+                                                        alt="Admin profile"
                                                     />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        className={`absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 transition-colors duration-300 p-1 ${theme === 'light' ? 'text-gray-400 hover:text-blue-500' : 'text-gray-500 hover:text-blue-400'
-                                                            }`}
-                                                    >
-                                                        <FontAwesomeIcon
-                                                            icon={showPassword ? faEyeSlash : faEye}
-                                                            className="w-4 h-4 sm:w-5 sm:h-5"
-                                                        />
-                                                    </button>
-                                                </div>
-                                                <p className={`text-xs mt-1 flex items-center ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                                    }`}>
-                                                    Leave blank to keep current password
-                                                </p>
+                                                ) : (
+                                                    <img
+                                                        className="w-32 h-32 rounded-2xl mx-auto border-4 shadow-lg object-cover"
+                                                        src={`${admin.pic}`}
+                                                        alt="Admin profile"
+                                                    />
+                                                )}
+                                                {profileLoading && (
+                                                    <div className={`absolute inset-0 bg-opacity-70 rounded-2xl flex items-center justify-center ${theme === 'light' ? 'bg-white' : 'bg-gray-900'}`}>
+                                                        <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 text-blue-500 animate-spin" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+                                                <FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3 text-white" />
                                             </div>
                                         </div>
 
-                                        {/* Submit Button */}
-                                        <div className={`pt-4 sm:pt-6 border-t ${getBorderClass()}`}>
-                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                                                <div className={`text-xs sm:text-sm text-center sm:text-left ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                                    }`}>
-                                                    Last updated: {admin.joining_date}
+                                        <h3 className={`text-xl font-bold mb-1 ${getHeadingClass()}`}>
+                                            {admin.name || 'Admin'}
+                                        </h3>
+                                        <p className={`text-sm font-medium mb-3 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>
+                                            Administrator
+                                        </p>
+                                        <div className="flex items-center justify-center">
+                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                                            <span className="text-green-600 text-sm font-medium">Active</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Profile Stats */}
+                                    <div className="space-y-4 mb-6">
+                                        <div className={`flex items-center justify-between p-3 rounded-lg ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-700'}`}>
+                                            <div className="flex items-center">
+                                                <FontAwesomeIcon icon={faIdCard} className="w-4 h-4 text-blue-500 mr-3" />
+                                                <span className={getTextClass()}>Member Since</span>
+                                            </div>
+                                            <span className={`font-semibold ${getTextClass()}`}>
+                                                {new Date(admin.joining_date).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <div className={`flex items-center justify-between p-3 rounded-lg ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-700'}`}>
+                                            <div className="flex items-center">
+                                                <FontAwesomeIcon icon={faShieldAlt} className="w-4 h-4 text-green-500 mr-3" />
+                                                <span className={getTextClass()}>Account Type</span>
+                                            </div>
+                                            <span className={`font-semibold ${theme === 'light' ? 'text-green-600' : 'text-green-400'}`}>
+                                                Admin
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Profile Picture Upload */}
+                                    <div className="space-y-4">
+                                        <p id="profilestatus" className="w-full text-center text-sm"></p>
+                                        <div>
+                                            <label className={`text-sm font-semibold mb-3 flex items-center ${getLabelClass()}`}>
+                                                <FontAwesomeIcon icon={faCamera} className="w-4 h-4 mr-2 text-blue-500" />
+                                                Update Profile Picture
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    name="profile_pic"
+                                                    accept='image/*'
+                                                    onChange={handleFileChange}
+                                                    disabled={profileLoading}
+                                                    className={`w-full px-4 py-3 border-2 border-dashed rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'light'
+                                                        ? 'bg-gray-50 border-gray-300 text-gray-700 file:bg-blue-500 file:text-white hover:file:bg-blue-600 hover:border-blue-400'
+                                                        : 'bg-gray-700 border-gray-600 text-gray-300 file:bg-blue-600 file:text-white hover:file:bg-blue-700 hover:border-blue-500'
+                                                        }`}
+                                                />
+                                            </div>
+                                            <p className={`text-xs mt-2 ${getTextClass()}`}>
+                                                Supported formats: JPG, PNG, WEBP (Max 5MB)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Main Content Area */}
+                            <div className="xl:col-span-3">
+                                <div className={`rounded-2xl overflow-hidden ${getCardClass()}`}>
+                                    
+                                    {/* Tab Navigation */}
+                                    <div className={`border-b ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
+                                        <div className="px-6 sm:px-8">
+                                            <nav className="flex space-x-8 overflow-x-auto">
+                                                <button
+                                                    onClick={() => setActiveTab('personal')}
+                                                    className={`font-semibold py-4 border-b-2 transition-all duration-300 flex items-center whitespace-nowrap ${activeTab === 'personal' 
+                                                        ? (theme === 'light' ? 'text-blue-600 border-blue-600' : 'text-blue-400 border-blue-400')
+                                                        : (theme === 'light' ? 'text-gray-500 border-transparent hover:text-blue-500' : 'text-gray-400 border-transparent hover:text-blue-400')
+                                                    }`}
+                                                >
+                                                    <FontAwesomeIcon icon={faUser} className="w-4 h-4 mr-3" />
+                                                    Personal Information
+                                                </button>
+                                                <button
+                                                    onClick={() => setActiveTab('security')}
+                                                    className={`font-semibold py-4 border-b-2 transition-all duration-300 flex items-center whitespace-nowrap ${activeTab === 'security' 
+                                                        ? (theme === 'light' ? 'text-blue-600 border-blue-600' : 'text-blue-400 border-blue-400')
+                                                        : (theme === 'light' ? 'text-gray-500 border-transparent hover:text-blue-500' : 'text-gray-400 border-transparent hover:text-blue-400')
+                                                    }`}
+                                                >
+                                                    <FontAwesomeIcon icon={faShieldAlt} className="w-4 h-4 mr-3" />
+                                                    Security Settings
+                                                </button>
+                                            </nav>
+                                        </div>
+                                    </div>
+
+                                    {/* Tab Content */}
+                                    <div className="p-6 sm:p-8">
+                                        <form onSubmit={handleSubmit} className="space-y-6">
+                                            <input type="hidden" name="email" value={form.email} />
+
+                                            {/* Personal Information Tab */}
+                                            {activeTab === 'personal' && (
+                                                <div className="space-y-6">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        {/* Email Field */}
+                                                        <div className="md:col-span-2">
+                                                            <label className={`block text-sm font-semibold mb-3 ${getLabelClass()}`}>
+                                                                <FontAwesomeIcon icon={faEnvelope} className="w-4 h-4 text-blue-500 mr-2" />
+                                                                Email Address
+                                                            </label>
+                                                            <input
+                                                                type="email"
+                                                                className={`w-full px-4 py-3 border rounded-xl focus:outline-none transition-all duration-300 text-base ${getDisabledInputClass()}`}
+                                                                value={form.email}
+                                                                readOnly
+                                                            />
+                                                            <p className={`text-sm mt-2 ${getTextClass()}`}>
+                                                                Contact support to change your email address
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Account Information */}
+                                                        <div className={`p-4 rounded-xl ${theme === 'light' ? 'bg-blue-50 border border-blue-200' : 'bg-blue-900 border border-blue-800'}`}>
+                                                            <h4 className={`font-semibold mb-3 flex items-center ${theme === 'light' ? 'text-blue-800' : 'text-blue-300'}`}>
+                                                                <FontAwesomeIcon icon={faIdCard} className="w-4 h-4 mr-2" />
+                                                                Account Information
+                                                            </h4>
+                                                            <div className="space-y-2 text-sm">
+                                                                <div className="flex justify-between">
+                                                                    <span className={getTextClass()}>Role:</span>
+                                                                    <span className={`font-semibold ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>Administrator</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className={getTextClass()}>Status:</span>
+                                                                    <span className="font-semibold text-green-600">Active</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className={getTextClass()}>Member Since:</span>
+                                                                    <span className={getTextClass()}>{new Date(admin.joining_date).toLocaleDateString()}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-col items-stretch sm:items-end gap-2">
-                                                    <p id="status" className="w-full text-center sm:text-right text-xs sm:text-sm"></p>
-                                                    <button
-                                                        disabled={formStatus === 0 || loading}
-                                                        type="submit"
-                                                        className={`cursor-pointer text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg transition-all duration-300 shadow-md flex items-center justify-center text-sm sm:text-base w-full sm:w-auto ${formStatus === 0 || loading
-                                                            ? "opacity-50 cursor-not-allowed"
-                                                            : "hover:bg-blue-600"
-                                                            } ${theme === 'light'
-                                                                ? 'bg-blue-500 hover:bg-blue-600'
-                                                                : 'bg-blue-600 hover:bg-blue-700'
-                                                            }`}>
-                                                        {loading ? (
-                                                            <>
-                                                                <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
-                                                                Updating...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <FontAwesomeIcon icon={faSave} className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                                                                Save All Changes
-                                                            </>
-                                                        )}
-                                                    </button>
+                                            )}
+
+                                            {/* Security Settings Tab */}
+                                            {activeTab === 'security' && (
+                                                <div className="space-y-6">
+                                                    <div className="grid grid-cols-1 gap-6">
+                                                        {/* Password Field */}
+                                                        <div>
+                                                            <label className={`block text-sm font-semibold mb-3 ${getLabelClass()}`}>
+                                                                <FontAwesomeIcon icon={faKey} className="w-4 h-4 text-blue-500 mr-2" />
+                                                                Change Password
+                                                            </label>
+                                                            <div className="relative">
+                                                                <input
+                                                                    type={showPassword ? "text" : "password"}
+                                                                    name="password"
+                                                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 text-base pr-12 ${getInputClass()}`}
+                                                                    placeholder="Enter new password"
+                                                                    value={form.password}
+                                                                    onChange={handleProfile}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowPassword(!showPassword)}
+                                                                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 transition-colors duration-300 p-2 ${theme === 'light' ? 'text-gray-400 hover:text-blue-500' : 'text-gray-500 hover:text-blue-400'
+                                                                        }`}
+                                                                >
+                                                                    <FontAwesomeIcon
+                                                                        icon={showPassword ? faEyeSlash : faEye}
+                                                                        className="w-5 h-5"
+                                                                    />
+                                                                </button>
+                                                            </div>
+                                                            <p className={`text-sm mt-2 flex items-center ${getTextClass()}`}>
+                                                                Leave blank to keep your current password
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Security Tips */}
+                                                        <div className={`p-4 rounded-xl ${theme === 'light' ? 'bg-yellow-50 border border-yellow-200' : 'bg-yellow-900 border border-yellow-800'}`}>
+                                                            <h4 className={`font-semibold mb-2 flex items-center ${theme === 'light' ? 'text-yellow-800' : 'text-yellow-300'}`}>
+                                                                <FontAwesomeIcon icon={faShieldAlt} className="w-4 h-4 mr-2" />
+                                                                Security Recommendations
+                                                            </h4>
+                                                            <ul className={`text-sm space-y-1 ${theme === 'light' ? 'text-yellow-700' : 'text-yellow-200'}`}>
+                                                                <li>• Use a strong, unique password</li>
+                                                                <li>• Avoid using personal information</li>
+                                                                <li>• Include numbers and special characters</li>
+                                                                <li>• Change your password regularly</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Action Buttons */}
+                                            <div className={`pt-6 border-t ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
+                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                                    <div className={`text-sm text-center sm:text-left ${getTextClass()}`}>
+                                                        <FontAwesomeIcon icon={faCalendarAlt} className="w-4 h-4 mr-2" />
+                                                        Last updated: {new Date(admin.joining_date).toLocaleDateString()}
+                                                    </div>
+                                                    <div className="flex flex-col sm:flex-row gap-3">
+                                                        <p id="status" className="text-sm text-center sm:text-right"></p>
+                                                        <button
+                                                            disabled={formStatus === 0 || loading}
+                                                            type="submit"
+                                                            className={`font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center text-base min-w-[160px] ${formStatus === 0 || loading
+                                                                ? "opacity-50 cursor-not-allowed"
+                                                                : "hover:shadow-xl transform hover:-translate-y-0.5"
+                                                                } ${theme === 'light'
+                                                                    ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                                                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                                }`}>
+                                                            {loading ? (
+                                                                <>
+                                                                    <FontAwesomeIcon icon={faSpinner} className="w-4 h-4 mr-2 animate-spin" />
+                                                                    Updating...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <FontAwesomeIcon icon={faSave} className="w-4 h-4 mr-2" />
+                                                                    Save Changes
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </form>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
