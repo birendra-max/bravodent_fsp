@@ -124,7 +124,8 @@ export default function Chatbox({ orderid }) {
     const startSSEConnection = () => {
         if (!orderid || !token || eventSourceRef.current) return;
 
-        const url = `${config.API_BASE_URL}/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}`;
+        // const url = `${config.API_BASE_URL}/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}`;
+        const url = `${config.API_BASE_URL}/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}&tenant=bravodent`;
 
         try {
             eventSourceRef.current = new EventSource(url);
