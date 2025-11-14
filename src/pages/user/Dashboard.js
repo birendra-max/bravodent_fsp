@@ -18,7 +18,9 @@ import {
     faCalendarDay,
     faCalendarCheck,
     faCalendarWeek,
-    faRepeat
+    faRepeat,
+    faStar,
+    faComments
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
@@ -40,53 +42,7 @@ export default function Dashboard() {
             [e.target.name]: e.target.value,
         });
     };
-
-    const feedBackaRef = useRef(null);
-    const token = localStorage.getItem('token');
-    const saveFeedback = async () => {
-        if (form.feedback === '') {
-            feedBackaRef.current.focus();
-        }
-        else {
-            const resp = await fetch(`${base_url}/save-feedback`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': "application/json",
-                    'Authorization': `Bearer ${token}`,
-                    'X-Tenant': 'bravodent'
-                },
-                body: JSON.stringify(form),
-            })
-
-            const data = await resp.json()
-            if (data.status === 'success') {
-                const statusEl = document.getElementById('status');
-                statusEl.className = 'mb-6 w-full px-4 py-3 text-sm font-medium border shadow-md rounded-lg border-green-400 bg-green-100 text-green-700';
-                statusEl.innerText = data.message;
-                setForm({ feedback: "", likes: "" });
-                document.getElementById('feedbackform').reset();
-                setTimeout(() => {
-                    setShowModal(false);
-                }, 2000);
-
-            } else {
-
-                if (data.error === 'Invalid or expired token') {
-                    alert('Invalid or expired token. Please log in again.')
-                    navigate(logout);
-                }
-
-                const statusEl = document.getElementById('status');
-                statusEl.className = 'mb-6 w-full px-4 py-3 text-sm font-medium border shadow-md rounded-lg border-red-400 bg-red-100 text-red-700';
-                statusEl.innerText = data.message;
-                setForm({ feedback: "", likes: "" });
-                document.getElementById('feedbackform').reset();
-                setTimeout(() => {
-                    setShowModal(false);
-                }, 2000);
-            }
-        }
-    };
+   
 
     useEffect(() => {
         async function fetchCardsData() {
@@ -139,25 +95,52 @@ export default function Dashboard() {
         setShowModal(false);
     };
 
-    function star(num) {
-        const starElement = document.getElementById('star');
-        if (!starElement) return;
-
-        const items = starElement.children;
-        setForm((prevForm) => ({
-            ...prevForm,
-            likes: num
-        }))
-
-        for (let i = 0; i < items.length; i++) {
-            items[i].classList.remove('bg-yellow-400');
+    const feedBackaRef = useRef(null);
+    const token = localStorage.getItem('token');
+    const saveFeedback = async () => {
+        if (form.feedback === '') {
+            feedBackaRef.current.focus();
         }
+        else {
+            const resp = await fetch(`${base_url}/save-feedback`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': "application/json",
+                    'Authorization': `Bearer ${token}`,
+                    'X-Tenant': 'bravodent'
+                },
+                body: JSON.stringify(form),
+            })
 
-        for (let i = 0; i < num && i < items.length; i++) {
-            items[i].classList.add('bg-yellow-400');
+            const data = await resp.json()
+            if (data.status === 'success') {
+                const statusEl = document.getElementById('status');
+                statusEl.className = 'mb-4 w-full px-4 py-2 text-sm font-medium border rounded-lg border-green-400 bg-green-100 text-green-700';
+                statusEl.innerText = data.message;
+                setForm({ feedback: "", likes: "" });
+                document.getElementById('feedbackform').reset();
+                setTimeout(() => {
+                    setShowModal(false);
+                }, 2000);
+
+            } else {
+
+                if (data.error === 'Invalid or expired token') {
+                    alert('Invalid or expired token. Please log in again.')
+                    navigate(logout);
+                }
+
+                const statusEl = document.getElementById('status');
+                statusEl.className = 'mb-4 w-full px-4 py-2 text-sm font-medium border rounded-lg border-red-400 bg-red-100 text-red-700';
+                statusEl.innerText = data.message;
+                setForm({ feedback: "", likes: "" });
+                document.getElementById('feedbackform').reset();
+                setTimeout(() => {
+                    setShowModal(false);
+                }, 2000);
+            }
         }
-    }
-
+    };
     // Theme-based background classes
     const getBackgroundClass = () => {
         return theme === 'dark'
@@ -229,50 +212,122 @@ export default function Dashboard() {
                     ))}
                 </div>
 
+
+                {/* Feedback Modal - Compact Design */}
                 <div
                     id="feedbackModal"
-                    className={`${showModal ? 'flex' : 'hidden'} fixed inset-0 bg-black/10 backdrop-blur-lg flex items-center justify-center z-50`}
+                    className={`${showModal ? 'flex' : 'hidden'} fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4`}
                 >
-                    <div className={`border w-full max-w-lg p-6 rounded-2xl shadow-2xl relative animate-fadeIn ${getModalClass()}`}>
+                    <div className={`border w-full max-w-md rounded-xl shadow-lg relative ${getModalClass()}`}>
                         <button
                             onClick={handleCloseModal}
-                            className={`absolute top-3 right-3 text-2xl cursor-pointer ${getButtonClass()}`}
+                            className={`absolute top-3 right-3 w-8 h-8 rounded flex items-center justify-center text-sm cursor-pointer ${getButtonClass()}`}
                         >
                             ✖
                         </button>
-                        <h2 className="text-2xl font-bold">We value your feedback</h2>
-                        <p className={`mb-6 ${getTextClass()}`}>Please take a moment to share your thoughts with us.</p>
 
-                        <p id="status" className="w-full"></p>
+                        <div className="p-5">
 
-                        <form className="space-y-4" id="feedbackform">
-                            <div>
-                                <label className={`block mb-1 font-medium ${getTextClass()}`}>Your Feedback</label>
-                                <textarea
-                                    ref={feedBackaRef}
-                                    rows="4"
-                                    name="feedback"
-                                    value={form.feedback}
-                                    onChange={handleChange}
-                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none ${getTextAreaClass()}`}
-                                    placeholder="Write your feedback..."
-                                ></textarea>
-                            </div>
-                            <div>
-                                <label className={`block mb-2 font-medium ${getTextClass()}`}>Rate Us</label>
-                                <div className="flex space-x-2" id="star">
-                                    <button onClick={() => star(1)} type="button" className="w-10 h-10 flex items-center justify-center border border-black/30 bg-white/10 rounded-full text-yellow-300 hover:bg-yellow-400 hover:text-white cursor-pointer">⭐</button>
-                                    <button onClick={() => star(2)} type="button" className="w-10 h-10 flex items-center justify-center border border-black/30 bg-white/10 rounded-full text-yellow-300 hover:bg-yellow-400 hover:text-white cursor-pointer">⭐</button>
-                                    <button onClick={() => star(3)} type="button" className="w-10 h-10 flex items-center justify-center border border-black/30 bg-white/10 rounded-full text-yellow-300 hover:bg-yellow-400 hover:text-white cursor-pointer">⭐</button>
-                                    <button onClick={() => star(4)} type="button" className="w-10 h-10 flex items-center justify-center border border-black/30 bg-white/10 rounded-full text-yellow-300 hover:bg-yellow-400 hover:text-white cursor-pointer">⭐</button>
-                                    <button onClick={() => star(5)} type="button" className="w-10 h-10 flex items-center justify-center border border-black/30 bg-white/10 rounded-full text-yellow-300 hover:bg-yellow-400 hover:text-white cursor-pointer">⭐</button>
+                            <p id="status" className=" mt-4 w-full mb-3"></p>
+
+                            <form className="space-y-4" id="feedbackform">
+                                <div>
+                                    <label className={`block mb-2 text-sm font-medium ${getTextClass()}`}>Your Feedback</label>
+                                    <textarea
+                                        ref={feedBackaRef}
+                                        rows="3"
+                                        name="feedback"
+                                        value={form.feedback}
+                                        onChange={handleChange}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm ${getTextAreaClass()}`}
+                                        placeholder="Share your thoughts..."
+                                    ></textarea>
                                 </div>
-                            </div>
-                            <div className="text-right">
-                                <button type="button" onClick={saveFeedback} className="px-6 py-2 bg-indigo-600/80 text-white rounded-lg shadow-lg hover:bg-indigo-700 transition cursor-pointer">Submit Feedback</button>
-                            </div>
-                        </form>
+
+                                {/* Rate Your Experience Section */}
+                                <div className="mt-4">
+                                    <label className={`block mb-2 text-sm font-medium ${getTextClass()}`}>
+                                        Rate Your Experience
+                                    </label>
+
+                                    <div className="flex items-center justify-start space-x-2">
+                                        {[1, 2, 3, 4, 5].map((num) => (
+                                            <button
+                                                key={num}
+                                                onClick={() =>
+                                                    setForm((prev) => ({ ...prev, likes: num }))
+                                                }
+                                                type="button"
+                                                className={`
+                          group relative w-8 h-8 rounded-full flex items-center justify-center
+                          transition-all duration-300 transform hover:scale-110
+                          ${form.likes >= num
+                                                        ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white shadow-[0_0_10px_rgba(250,204,21,0.6)]'
+                                                        : theme === 'dark'
+                                                            ? 'bg-gray-700 text-yellow-400 hover:bg-yellow-400 hover:text-white'
+                                                            : 'bg-gray-200 text-yellow-500 hover:bg-yellow-400 hover:text-white'
+                                                    }
+                        `}
+                                            >
+                                                <FontAwesomeIcon icon={faStar} className="text-lg" />
+                                                <span className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs px-2 py-1 rounded-md bg-black/70 text-white whitespace-nowrap">
+                                                    {num === 1
+                                                        ? 'Terrible 😞'
+                                                        : num === 2
+                                                            ? 'Poor 😕'
+                                                            : num === 3
+                                                                ? 'Average 🙂'
+                                                                : num === 4
+                                                                    ? 'Good 😃'
+                                                                    : 'Excellent 🤩'}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {form.likes > 0 && (
+                                        <p
+                                            className={`mt-2 text-sm font-medium ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'
+                                                }`}
+                                        >
+                                            You rated:{' '}
+                                            {form.likes === 1
+                                                ? 'Terrible'
+                                                : form.likes === 2
+                                                    ? 'Poor'
+                                                    : form.likes === 3
+                                                        ? 'Average'
+                                                        : form.likes === 4
+                                                            ? 'Good'
+                                                            : 'Excellent'}
+                                        </p>
+                                    )}
+                                </div>
+
+
+                                <div className="text-right pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={saveFeedback}
+                                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm font-medium"
+                                    >
+                                        Submit Feedback
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
+                </div>
+
+
+                {/* Feedback Button - Compact */}
+                <div className="fixed bottom-14 right-4 z-40">
+                    <button
+                        onClick={handleOpenModal}
+                        className="w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-lg cursor-pointer"
+                    >
+                        <FontAwesomeIcon icon={faComments} className="text-2xl" />
+                    </button>
                 </div>
             </section>
         )

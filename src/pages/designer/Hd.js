@@ -106,71 +106,14 @@ export default function Hd() {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-
         if (searchQuery.trim()) {
-            // Close mobile search if open
             setMobileSearchOpen(false);
-
-            // Implement search functionality
-            const rows = document.querySelectorAll('#datatable tbody tr');
-            let found = false;
-
-            rows.forEach((row, index) => {
-                const firstCellText = row.cells[0].innerText.trim();
-                if (firstCellText === searchQuery.trim()) {
-                    row.style.display = "";
-                    found = true;
-                    // Scroll to the found row
-                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Highlight the row
-                    row.classList.add('bg-yellow-100', 'dark:bg-yellow-900');
-                    setTimeout(() => {
-                        row.classList.remove('bg-yellow-100', 'dark:bg-yellow-900');
-                    }, 2000);
-                } else {
-                    row.style.display = "none";
-                }
-            });
-
-            if (!found) {
-                // Show notification for no results
-                showNotification('No orders found with that ID', 'warning');
-            }
-        } else {
-            // If search is empty — show all rows
-            const rows = document.querySelectorAll('#datatable tbody tr');
-            rows.forEach(row => {
-                row.style.display = "";
-                row.classList.remove('bg-yellow-100', 'dark:bg-yellow-900');
-            });
+            navigate(`/designer/search-order/${searchQuery}`)
         }
-    };
-
-    const showNotification = (message, type = 'info') => {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transform transition-all duration-300 ${type === 'warning' ? 'bg-orange-500' : 'bg-blue-500'
-            }`;
-        notification.textContent = message;
-
-        document.body.appendChild(notification);
-
-        // Remove notification after 3 seconds
-        setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 3000);
     };
 
     const clearSearch = () => {
         setSearchQuery("");
-        const rows = document.querySelectorAll('#datatable tbody tr');
-        rows.forEach(row => {
-            row.style.display = "";
-            row.classList.remove('bg-yellow-100', 'dark:bg-yellow-900');
-        });
     };
 
     return (

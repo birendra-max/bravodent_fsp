@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Routes, Route } from 'react-router-dom';
 import Login from '../pages/designer/Login';
 import Home from "../pages/designer/Home";
@@ -20,6 +18,7 @@ import Reports from "../pages/designer/Reports";
 import RedesignCases from '../pages/designer/RedesignCases';
 import { DesignerProvider } from "../Context/DesignerContext";
 import OrderDetails from "../pages/designer/OrderDetails";
+import SearchOrder from "../pages/designer/SearchOrder";
 
 export default function DesignerRoutes() {
     return (
@@ -45,6 +44,7 @@ export default function DesignerRoutes() {
                 <Route path="/today_cases" element={<TodayCases />} />
                 <Route path="/weekly_case" element={<WeeklyCases />} />
                 <Route path="/redesign_cases" element={<RedesignCases />} />
+                <Route path='/search-order/:id' element={<SearchOrder />} />
                 <Route path="/orderDeatails/:id" element={<OrderDetails />} />
             </Routes>
         </DesignerProvider>
