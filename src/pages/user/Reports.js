@@ -252,22 +252,6 @@ export default function Reports() {
                         </div>
                     </div>
                 </div>
-
-                {/* Loading Indicator */}
-                {isLoading && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
-                        <div className={`rounded-2xl p-8 flex flex-col items-center space-y-4 transform transition-all duration-300 ${theme === 'light' ? 'bg-white' : 'bg-gray-800'}`}>
-                            <div className="relative">
-                                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 dark:border-blue-900"></div>
-                                <div className="absolute top-0 left-0 animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 dark:border-blue-400"></div>
-                            </div>
-                            <span className={`text-xl font-semibold ${themeClasses.text.primary}`}>Loading Cases...</span>
-                            <p className={`${themeClasses.text.secondary} text-center`}>
-                                Please wait while we fetch your case data
-                            </p>
-                        </div>
-                    </div>
-                )}
             </main>
             <Foot />
         </>
