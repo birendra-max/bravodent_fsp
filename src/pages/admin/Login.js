@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import config from '../../config';
 
 export default function Login() {
-  const apiUrl = process.env.base_url;
   useEffect(() => {
     const data = localStorage.getItem('admin') ? localStorage.getItem('admin') : "";
     const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
@@ -27,6 +26,7 @@ export default function Login() {
     password: "",
     remember: "false"
   })
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
@@ -38,6 +38,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     try {
       const res = await fetch(`${config.API_BASE_URL}/admin/login`, {
@@ -51,6 +52,7 @@ export default function Login() {
 
       if (!res.ok) {
         setStatus({ type: "error", message: "Server error. Try again later." });
+        setIsSubmitting(false);
         return;
       }
 
@@ -63,15 +65,17 @@ export default function Login() {
         navigate('/admin/dashboard');
       } else {
         setStatus({ type: "error", message: data.message || "Invalid login" });
+        setIsSubmitting(false);
       }
     } catch (err) {
       setStatus({ type: "error", message: "Something went wrong!" });
+      setIsSubmitting(false);
     }
 
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-950 text-white">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-blue-900 to-gray-950 text-white">
       {/* Glass Card */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -107,7 +111,7 @@ export default function Login() {
           </p>
 
           <p className="text-xs text-gray-500 mt-8">
-            © 2025 Bravodent Admin Panel
+            © 2025 Sdkydent Admin Panel
           </p>
         </div>
 
@@ -188,12 +192,12 @@ export default function Login() {
               type="submit"
               className="w-full py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all"
             >
-              Login
+              {isSubmitting ? "Please wait..." : "Sign In"}
             </motion.button>
           </form>
 
           <p className="text-xs text-gray-500 mt-10 text-center">
-            Powered by Bravodent • AES 256-bit Encrypted Login
+            Powered by Skydent • AES 256-bit Encrypted Login
           </p>
         </div>
       </motion.div>

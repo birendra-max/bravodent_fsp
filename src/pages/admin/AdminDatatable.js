@@ -4,7 +4,7 @@ import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload, faTrashCan,faFolderOpen } from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faTrashCan, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 
 export default function Datatable({
     columns = [],
@@ -157,12 +157,12 @@ export default function Datatable({
         // ✅ Instantly update UI
         setTableData((prev) =>
             prev.map((item) =>
-                item.userid === userid ? { ...item, status: newStatus } : item
+                item.id === userid ? { ...item, status: newStatus } : item
             )
         );
 
         try {
-            const res = await fetch(`${base_url}/update-status/${userid}`, {
+            const res = await fetch(`${base_url}/update-status-admin/${userid}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -180,7 +180,7 @@ export default function Datatable({
             // ❌ Revert UI on failure
             setTableData((prev) =>
                 prev.map((item) =>
-                    item.userid === userid ? { ...item, status: currentStatus } : item
+                    item.id === userid ? { ...item, status: currentStatus } : item
                 )
             );
         }
@@ -191,7 +191,7 @@ export default function Datatable({
         if (!window.confirm("Are you sure you want to delete this client?")) return;
 
         try {
-            const res = await fetch(`${base_url}/delete-user/${userId}`, {
+            const res = await fetch(`${base_url}/delete-admin/${userId}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -318,7 +318,7 @@ export default function Datatable({
                                                                         <input
                                                                             type="checkbox"
                                                                             checked={row.status?.toLowerCase() === "active"}
-                                                                            onChange={() => handleStatusToggle(row.userid, row.status)}
+                                                                            onChange={() => handleStatusToggle(row.id, row.status)}
                                                                             className="sr-only peer"
                                                                         />
                                                                         <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-all duration-300"></div>
@@ -327,7 +327,7 @@ export default function Datatable({
                                                                 )}
                                                             </div>
                                                         ) : col.header === 'Delete' ? (
-                                                            <button className="cursor-pointer" onClick={() => deleteUser(row.userid)}>
+                                                            <button className="cursor-pointer" onClick={() => deleteUser(row.id)}>
                                                                 <FontAwesomeIcon icon={faTrashCan} className="text-red-500 text-lg" />
                                                             </button>
                                                         ) : (
