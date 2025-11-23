@@ -209,59 +209,39 @@ export default function Datatable({
             : 'bg-gray-100 text-gray-600';
     };
 
-    const updateDeliveryType = async () => {
-        if (!selectedRows.length)
-            return alert("Please select at least one record!");
-
-        if (!deliveryType)
-            return alert("Please select a delivery type!");
+    const sendRedesign = async (orderId, status) => {
+        // If not completed → direct fail response
+        if (status.toLowerCase() !== "completed") {
+            return {
+                status: "failed",
+                message: "Please contact design team"
+            };
+        }
 
         try {
-            const payload = {
-                order_ids: selectedRows,
-                delivery_type: deliveryType,
-            };
-
-            const response = await fetchWithAuth(`update-delivery-type`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+            const data = await fetchWithAuth(`send-for-redesign/${orderId}`, {
+                method: "GET",
             });
 
-            if (response.status === "success") {
-                alert(`✅ Successfully updated ${selectedRows.length} orders to "${deliveryType}".`);
+            if (data.status === "success") {
+                return {
+                    status: "success",
+                    message: data.message
+                };
             } else {
-                alert(response.message || "❌ Failed to update delivery type.");
+                return {
+                    status: "failed",
+                    message: data.message || "Unknown error"
+                };
             }
         } catch (error) {
-            console.error("Error updating delivery type:", error);
-            alert("Something went wrong while updating.");
+            return {
+                status: "failed",
+                message: "Server error"
+            };
         }
     };
 
-
-
-
-    const sendRedesign = async (orderId, status) => {
-        if (status.toLowerCase() === 'completed') {
-            try {
-                const data = await fetchWithAuth(`send-for-redesign/${orderId}`, {
-                    method: "GET",
-                });
-
-                // data is already the parsed JSON response
-                if (data.status === 'success') {
-                    alert(data.message);
-                } else {
-                    console.log(data.message);
-                }
-            } catch (error) {
-                console.error("Error fetching cases:", error);
-            }
-        } else {
-            alert(`${orderId} is not completed yet! You can't send it for redesign.`);
-        }
-    };
 
     // ✅ Multi-select logic
     const toggleSelectRow = (id) =>
@@ -283,7 +263,10 @@ export default function Datatable({
 
 
     const handleBulkDownload = () => {
-        if (!selectedRows.length) return alert("Please select at least one record!");
+        if (!selectedRows.length) {
+            alert("Please select at least one record to proceed with the download.");
+            return;
+        }
 
         let missingFiles = [];
         let downloadedCount = 0;
@@ -298,10 +281,8 @@ export default function Datatable({
             else if (fileType === "stl") path = row.stl_file_path;
             else if (fileType === "finish") path = row.finish_file_path;
 
-            // ✅ Check if valid path exists
             if (path && path.trim() !== "") {
                 try {
-                    // ✅ Use your symbol-safe download logic
                     const parts = path.split("/");
                     const encodedFile = encodeURIComponent(parts.pop());
                     const encodedUrl = parts.join("/") + "/" + encodedFile;
@@ -324,14 +305,20 @@ export default function Datatable({
             }
         });
 
-        // ✅ Final alert summary
+
+        // --- Professional Notification Section ---
         if (missingFiles.length > 0) {
-            alert(`File not available for these record(s): ${missingFiles.join(", ")}`);
-        } else if (downloadedCount === 0) {
-            alert("No files available for the selected type.");
+            alert(
+                `Download Summary\n\n` +
+                `Files Successfully Downloaded: ${downloadedCount}\n` +
+                `Files Not Available: ${missingFiles.length}\n\n` +
+                `File Not found for this IDs: ${missingFiles.join(", ")}`
+            );
+        }
+        else if (downloadedCount === 0) {
+            alert("No files are available for the selected file type.");
         }
     };
-
 
 
     return (
@@ -380,6 +367,72 @@ export default function Datatable({
                                         Download Report
                                     </button>
 
+                                    {/* Bulk Actions Toolbar - Moved to top */}
+                                    <div className={`flex items-center gap-3 px-4 py-2`}>
+                                        <select
+                                            value={fileType}
+                                            onChange={(e) => setFileType(e.target.value)}
+                                            className={`px-3 py-2 rounded-lg border text-sm focus:outline-none transition-all ${getSelectClass()}`}
+                                        >
+                                            {/* <option value="initial">Initial Files</option> */}
+                                            <option value="stl">STL Files</option>
+                                            <option value="finish">Finished Files</option>
+                                        </select>
+
+                                        <button
+                                            onClick={handleBulkDownload}
+                                            className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-lg flex items-center gap-2 transition-all duration-200 font-medium text-sm cursor-pointer"
+                                        >
+                                            <FontAwesomeIcon icon={faDownload} /> Download All
+                                        </button>
+
+                                        <button
+                                            onClick={async () => {
+                                                if (!selectedRows.length) {
+                                                    alert("Please select at least one case to proceed with the redesign request.");
+                                                    return;
+                                                }
+
+                                                let successCount = 0;
+                                                let failCount = 0;
+                                                let failMessages = [];
+
+                                                for (let id of selectedRows) {
+                                                    const row = data.find((r) => r.orderid === id);
+                                                    if (!row) {
+                                                        failCount++;
+                                                        failMessages.push(`${id}: Order record not found`);
+                                                        continue;
+                                                    }
+
+                                                    const res = await sendRedesign(id, row.status);
+
+                                                    if (res.status === "success") {
+                                                        successCount++;
+                                                    } else {
+                                                        failCount++;
+                                                        failMessages.push(`${id}: ${res.message}`);
+                                                    }
+                                                }
+
+                                                // Professional summary message
+                                                let message =
+                                                    `Redesign Request Summary\n\n` +
+                                                    `Successful Requests: ${successCount}\n` +
+                                                    `Failed Requests: ${failCount}\n`;
+
+                                                if (failMessages.length) {
+                                                    message += `\nDetails for Failed Requests:\n` + failMessages.join("\n");
+                                                }
+
+                                                alert(message);
+                                            }}
+                                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg shadow-lg flex items-center gap-2 transition-all duration-200 font-medium text-sm cursor-pointer"
+                                        >
+                                            <FontAwesomeIcon icon={faRepeat} /> Send for Redesign
+                                        </button>
+                                    </div>
+
                                 </div>
 
                                 {/* Search bar */}
@@ -393,7 +446,6 @@ export default function Datatable({
                                     />
                                 </div>
                             </div>
-
 
                             {/* Table */}
                             <table id="datatable" style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -597,86 +649,6 @@ export default function Datatable({
                                     </div>
                                 </div>
                             )}
-
-                            {/* ✅ Floating Toolbar */}
-                            {selectedRows.length > 0 && (
-                                <div
-                                    className={`w-[70%] fixed flex justify-center items-center bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-xl shadow-lg ${theme === "dark"
-                                        ? "bg-gradient-to-r from-gray-800 to-gray-700 text-white border border-gray-600"
-                                        : "bg-gradient-to-r from-blue-50 to-white border border-gray-300 text-gray-800"
-                                        }`}
-                                >
-                                    <span className="font-semibold">
-                                        ✅ {selectedRows.length} selected
-                                    </span>
-
-                                    <select
-                                        value={fileType}
-                                        onChange={(e) => setFileType(e.target.value)}
-                                        className={`p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-400 ${theme === "dark"
-                                            ? "bg-gray-700 border-gray-600 text-white"
-                                            : "bg-white border-gray-300 text-gray-800"
-                                            }`}
-                                    >
-                                        <option value="initial">Initial Files</option>
-                                        <option value="stl">STL Files</option>
-                                        <option value="finish">Finished Files</option>
-                                    </select>
-
-                                    <button
-                                        onClick={handleBulkDownload}
-                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md flex items-center gap-2 transition"
-                                    >
-                                        <FontAwesomeIcon icon={faDownload} /> Download All
-                                    </button>
-
-                                    {/* ✅ Send for Redesign Button (Backend Integrated) */}
-                                    <button
-                                        onClick={async () => {
-                                            if (!selectedRows.length)
-                                                return alert("Please select at least one record!");
-
-                                            let notCompleted = [];
-                                            let redesignSent = 0;
-
-                                            for (let id of selectedRows) {
-                                                const row = data.find((r) => r.orderid === id);
-                                                if (!row) continue;
-
-                                                await sendRedesign(id, row.status);
-                                                redesignSent++;
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg shadow-md flex items-center gap-2 transition"
-                                    >
-                                        <FontAwesomeIcon icon={faRepeat} /> Send for Redesign
-                                    </button>
-
-
-                                    <select
-                                        value={deliveryType}
-                                        onChange={(e) => setDeliveryType(e.target.value)}
-                                        className={`p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-400 ${theme === "dark"
-                                            ? "bg-gray-700 border-gray-600 text-white"
-                                            : "bg-white border-gray-300 text-gray-800"
-                                            }`}
-                                    >
-                                        <option value="Rush">Rush Delivery</option>
-                                        <option value="Same Day">Same Day</option>
-                                        <option value="Next Day">Next Day</option>
-                                    </select>
-
-                                    <button
-                                        onClick={updateDeliveryType}
-                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md flex items-center gap-2 transition"
-                                    >
-                                        <FontAwesomeIcon icon={faArrowsRotate} /> Update
-                                    </button>
-
-
-                                </div>
-                            )}
-
                         </>
                     )}
                 </section>

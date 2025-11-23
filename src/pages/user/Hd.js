@@ -146,7 +146,7 @@ export default function Hd() {
 
                         {/* Center Menu - Desktop */}
                         <div className="hidden xl:flex xl:items-center xl:flex-1 xl:justify-center">
-                            <div className="flex items-center space-x-1 bg-gray-800/70 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700">
+                            <div className="flex items-center space-x-6 bg-gray-800/70 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700">
                                 {navItems.map((item) => (
                                     <Link
                                         to={item.href}
