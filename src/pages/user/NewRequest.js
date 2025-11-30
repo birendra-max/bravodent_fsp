@@ -4,6 +4,7 @@ import Foot from "./Foot";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { UserContext } from "../../Context/UserContext";
+import { fetchWithAuth } from '../../utils/userapi'; // ✅ ADDED
 
 export default function NewRequest() {
   let base_url = localStorage.getItem('base_url');
@@ -60,23 +61,74 @@ export default function NewRequest() {
   const token = localStorage.getItem('token');
 
   const uploadFile = async (file) => {
+    // ✅ FUNCTIONALITY IMPROVEMENT: Check if file already exists before upload
+    try {
+      const checkResponse = await fetchWithAuth(`check-file-exists?file=${encodeURIComponent(file.name)}`);
+
+      if (checkResponse.message === 'File already exists') {
+        const confirmUpload = window.confirm(
+          `The file "${file.name}" already exists.\nDo you want to proceed with uploading?`
+        );
+
+        if (!confirmUpload) {
+          // User selected CANCEL → Do not upload
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.fileName === file.name
+                ? { ...f, uploadStatus: "Cancelled", progress: 0 }
+                : f
+            )
+          );
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("File check error:", err);
+    }
+
+    // ✅ SHOW PERCENTAGE IN STATUS: Update status text with percentage
     setFiles((prev) =>
       prev.map((f) =>
         f.fileName === file.name
-          ? { ...f, uploadStatus: "Uploading...", progress: 20 }
+          ? { ...f, uploadStatus: "Uploading... 0%", progress: 0 }
           : f
       )
     );
 
+    // Create a smooth progress animation with percentage display
+    let progress = 0;
+    let completed = false;
+
     const progressInterval = setInterval(() => {
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.fileName === file.name && f.progress < 80
-            ? { ...f, progress: f.progress + 5 }
-            : f
-        )
-      );
-    }, 300);
+      if (!completed && progress < 100) {
+        progress += 1;
+
+        // Smooth progression - slower at the end for more realistic feel
+        let displayProgress = progress;
+        if (progress > 80) {
+          // Slow down progress when reaching the end for more realistic feel
+          displayProgress = 80 + Math.floor((progress - 80) * 0.5);
+        }
+
+        if (displayProgress > 99) displayProgress = 99;
+
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.fileName === file.name
+              ? {
+                ...f,
+                progress: displayProgress,
+                uploadStatus: `Uploading... ${displayProgress}%` // ✅ ADDED PERCENTAGE
+              }
+              : f
+          )
+        );
+
+        if (progress >= 100) {
+          clearInterval(progressInterval);
+        }
+      }
+    }, 80); // Slightly faster interval for smoother progress
 
     const formData = new FormData();
     formData.append("file", file);
@@ -91,8 +143,46 @@ export default function NewRequest() {
         body: formData,
       });
 
+      completed = true;
       clearInterval(progressInterval);
 
+      // Smooth transition to 100%
+      const finishProgress = setInterval(() => {
+        progress += 2;
+        if (progress > 100) progress = 100;
+
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.fileName === file.name
+              ? {
+                ...f,
+                progress: progress,
+                uploadStatus: `Uploading... ${progress}%`
+              }
+              : f
+          )
+        );
+
+        if (progress >= 100) {
+          clearInterval(finishProgress);
+
+          // Small delay before showing success to make it feel natural
+          setTimeout(() => {
+            handleUploadSuccess(file, response);
+          }, 300);
+        }
+      }, 30);
+
+    } catch (error) {
+      completed = true;
+      clearInterval(progressInterval);
+      handleUploadError(file, error);
+    }
+  };
+
+  // Helper function for successful upload
+  const handleUploadSuccess = async (file, response) => {
+    try {
       const result = await response.json();
 
       // Check if the backend response indicates success or error
@@ -122,20 +212,24 @@ export default function NewRequest() {
         }
       }
     } catch (error) {
-      clearInterval(progressInterval);
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.fileName === file.name
-            ? {
-              ...f,
-              uploadStatus: "Failed",
-              progress: 100,
-              message: error.message || "Error uploading file",
-            }
-            : f
-        )
-      );
+      handleUploadError(file, error);
     }
+  };
+
+  // Helper function for upload error
+  const handleUploadError = (file, error) => {
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.fileName === file.name
+          ? {
+            ...f,
+            uploadStatus: "Failed",
+            progress: 100,
+            message: error.message || "Error uploading file",
+          }
+          : f
+      )
+    );
   };
 
   const handleDrop = (e) => {
@@ -207,12 +301,13 @@ export default function NewRequest() {
     }
   };
 
-  // Check if files are ready for submission (at least one success and no uploading files)
+  // ✅ UPDATED canSubmit LOGIC to handle percentage status
   const canSubmit = files.length > 0 &&
     files.some(f => f.uploadStatus === "Success") &&
-    !files.some(f => f.uploadStatus === "Uploading...") &&
+    !files.some(f => f.uploadStatus.startsWith("Uploading...")) &&
     selectedDuration;
 
+  // ✅ KEEP ALL YOUR ORIGINAL DESIGN FUNCTIONS EXACTLY AS THEY WERE
   const getCardClass = () => {
     return theme === 'light'
       ? 'bg-white border-gray-200'
@@ -278,8 +373,8 @@ export default function NewRequest() {
     return theme === 'light' ? 'text-gray-600' : 'text-gray-300';
   };
 
-  // Status badge component with enhanced design
-  const StatusBadge = ({ status, message }) => {
+  // ✅ UPDATED StatusBadge COMPONENT to show percentage
+  const StatusBadge = ({ status, message, progress }) => {
     const getStatusConfig = (status) => {
       const lightConfig = {
         Success: {
@@ -335,13 +430,13 @@ export default function NewRequest() {
         icon: (
           <div className={`w-6 h-6 rounded-full flex items-center justify-center ${status === "Success" ? "bg-green-500" :
             status === "Failed" ? "bg-red-500" :
-              status === "Uploading..." ? "bg-blue-500" :
+              status.startsWith("Uploading...") ? "bg-blue-500" :
                 "bg-gray-400"
             }`}>
             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {status === "Success" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />}
               {status === "Failed" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />}
-              {status === "Uploading..." && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />}
+              {status.startsWith("Uploading...") && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />}
               {status === "Waiting..." && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />}
             </svg>
           </div>
@@ -349,13 +444,16 @@ export default function NewRequest() {
       };
     };
 
-    const config = getStatusConfig(status);
+    const config = getStatusConfig(status.split(' ')[0]); // Get base status without percentage
 
     return (
       <div className="flex flex-col space-y-2">
         <div className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold border ${config.bgColor} ${config.textColor} ${config.borderColor} ${config.shadow} transition-all duration-200`}>
           {config.icon}
-          <span className="font-medium">{status}</span>
+          <span className="font-medium">
+            {/* ✅ SHOW PERCENTAGE IN STATUS TEXT */}
+            {status}
+          </span>
         </div>
         {status === "Failed" && message && (
           <div className={`flex items-start space-x-2 text-xs px-3 py-2 rounded-lg border ${theme === 'light'
@@ -366,6 +464,16 @@ export default function NewRequest() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
             <span className="flex-1">{message}</span>
+          </div>
+        )}
+
+        {/* Progress Bar for Uploading State */}
+        {status.startsWith("Uploading...") && (
+          <div className={`w-full bg-gray-200 rounded-full h-2 ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`}>
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
           </div>
         )}
       </div>
@@ -469,7 +577,7 @@ export default function NewRequest() {
                     {[
                       { count: files.length, label: "Total Files", gradient: "from-blue-500 to-blue-600" },
                       { count: files.filter(f => f.uploadStatus === "Success").length, label: "Completed", gradient: "from-green-500 to-green-600" },
-                      { count: files.filter(f => f.uploadStatus === "Uploading...").length, label: "In Progress", gradient: "from-yellow-500 to-yellow-600" },
+                      { count: files.filter(f => f.uploadStatus.startsWith("Uploading...")).length, label: "In Progress", gradient: "from-yellow-500 to-yellow-600" },
                       { count: files.filter(f => f.uploadStatus === "Waiting...").length, label: "Pending", gradient: "from-gray-500 to-gray-600" },
                     ].map((card, index) => (
                       <div key={index} className={`bg-gradient-to-r ${card.gradient} text-white rounded-lg p-4 shadow-sm`}>
@@ -516,7 +624,7 @@ export default function NewRequest() {
                                 <div className="flex items-center space-x-3">
                                   <div className={`w-2 h-2 rounded-full ${file.uploadStatus === "Success" ? "bg-green-500" :
                                     file.uploadStatus === "Failed" ? "bg-red-500" :
-                                      file.uploadStatus === "Uploading..." ? "bg-blue-500 animate-pulse" :
+                                      file.uploadStatus.startsWith("Uploading...") ? "bg-blue-500 animate-pulse" :
                                         "bg-gray-400"
                                     }`}></div>
                                   <span className="text-sm font-medium truncate max-w-sm">
@@ -525,7 +633,7 @@ export default function NewRequest() {
                                 </div>
                               </td>
                               <td className="px-4 py-3">
-                                <StatusBadge status={file.uploadStatus} message={file.message} />
+                                <StatusBadge status={file.uploadStatus} message={file.message} progress={file.progress} />
                               </td>
                               <td className="px-4 py-3">
                                 <span className="text-sm">{file.productType}</span>
@@ -564,27 +672,54 @@ export default function NewRequest() {
                               value: "Rush",
                               label: "Rush Delivery",
                               description: "1-2 Hours",
-                              price: "+$50",
-                              color: "red"
+                              // price: "+$50",
+                              color: "red",
+                              icon: (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                              )
                             },
                             {
                               value: "Same Day",
                               label: "Same Day",
                               description: "6 Hours",
-                              price: "+$25",
-                              color: "yellow"
+                              // price: "+$25",
+                              color: "yellow",
+                              icon: (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              )
                             },
                             {
                               value: "Next Day",
                               label: "Next Day",
                               description: "12 Hours",
-                              price: "Free",
-                              color: "green"
+                              // price: "Free",
+                              color: "green",
+                              icon: (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )
                             },
                           ].map((option) => (
                             <label
                               key={option.value}
-                              className={getDeliveryOptionClass(option, selectedDuration === option.value)}
+                              className={`
+              relative flex p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 group
+              ${selectedDuration === option.value
+                                  ? option.color === 'red'
+                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20 shadow-md ring-2 ring-red-200 dark:ring-red-800'
+                                    : option.color === 'yellow'
+                                      ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 shadow-md ring-2 ring-yellow-200 dark:ring-yellow-800'
+                                      : 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-md ring-2 ring-green-200 dark:ring-green-800'
+                                  : theme === 'light'
+                                    ? 'border-gray-300 bg-white hover:border-gray-400 hover:shadow-md hover:bg-gray-50'
+                                    : 'border-gray-600 bg-gray-800 hover:border-gray-500 hover:bg-gray-700'
+                                }
+            `}
                             >
                               <input
                                 type="radio"
@@ -594,11 +729,91 @@ export default function NewRequest() {
                                 onChange={(e) => setSelectedDuration(e.target.value)}
                                 className="sr-only"
                               />
-                              <div className="text-center">
-                                <div className="font-semibold text-sm">{option.label}</div>
-                                <div className={`text-xs mt-1 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                  }`}>{option.description}</div>
+
+                              {/* Traditional Radio Button on Left */}
+                              <div className="flex-shrink-0 mr-4 mt-1">
+                                <div className={`
+                w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200
+                ${selectedDuration === option.value
+                                    ? option.color === 'red'
+                                      ? 'border-red-500 bg-red-500'
+                                      : option.color === 'yellow'
+                                        ? 'border-yellow-500 bg-yellow-500'
+                                        : 'border-green-500 bg-green-500'
+                                    : theme === 'light'
+                                      ? 'border-gray-400 bg-white group-hover:border-gray-500'
+                                      : 'border-gray-500 bg-gray-700 group-hover:border-gray-400'
+                                  }
+              `}>
+                                  {selectedDuration === option.value && (
+                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                  )}
+                                </div>
                               </div>
+
+                              {/* Content */}
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-start space-x-3 flex-1">
+                                    <div className={`
+                    flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center
+                    ${selectedDuration === option.value
+                                        ? option.color === 'red'
+                                          ? 'bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-200'
+                                          : option.color === 'yellow'
+                                            ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-800 dark:text-yellow-200'
+                                            : 'bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-200'
+                                        : theme === 'light'
+                                          ? 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
+                                          : 'bg-gray-700 text-gray-400 group-hover:bg-gray-600'
+                                      }
+                  `}>
+                                      {option.icon}
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between">
+                                        <span className={`font-bold text-sm ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                          {option.label}
+                                        </span>
+                                        {option.price && (
+                                          <span className={`
+                          text-sm font-semibold
+                          ${option.color === 'red' ? 'text-red-600' :
+                                              option.color === 'yellow' ? 'text-yellow-600' : 'text-green-600'
+                                            }
+                        `}>
+                                            {option.price}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      <div className={`
+                      text-sm font-semibold mt-1
+                      ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}
+                    `}>
+                                        {option.description}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Selection indicator for better UX */}
+                              {selectedDuration === option.value && (
+                                <div className="absolute -top-2 -right-2">
+                                  <div className={`
+                  w-6 h-6 rounded-full flex items-center justify-center shadow-md
+                  ${option.color === 'red' ? 'bg-red-500' :
+                                      option.color === 'yellow' ? 'bg-yellow-500' : 'bg-green-500'
+                                    }
+                `}>
+                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              )}
                             </label>
                           ))}
                         </div>
@@ -608,7 +823,7 @@ export default function NewRequest() {
                       <div className="flex flex-col justify-between">
                         <div>
                           <h3 className="text-lg font-semibold mb-4">Submit Orders</h3>
-                          <div className={`text-sm mb-4 ${files.some(f => f.uploadStatus === "Uploading...")
+                          <div className={`text-sm mb-4 ${files.some(f => f.uploadStatus.startsWith("Uploading..."))
                             ? theme === 'light' ? "text-yellow-600" : "text-yellow-400"
                             : !files.some(f => f.uploadStatus === "Success")
                               ? theme === 'light' ? "text-red-600" : "text-red-400"
@@ -616,7 +831,7 @@ export default function NewRequest() {
                                 ? theme === 'light' ? "text-green-600" : "text-green-400"
                                 : getStatusTextClass()
                             }`}>
-                            {files.some(f => f.uploadStatus === "Uploading...")
+                            {files.some(f => f.uploadStatus.startsWith("Uploading..."))
                               ? "⏳ Please wait for all uploads to complete"
                               : !files.some(f => f.uploadStatus === "Success")
                                 ? "❌ No files successfully uploaded. Please check failed files."

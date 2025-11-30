@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useMemo } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -7,53 +7,72 @@ import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faHome,
+    faFileAlt,
+    faDownload,
+    faCalendarAlt,
+    faFilter,
+    faSearch,
+    faChartBar,
+    faSync,
+    faHashtag
 } from '@fortawesome/free-solid-svg-icons';
 import { fetchWithAuth } from '../../utils/userapi';
 
 export default function Reports() {
     const { theme } = useContext(ThemeContext);
-    const [selectedFilter, setSelectedFilter] = useState();
+    const [selectedFilter, setSelectedFilter] = useState('4'); // Default to 'All Time'
     const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [data, setData] = useState([]);
+    const [orderIdFrom, setOrderIdFrom] = useState('');
+    const [orderIdTo, setOrderIdTo] = useState('');
+    const [allData, setAllData] = useState([]); // Store all data from backend
+    const [filteredData, setFilteredData] = useState([]); // Store filtered data for display
 
-
-    // Theme-based classes
+    // Professional theme-based classes
     const getThemeClasses = () => {
         const isLight = theme === 'light';
         return {
-            main: isLight ? 'bg-gray-50 text-gray-900' : 'bg-gray-900 text-white',
-            card: isLight ? 'bg-gray-200 shadow-xl border border-gray-100' : 'bg-gray-800 border-gray-700 shadow-2xl',
+            main: isLight
+                ? 'bg-gradient-to-br from-gray-25 to-gray-50 text-gray-900'
+                : 'bg-gradient-to-br from-gray-900 to-gray-950 text-white',
+            card: isLight
+                ? 'bg-gray-200'
+                : 'bg-gray-800 border-gray-700 shadow-xl',
             input: isLight
-                ? 'bg-white border-gray-200 focus:border-blue-500 text-gray-900 placeholder-gray-500'
-                : 'bg-gray-700 border-gray-600 focus:border-blue-400 text-white placeholder-gray-400',
+                ? 'bg-white border-gray-300 focus:border-blue-500 text-gray-900 placeholder-gray-500 shadow-sm'
+                : 'bg-gray-700 border-gray-600 focus:border-blue-400 text-white placeholder-gray-400 shadow-sm',
             button: {
                 primary: isLight
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
-                    : 'bg-blue-700 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl',
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all cursor-pointer'
+                    : 'bg-blue-700 hover:bg-blue-600 text-white shadow-md hover:shadow-lg transition-all cursor-pointer',
                 success: isLight
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl'
-                    : 'bg-emerald-700 hover:bg-emerald-600 text-white shadow-lg hover:shadow-xl',
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg'
+                    : 'bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg',
                 filterActive: isLight
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-blue-700 text-white shadow-md',
+                    ? 'bg-blue-600 text-white shadow-md border border-blue-600'
+                    : 'bg-blue-700 text-white shadow-md border border-blue-600',
                 filterInactive: isLight
-                    ? 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 shadow-sm hover:shadow-md'
-                    : 'bg-gray-700 text-gray-200 border border-gray-600 hover:bg-gray-600 shadow-sm hover:shadow-md'
+                    ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm'
+                    : 'bg-gray-700 text-gray-200 border border-gray-600 hover:bg-gray-600 hover:border-gray-500 shadow-sm',
+                download: isLight
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg'
+                    : 'bg-emerald-700 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg'
             },
             text: {
                 primary: isLight ? 'text-gray-900' : 'text-white',
                 secondary: isLight ? 'text-gray-600' : 'text-gray-300',
-                muted: isLight ? 'text-gray-500' : 'text-gray-400'
-            }
+                muted: isLight ? 'text-gray-500' : 'text-gray-400',
+                accent: isLight ? 'text-blue-600' : 'text-blue-400'
+            },
+            border: isLight ? 'border-gray-200' : 'border-gray-700'
         };
     };
 
     const themeClasses = getThemeClasses();
 
     const columns = [
-        { header: "Order Id", accessor: "orderid" },
+        { header: "Order ID", accessor: "orderid" },
         { header: "File Name", accessor: "fname" },
         { header: "TAT", accessor: "tduration" },
         { header: "Status", accessor: "status" },
@@ -65,79 +84,182 @@ export default function Reports() {
     ];
 
     const filterButtons = [
-        { value: '1', label: 'Today' },
-        { value: '2', label: 'Weekly' },
-        { value: '3', label: 'Monthely' },
+        { value: '1', label: 'Today', icon: faCalendarAlt },
+        { value: '2', label: 'Weekly', icon: faChartBar },
+        { value: '3', label: 'Monthly', icon: faFileAlt },
+        { value: '4', label: 'All Time', icon: faFilter },
     ];
 
-    // Single function to handle both search types
-    const handleSearch = async (filterValue = null) => {
-        // Update filter state if a filter button was clicked
-        if (filterValue) {
-            setSelectedFilter(filterValue);
+    // Filter data based on all criteria
+    const applyFilters = () => {
+        if (!allData.length) {
+            setFilteredData([]);
+            return;
         }
 
-        setIsLoading(true);
+        let filtered = [...allData];
 
-        try {
-            const requestData = {
-                filter: filterValue || selectedFilter,
-                startDate,
-                endDate,
-            };
+        // Apply time period filter
+        const now = new Date();
+        switch (selectedFilter) {
+            case '1': // Today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.order_date);
+                    return itemDate >= today;
+                });
+                break;
+            case '2': // Weekly
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                weekAgo.setHours(0, 0, 0, 0);
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.order_date);
+                    return itemDate >= weekAgo;
+                });
+                break;
+            case '3': // Monthly
+                const monthAgo = new Date();
+                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                monthAgo.setHours(0, 0, 0, 0);
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.order_date);
+                    return itemDate >= monthAgo;
+                });
+                break;
+            case '4': // All Time - no date filtering
+                break;
+            default:
+                break;
+        }
 
-            // Use centralized fetchWithAuth for API call
-            const responseData = await fetchWithAuth("get-reports", {
-                method: "POST",
-                body: JSON.stringify(requestData),
+        // Apply order ID range filter
+        if (orderIdFrom) {
+            filtered = filtered.filter(item => {
+                const orderId = parseInt(item.orderid);
+                const fromId = parseInt(orderIdFrom);
+                return orderId >= fromId;
             });
-
-            if (responseData?.status === "success") {
-                setData(responseData.cases);
-            } else {
-                setData([]);
-            }
-        } catch (error) {
-            console.error("Report fetch error:", error);
-            setData([]);
-        } finally {
-            setIsLoading(false);
         }
+
+        if (orderIdTo) {
+            filtered = filtered.filter(item => {
+                const orderId = parseInt(item.orderid);
+                const toId = parseInt(orderIdTo);
+                return orderId <= toId;
+            });
+        }
+
+        // Apply custom date range filter
+        if (startDate) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.order_date);
+                const start = new Date(startDate);
+                return itemDate >= start;
+            });
+        }
+
+        if (endDate) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.order_date);
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999); // Include entire end day
+                return itemDate <= end;
+            });
+        }
+
+        setFilteredData(filtered);
     };
 
     // Handle search button click
     const handleSearchClick = () => {
-        handleSearch(); // Uses current selectedFilter
+        applyFilters();
     };
 
     // Handle filter button click
     const handleFilterClick = (filterValue) => {
-        handleSearch(filterValue);
+        setSelectedFilter(filterValue);
     };
 
+    // Handle download report
+    const handleDownloadReport = () => {
+        if (filteredData.length > 0) {
+            const fileName = `report_${new Date().toISOString().split('T')[0]}.csv`;
+            
+            // Simple CSV export
+            const headers = columns.map(col => col.header).join(',');
+            const csvData = filteredData.map(row => 
+                columns.map(col => `"${row[col.accessor] || ''}"`).join(',')
+            ).join('\n');
+            
+            const csvContent = `${headers}\n${csvData}`;
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('No data to export');
+        }
+    };
+
+    // Handle reset filters
+    const handleResetFilters = () => {
+        setStartDate('');
+        setEndDate('');
+        setOrderIdFrom('');
+        setOrderIdTo('');
+        setSelectedFilter('4'); // Reset to "All Time"
+        setFilteredData(allData);
+    };
+
+    // Handle order ID input validation
+    const handleOrderIdFromChange = (e) => {
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        setOrderIdFrom(value);
+    };
+
+    const handleOrderIdToChange = (e) => {
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        setOrderIdTo(value);
+    };
 
     const getHeaderClass = () => {
         return theme === 'light'
-            ? 'bg-gray-200 border-gray-200 text-gray-800'
-            : 'bg-gray-800 border-gray-700 text-white';
+            ? 'bg-gray-200 text-gray-800'
+            : 'bg-gray-200 text-white';
     };
 
+    // Apply filters whenever any filter criteria changes
+    useEffect(() => {
+        applyFilters();
+    }, [selectedFilter, allData]);
+
+    // Initial data fetch
     useEffect(() => {
         async function fetchAllCases() {
+            setIsLoading(true);
             try {
                 const data = await fetchWithAuth('/get-all-cases', {
                     method: "GET",
                 });
 
-                // data is already the parsed JSON response
                 if (data && data.status === 'success') {
-                    setData(data.new_cases);
+                    setAllData(data.new_cases);
+                    setFilteredData(data.new_cases); // Initially show all data
                 } else {
-                    setData([]);
+                    setAllData([]);
+                    setFilteredData([]);
                 }
             } catch (error) {
                 console.error("Error fetching cases:", error);
-                setData([]);
+                setAllData([]);
+                setFilteredData([]);
+            } finally {
+                setIsLoading(false);
             }
         }
 
@@ -147,30 +269,38 @@ export default function Reports() {
     return (
         <>
             <Hd />
-            <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18`}>
+            <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${themeClasses.main} pt-16 sm:pt-18`}>
                 <div className="min-h-screen px-2 sm:px-6 lg:px-2">
                     <div className="w-full max-w-full">
 
-                        {/* Header Section */}
-                        <header className={`bg-gray-50 rounded-xl border-b shadow-sm my-4 px-4 ${getHeaderClass()}`}>
-                            <div className="container mx-auto px-3 sm:px py-4 sm:py-3">
-                                <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+                        {/* Enhanced Header Section */}
+                        <header className={`rounded-xl shadow-sm my-6 px-6 py-4 ${getHeaderClass()}`}>
+                            <div className="container mx-auto">
+                                <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="text-center sm:text-left">
-                                        <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'text-gray-800' : 'text-white'
-                                            }`}>
-                                            Generate & Download Reports
+                                        <h1 className={`text-2xl sm:text-3xl font-bold ${theme==='light'?'bg-black':'bg-white'} bg-clip-text text-transparent`}>
+                                            Reports & Analytics
                                         </h1>
-                                        <p className={`mt-1 text-sm sm:text-base ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'
-                                            }`}>Generate your reports and download</p>
+                                        <p className={`mt-2 text-sm sm:text-base ${themeClasses.text.secondary}`}>
+                                            Generate comprehensive reports and analyze order performance
+                                        </p>
                                     </div>
                                     <nav className="flex justify-center sm:justify-start">
-                                        <ol className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">
+                                        <ol className="flex items-center space-x-2 sm:space-x-3 text-sm">
                                             <li>
-                                                <Link to="/user/home" className={`hover:text-blue-800 transition-colors duration-300 flex items-center ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'
-                                                    }`}>
-                                                    <FontAwesomeIcon icon={faHome} className="w-3 h-3 mr-1 sm:mr-2" />
-                                                    <span className="hidden xs:inline">Home</span>
+                                                <Link
+                                                    to="/user/home"
+                                                    className={`hover:text-blue-700 transition-colors duration-300 flex items-center ${themeClasses.text.accent}`}
+                                                >
+                                                    <FontAwesomeIcon icon={faHome} className="w-4 h-4 mr-2" />
+                                                    <span>Dashboard</span>
                                                 </Link>
+                                            </li>
+                                            <li className={themeClasses.text.muted}>
+                                                <span>/</span>
+                                            </li>
+                                            <li className={themeClasses.text.muted}>
+                                                <span>Reports</span>
                                             </li>
                                         </ol>
                                     </nav>
@@ -178,65 +308,164 @@ export default function Reports() {
                             </div>
                         </header>
 
-
                         {/* Main Card Container */}
-                        <div className={`bg-gray-50 rounded-xl ${themeClasses.card} p-4`}>
+                        <div className={`rounded-xl ${themeClasses.card} p-6 mb-8`}>
 
                             {/* Search Section */}
-                            <div className="mb-8 ">
-                                <div className="max-w-4xl mx-auto">
-                                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                                        <div className="md:col-span-2">
-                                            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
-                                                Date From
+                            <div className="mb-8">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className={`text-xl font-semibold ${themeClasses.text.primary} flex items-center`}>
+                                        <FontAwesomeIcon icon={faSearch} className="w-5 h-5 mr-3 text-blue-500" />
+                                        Report Criteria
+                                    </h2>
+                                    <div className="flex space-x-3">
+                                        <button
+                                            onClick={handleResetFilters}
+                                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all ${theme === 'light'
+                                                ? 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                                                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                                                }`}
+                                        >
+                                            <FontAwesomeIcon icon={faSync} className="w-4 h-4" />
+                                            <span>Reset</span>
+                                        </button>
+                                        <button
+                                            onClick={handleDownloadReport}
+                                            disabled={filteredData.length === 0}
+                                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all ${filteredData.length === 0
+                                                    ? 'bg-gray-400 cursor-not-allowed'
+                                                    : themeClasses.button.download
+                                                }`}
+                                        >
+                                            <FontAwesomeIcon icon={faDownload} className="w-4 h-4" />
+                                            <span>Export Report</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="max-w-6xl mx-auto">
+                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                                        {/* Order ID From */}
+                                        <div className="lg:col-span-2">
+                                            <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
+                                                <FontAwesomeIcon icon={faHashtag} className="w-4 h-4 mr-2 text-blue-500" />
+                                                Order ID From
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={orderIdFrom}
+                                                onChange={handleOrderIdFromChange}
+                                                placeholder="e.g., 1001"
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                            />
+                                        </div>
+
+                                        {/* Order ID To */}
+                                        <div className="lg:col-span-2">
+                                            <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
+                                                <FontAwesomeIcon icon={faHashtag} className="w-4 h-4 mr-2 text-blue-500" />
+                                                Order ID To
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={orderIdTo}
+                                                onChange={handleOrderIdToChange}
+                                                placeholder="e.g., 2000"
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                            />
+                                        </div>
+
+                                        {/* Start Date */}
+                                        <div className="lg:col-span-2">
+                                            <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
+                                                <FontAwesomeIcon icon={faCalendarAlt} className="w-4 h-4 mr-2 text-blue-500" />
+                                                Start Date
                                             </label>
                                             <input
                                                 type="date"
-                                                id="snumber"
                                                 value={startDate}
                                                 onChange={(e) => setStartDate(e.target.value)}
-                                                className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
                                             />
                                         </div>
-                                        <div className="md:col-span-2">
-                                            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
-                                                Date To
+
+                                        {/* End Date */}
+                                        <div className="lg:col-span-2">
+                                            <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
+                                                <FontAwesomeIcon icon={faCalendarAlt} className="w-4 h-4 mr-2 text-blue-500" />
+                                                End Date
                                             </label>
                                             <input
                                                 type="date"
-                                                id="enumber"
                                                 value={endDate}
                                                 onChange={(e) => setEndDate(e.target.value)}
-                                                className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
                                             />
                                         </div>
-                                        <div className="md:col-span-1">
+
+                                        {/* Search Button */}
+                                        <div className="lg:col-span-4">
                                             <button
                                                 onClick={handleSearchClick}
-                                                className={`cursor-pointer w-full h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${themeClasses.button.success}`}
+                                                disabled={isLoading}
+                                                className={`w-44 h-12 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer ${isLoading
+                                                        ? 'bg-gray-400 cursor-not-allowed'
+                                                        : themeClasses.button.success
+                                                    }`}
                                             >
-                                                Search Cases
+                                                {isLoading ? (
+                                                    <>
+                                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                                        <span>Applying Filters...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FontAwesomeIcon icon={faFileAlt} className="w-4 h-4" />
+                                                        <span>Apply Filters</span>
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
+                                    </div>
+
+                                    {/* Search Tips */}
+                                    <div className="mt-4 text-left">
+                                        <p className={`text-xs ${themeClasses.text.muted}`}>
+                                            Tip: Use Order ID range and date filters to refine your report. Showing {filteredData.length} of {allData.length} records.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Filter Section */}
+                            {/* Enhanced Filter Section */}
                             <div className="mb-8">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className={`text-lg font-semibold ${themeClasses.text.primary} flex items-center`}>
+                                        <FontAwesomeIcon icon={faFilter} className="w-4 h-4 mr-2 text-blue-500" />
+                                        Time Period
+                                    </h3>
+                                    <span className={`text-sm ${themeClasses.text.muted}`}>
+                                        {filteredData.length} of {allData.length} records shown
+                                    </span>
+                                </div>
+
                                 <div className="max-w-full mx-auto">
                                     <div className="flex flex-wrap justify-center gap-3">
                                         {filterButtons.map((button) => (
                                             <button
                                                 key={button.value}
                                                 onClick={() => handleFilterClick(button.value)}
-                                                className={`cursor-pointer px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${selectedFilter === button.value
-                                                    ? `${themeClasses.button.filterActive} scale-105`
-                                                    : themeClasses.button.filterInactive
-                                                    }`}
+                                                disabled={isLoading}
+                                                className={`px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 min-w-[120px] cursor-pointer ${selectedFilter === button.value
+                                                        ? `${themeClasses.button.filterActive} transform scale-105`
+                                                        : themeClasses.button.filterInactive
+                                                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
                                             >
-                                                <div className={`w-2 h-2 rounded-full ${selectedFilter === button.value ? 'bg-white' : 'bg-blue-500'
-                                                    }`}></div>
+                                                <FontAwesomeIcon
+                                                    icon={button.icon}
+                                                    className={`w-4 h-4 ${selectedFilter === button.value ? 'text-white' : 'text-blue-500'
+                                                        }`}
+                                                />
                                                 <span className="font-medium">{button.label}</span>
                                             </button>
                                         ))}
@@ -244,9 +473,14 @@ export default function Reports() {
                                 </div>
                             </div>
 
-                            {/* Data Table */}
+                            {/* Data Table Section */}
                             <div className="mt-8">
-                                <Datatable columns={columns} data={data} rowsPerPage={50}/>
+                                <Datatable
+                                    columns={columns}
+                                    data={filteredData}
+                                    rowsPerPage={50}
+                                    theme={theme}
+                                />
                             </div>
 
                         </div>

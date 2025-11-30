@@ -29,7 +29,7 @@ export default function Datatable({
 
     // ✅ NEW STATES for multi-select & dropdown
     const [selectedRows, setSelectedRows] = useState([]);
-    const [fileType, setFileType] = useState("finish");
+    const [fileType, setFileType] = useState("stl"); // Changed default to "stl"
 
     // Filter & Sort
     const filteredData = useMemo(() => {
@@ -210,11 +210,11 @@ export default function Datatable({
     };
 
     const sendRedesign = async (orderId, status) => {
-        // If not completed → direct fail response
+        // ✅ FUNCTIONALITY IMPROVEMENT: Changed error message
         if (status.toLowerCase() !== "completed") {
             return {
                 status: "failed",
-                message: "Please contact design team"
+                message: "Please wait for order complete"
             };
         }
 
@@ -305,20 +305,24 @@ export default function Datatable({
             }
         });
 
-
-        // --- Professional Notification Section ---
-        if (missingFiles.length > 0) {
+        // --- Success / Error Messages ---
+        if (downloadedCount === selectedRows.length) {
+            // All files downloaded
+            alert("All files downloaded successfully.");
+        }
+        else if (missingFiles.length > 0 && downloadedCount > 0) {
+            // Some downloaded, some missing
             alert(
-                `Download Summary\n\n` +
-                `Files Successfully Downloaded: ${downloadedCount}\n` +
                 `Files Not Available: ${missingFiles.length}\n\n` +
-                `File Not found for this IDs: ${missingFiles.join(", ")}`
+                `Missing File IDs: ${missingFiles.join(", ")}`
             );
         }
         else if (downloadedCount === 0) {
+            // None available
             alert("No files are available for the selected file type.");
         }
     };
+
 
 
     return (
@@ -369,6 +373,7 @@ export default function Datatable({
 
                                     {/* Bulk Actions Toolbar - Moved to top */}
                                     <div className={`flex items-center gap-3 px-4 py-2`}>
+                                        {/* ✅ FUNCTIONALITY IMPROVEMENT: Updated file type options */}
                                         <select
                                             value={fileType}
                                             onChange={(e) => setFileType(e.target.value)}
@@ -415,14 +420,10 @@ export default function Datatable({
                                                     }
                                                 }
 
-                                                // Professional summary message
-                                                let message =
-                                                    `Redesign Request Summary\n\n` +
-                                                    `Successful Requests: ${successCount}\n` +
-                                                    `Failed Requests: ${failCount}\n`;
-
+                                                // ✅ FUNCTIONALITY IMPROVEMENT: Simplified alert message
+                                                let message = '';
                                                 if (failMessages.length) {
-                                                    message += `\nDetails for Failed Requests:\n` + failMessages.join("\n");
+                                                    message += `Details for Failed Requests:\n` + failMessages.join("\n");
                                                 }
 
                                                 alert(message);
@@ -521,29 +522,19 @@ export default function Datatable({
                                                         className="border border-gray-300" >
                                                         {
                                                             col.header === 'Message' ? (
-                                                                <div className="w-full flex justify-center items-center relative mt-4">
-                                                                    <img
-                                                                        src="/img/messages.png"
-                                                                        alt="Message"
-                                                                        className="w-8 h-8 cursor-pointer hover:scale-110 transition-transform duration-200"
-                                                                        onClick={() => openPopup(`${row.orderid}`)}
-                                                                    />
-
-                                                                    {/* 🔹 Stylish message count badge */}
-                                                                    {row.totalMessages > 0 && (
-                                                                        <span
-                                                                            className="
-                                                                                    absolute -top-2 right-7
-                                                                                    bg-gradient-to-r from-red-600 to-red-700
-                                                                                    text-white text-[10px] font-bold
-                                                                                    rounded-full min-w-[18px] h-[18px]
-                                                                                    flex items-center justify-center
-                                                                                    shadow-lg animate-pulse
-                                                                                "
-                                                                        >
+                                                                <div className="flex justify-center items-center relative">
+                                                                    <div className="relative group">
+                                                                        <img
+                                                                            src="/img/messages.png"
+                                                                            alt="Message"
+                                                                            className="w-9 h-9 cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
+                                                                            onClick={() => openPopup(`${row.orderid}`)}
+                                                                        />
+                                                                        <span className=" absolute -top-2 -right-2  bg-gradient-to-br from-red-500 via-red-600 to-red-700  text-white text-[12px] font-semibold  rounded-full min-w-[18px] h-[18px]  flex items-center justify-center  shadow-[0_0_8px_rgba(255,0,0,0.6)]ring-2 ring-white/60 backdrop-blur-sm">
                                                                             {row.totalMessages > 99 ? '99+' : row.totalMessages}
                                                                         </span>
-                                                                    )}
+
+                                                                    </div>
                                                                 </div>
                                                             ) : col.header === 'Status' ? (
                                                                 <div className="flex justify-center items-center">
