@@ -21,6 +21,7 @@ import OrderDetails from "../pages/designer/OrderDetails";
 import SearchOrder from "../pages/designer/SearchOrder";
 
 export default function DesignerRoutes() {
+    document.title='Designer Login | Portal'
     return (
         <DesignerProvider>
             <Routes>
