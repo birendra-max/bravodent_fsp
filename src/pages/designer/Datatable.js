@@ -5,7 +5,6 @@ import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
-import { fetchWithAuth } from '../../utils/designerapi';
 import { Link } from 'react-router-dom';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons'
 
@@ -25,7 +24,7 @@ export default function Datatable({
 
     // ✅ NEW STATES for multi-select & dropdown
     const [selectedRows, setSelectedRows] = useState([]);
-    const [fileType, setFileType] = useState("finish");
+    const [fileType, setFileType] = useState("initial");
 
     // Filter & Sort
     const filteredData = useMemo(() => {
@@ -205,45 +204,6 @@ export default function Datatable({
             : 'bg-gray-100 text-gray-600';
     };
 
-    const downloadFile = (filename, path) => {
-        // Encode only the last part of the URL (the filename)
-        const parts = path.split('/');
-        const encodedFile = encodeURIComponent(parts.pop()); // safely encode the filename
-        const encodedUrl = parts.join('/') + '/' + encodedFile; // rebuild the full URL
-
-        console.log('Encoded URL:', encodedUrl);
-
-        const link = document.createElement('a');
-        link.href = encodedUrl;
-        link.download = filename;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-
-    const sendRedesign = async (orderId, status) => {
-        if (status === 'Completed') {
-            try {
-                const data = await fetchWithAuth(`send-for-redesign/${orderId}`, {
-                    method: "GET",
-                });
-
-                // data is already the parsed JSON response
-                if (data.status === 'success') {
-                    alert(data.message);
-                } else {
-                    console.log(data.message);
-                }
-            } catch (error) {
-                console.error("Error fetching cases:", error);
-            }
-        } else {
-            alert(`${orderId} is not completed yet! You can't send it for redesign.`);
-        }
-    };
-
     // ✅ Multi-select logic
     const toggleSelectRow = (id) =>
         setSelectedRows((prev) =>
@@ -264,7 +224,10 @@ export default function Datatable({
 
 
     const handleBulkDownload = () => {
-        if (!selectedRows.length) return alert("Please select at least one record!");
+        if (!selectedRows.length) {
+            alert("Please select at least one record to proceed with the download.");
+            return;
+        }
 
         let missingFiles = [];
         let downloadedCount = 0;
@@ -279,10 +242,8 @@ export default function Datatable({
             else if (fileType === "stl") path = row.stl_file_path;
             else if (fileType === "finish") path = row.finish_file_path;
 
-            // ✅ Check if valid path exists
             if (path && path.trim() !== "") {
                 try {
-                    // ✅ Use your symbol-safe download logic
                     const parts = path.split("/");
                     const encodedFile = encodeURIComponent(parts.pop());
                     const encodedUrl = parts.join("/") + "/" + encodedFile;
@@ -305,11 +266,17 @@ export default function Datatable({
             }
         });
 
-        // ✅ Final alert summary
+        // Professional Notification Section
         if (missingFiles.length > 0) {
-            alert(`File not available for these record(s): ${missingFiles.join(", ")}`);
-        } else if (downloadedCount === 0) {
-            alert("No files available for the selected type.");
+            alert(
+                `Download Summary\n\n` +
+                `Files Successfully Downloaded: ${downloadedCount}\n` +
+                `Files Not Available: ${missingFiles.length}\n\n` +
+                `File Not found for this IDs: ${missingFiles.join(", ")}`
+            );
+        }
+        else if (downloadedCount === 0) {
+            alert("No files are available for the selected file type.");
         }
     };
 
@@ -360,6 +327,26 @@ export default function Datatable({
                                         <FontAwesomeIcon icon={faDownload} className="text-white text-base" />
                                         Download Report
                                     </button>
+
+                                    <div className={`flex items-center gap-3 px-4 py-2 rounded-xl`}>
+
+                                        <select
+                                            value={fileType}
+                                            onChange={(e) => setFileType(e.target.value)}
+                                            className={`px-3 py-2 rounded-lg border text-sm focus:outline-none transition-all ${getSelectClass()}`}
+                                        >
+                                            <option value="initial">Initial Files</option>
+                                            <option value="stl">STL Files</option>
+                                            <option value="finish">Finished Files</option>
+                                        </select>
+
+                                        <button
+                                            onClick={handleBulkDownload}
+                                            className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-lg flex items-center gap-2 transition-all duration-200 font-medium text-sm cursor-pointer"
+                                        >
+                                            <FontAwesomeIcon icon={faDownload} /> Download All
+                                        </button>
+                                    </div>
 
                                 </div>
 
@@ -454,29 +441,18 @@ export default function Datatable({
                                                                     <Link to={`/designer/orderDeatails/${row.orderid}`} className="text-blue-600 hover:text-blue-800 hover:underline" > {row.orderid} </Link>
                                                                 </div>
                                                             ) : col.header === 'Message' ? (
-                                                                <div className="w-full flex justify-center items-center relative mt-4">
-                                                                    <img
-                                                                        src="/img/messages.png"
-                                                                        alt="Message"
-                                                                        className="w-8 h-8 cursor-pointer hover:scale-110 transition-transform duration-200"
-                                                                        onClick={() => openPopup(`${row.orderid}`)}
-                                                                    />
-
-                                                                    {/* 🔹 Stylish message count badge */}
-                                                                    {row.totalMessages > 0 && (
-                                                                        <span
-                                                                            className="
-                                                                                    absolute -top-2 right-7
-                                                                                    bg-gradient-to-r from-red-600 to-red-700
-                                                                                    text-white text-[10px] font-bold
-                                                                                    rounded-full min-w-[18px] h-[18px]
-                                                                                    flex items-center justify-center
-                                                                                    shadow-lg animate-pulse
-                                                                                "
-                                                                        >
+                                                                <div className="flex justify-center items-center relative">
+                                                                    <div className="relative group">
+                                                                        <img
+                                                                            src="/img/messages.png"
+                                                                            alt="Message"
+                                                                            className="w-9 h-9 cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
+                                                                            onClick={() => openPopup(`${row.orderid}`)}
+                                                                        />
+                                                                        <span className=" absolute -top-2 -right-2  bg-gradient-to-br from-red-500 via-red-600 to-red-700  text-white text-[12px] font-semibold  rounded-full min-w-[18px] h-[18px]  flex items-center justify-center  shadow-[0_0_8px_rgba(255,0,0,0.6)]ring-2 ring-white/60 backdrop-blur-sm">
                                                                             {row.totalMessages > 99 ? '99+' : row.totalMessages}
                                                                         </span>
-                                                                    )}
+                                                                    </div>
                                                                 </div>
                                                             ) : col.header === 'Status' ? (
                                                                 <div className="flex justify-center items-center">
@@ -580,40 +556,6 @@ export default function Datatable({
                                             Next
                                         </button>
                                     </div>
-                                </div>
-                            )}
-
-                            {/* ✅ Floating Toolbar */}
-                            {selectedRows.length > 0 && (
-                                <div
-                                    className={`w-[33%] fixed flex justify-center items-center bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-xl shadow-lg ${theme === "dark"
-                                        ? "bg-gradient-to-r from-gray-800 to-gray-700 text-white border border-gray-600"
-                                        : "bg-gradient-to-r from-blue-50 to-white border border-gray-300 text-gray-800"
-                                        }`}
-                                >
-                                    <span className="font-semibold">
-                                        ✅ {selectedRows.length} selected
-                                    </span>
-
-                                    <select
-                                        value={fileType}
-                                        onChange={(e) => setFileType(e.target.value)}
-                                        className={`p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-400 ${theme === "dark"
-                                            ? "bg-gray-700 border-gray-600 text-white"
-                                            : "bg-white border-gray-300 text-gray-800"
-                                            }`}
-                                    >
-                                        <option value="initial">Initial Files</option>
-                                        <option value="stl">STL Files</option>
-                                        <option value="finish">Finished Files</option>
-                                    </select>
-
-                                    <button
-                                        onClick={handleBulkDownload}
-                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md flex items-center gap-2 transition"
-                                    >
-                                        <FontAwesomeIcon icon={faDownload} /> Download All
-                                    </button>
                                 </div>
                             )}
                         </>

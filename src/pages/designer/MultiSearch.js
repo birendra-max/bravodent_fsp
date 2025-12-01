@@ -1,4 +1,4 @@
-import { useContext, useState,useEffect } from "react";
+import { useContext, useState, useEffect, useMemo } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -13,11 +13,14 @@ import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function MultiSearch() {
     const { theme } = useContext(ThemeContext);
-    const [selectedFilter, setSelectedFilter] = useState();
+    const [selectedFilter, setSelectedFilter] = useState('1'); // ✅ CHANGED: Default to 'All'
     const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [data, setData] = useState([]);
+    const [orderIdFrom, setOrderIdFrom] = useState(''); // ✅ ADDED: Order ID range filter
+    const [orderIdTo, setOrderIdTo] = useState(''); // ✅ ADDED: Order ID range filter
+    const [allData, setAllData] = useState([]); // ✅ ADDED: Store all data from backend
+    const [filteredData, setFilteredData] = useState([]); // ✅ ADDED: Store filtered data for display
 
     // Theme-based classes
     const getThemeClasses = () => {
@@ -74,80 +77,127 @@ export default function MultiSearch() {
         { value: '7', label: 'Canceled' },
     ];
 
-    // Single function to handle both search types
-    const handleSearch = async (filterValue = null) => {
-        // Update filter state if a filter button was clicked
-        if (filterValue) {
-            setSelectedFilter(filterValue);
+    // ✅ ADDED: Apply all filters function
+    const applyFilters = () => {
+        if (!allData.length) {
+            setFilteredData([]);
+            return;
         }
 
-        setIsLoading(true);
+        let filtered = [...allData];
 
-        try {
-            const requestData = {
-                filter: filterValue || selectedFilter,
-                startDate,
-                endDate,
+        // Apply status filter
+        if (selectedFilter !== '1') {
+            const statusMap = {
+                '2': 'New',
+                '3': 'Pending',
+                '4': 'Qc',
+                '5': 'Hold',
+                '6': 'Completed',
+                '7': 'Cancelled'
             };
-
-            // Use centralized fetchWithAuth
-            const responseData = await fetchWithAuth("/get-cases-data", {
-                method: "POST",
-                body: JSON.stringify(requestData),
-            });
-
-            if (responseData?.status === "success") {
-                setData(responseData.cases);
-            } else {
-                setData([]);
-            }
-        } catch (error) {
-            console.error("Search error:", error);
-            setData([]);
-        } finally {
-            setIsLoading(false);
+            const targetStatus = statusMap[selectedFilter];
+            filtered = filtered.filter(item => item.status === targetStatus);
         }
+
+        // ✅ ADDED: Apply order ID range filter
+        if (orderIdFrom) {
+            filtered = filtered.filter(item => {
+                const orderId = parseInt(item.orderid);
+                const fromId = parseInt(orderIdFrom);
+                return orderId >= fromId;
+            });
+        }
+
+        if (orderIdTo) {
+            filtered = filtered.filter(item => {
+                const orderId = parseInt(item.orderid);
+                const toId = parseInt(orderIdTo);
+                return orderId <= toId;
+            });
+        }
+
+        // ✅ ADDED: Apply date range filter
+        if (startDate) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.order_date);
+                const start = new Date(startDate);
+                return itemDate >= start;
+            });
+        }
+
+        if (endDate) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.order_date);
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999); // Include entire end day
+                return itemDate <= end;
+            });
+        }
+
+        setFilteredData(filtered);
     };
 
-    // Handle search button click
+    // ✅ CHANGED: Updated search button handler
     const handleSearchClick = () => {
-        handleSearch(); // Uses current selectedFilter
+        applyFilters();
     };
 
-    // Handle filter button click
+    // ✅ CHANGED: Updated filter button handler
     const handleFilterClick = (filterValue) => {
-        handleSearch(filterValue);
+        setSelectedFilter(filterValue);
+        // Filters will be applied in useEffect
     };
 
+    // ✅ ADDED: Handle order ID input validation
+    const handleOrderIdFromChange = (e) => {
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        setOrderIdFrom(value);
+    };
+
+    const handleOrderIdToChange = (e) => {
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        setOrderIdTo(value);
+    };
+
+    // ✅ ADDED: Apply filters whenever any filter criteria changes
+    useEffect(() => {
+        applyFilters();
+    }, [selectedFilter, allData]);
+
+    // ✅ CHANGED: Updated initial data fetch to store all data
     useEffect(() => {
         async function fetchAllCases() {
+            setIsLoading(true);
             try {
                 const data = await fetchWithAuth('/get-all-cases', {
                     method: "GET",
                 });
 
-                // data is already the parsed JSON response
                 if (data && data.status === 'success') {
-                    setData(data.new_cases);
+                    setAllData(data.new_cases);
+                    setFilteredData(data.new_cases); // Initially show all data
                 } else {
-                    setData([]);
+                    setAllData([]);
+                    setFilteredData([]);
                 }
             } catch (error) {
                 console.error("Error fetching cases:", error);
-                setData([]);
+                setAllData([]);
+                setFilteredData([]);
+            } finally {
+                setIsLoading(false);
             }
         }
 
         fetchAllCases();
     }, []);
 
-
     const getHeaderClass = () => {
         return theme === 'light'
             ? 'bg-gray-200 border-gray-200 text-gray-800'
             : 'bg-gray-800 border-gray-700 text-white';
     };
-
 
     return (
         <>
@@ -187,10 +237,36 @@ export default function MultiSearch() {
                         {/* Main Card Container */}
                         <div className={`bg-gray-50 rounded-xl ${themeClasses.card} p-4`}>
 
-                            {/* Search Section */}
-                            <div className="mb-8 ">
-                                <div className="max-w-4xl mx-auto">
-                                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                            {/* Search Section - ✅ UPDATED: Added Order ID range inputs */}
+                            <div className="mb-8">
+                                <div className="max-w-7xl mx-auto ml-50">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                                        {/* Order ID From */}
+                                        <div className="md:col-span-2">
+                                            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
+                                                Order ID From
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={orderIdFrom}
+                                                onChange={handleOrderIdFromChange}
+                                                placeholder="e.g., 1001"
+                                                className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
+                                            />
+                                        </div>
+                                        {/* Order ID To */}
+                                        <div className="md:col-span-2">
+                                            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
+                                                Order ID To
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={orderIdTo}
+                                                onChange={handleOrderIdToChange}
+                                                placeholder="e.g., 2000"
+                                                className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
+                                            />
+                                        </div>
                                         <div className="md:col-span-2">
                                             <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
                                                 Date From
@@ -215,12 +291,13 @@ export default function MultiSearch() {
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
                                             />
                                         </div>
-                                        <div className="md:col-span-1">
+                                        <div className="md:col-span-4">
                                             <button
                                                 onClick={handleSearchClick}
-                                                className={`cursor-pointer w-full h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${themeClasses.button.success}`}
+                                                disabled={isLoading}
+                                                className={`cursor-pointer w-44 h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${isLoading ? 'bg-gray-400' : themeClasses.button.success}`}
                                             >
-                                                Search Cases
+                                                {isLoading ? 'Searching...' : 'Search Cases'}
                                             </button>
                                         </div>
                                     </div>
@@ -235,10 +312,11 @@ export default function MultiSearch() {
                                             <button
                                                 key={button.value}
                                                 onClick={() => handleFilterClick(button.value)}
+                                                disabled={isLoading}
                                                 className={`cursor-pointer px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${selectedFilter === button.value
                                                     ? `${themeClasses.button.filterActive} scale-105`
                                                     : themeClasses.button.filterInactive
-                                                    }`}
+                                                    } ${isLoading ? 'opacity-50' : ''}`}
                                             >
                                                 <div className={`w-2 h-2 rounded-full ${selectedFilter === button.value ? 'bg-white' : 'bg-blue-500'
                                                     }`}></div>
@@ -251,7 +329,8 @@ export default function MultiSearch() {
 
                             {/* Data Table */}
                             <div className="mt-8">
-                                <Datatable columns={columns} data={data} rowsPerPage={50}/>
+                                {/* ✅ CHANGED: Pass filteredData instead of all data */}
+                                <Datatable columns={columns} data={filteredData} rowsPerPage={50}/>
                             </div>
 
                         </div>

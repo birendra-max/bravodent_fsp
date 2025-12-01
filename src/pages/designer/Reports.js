@@ -1,4 +1,4 @@
-import { useContext, useState,useEffect } from "react";
+import { useContext, useState, useEffect, useMemo } from "react";
 import Hd from './Hd';
 import Foot from './Foot';
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -12,11 +12,20 @@ import { fetchWithAuth } from "../../utils/designerapi";
 
 export default function Reports() {
     const { theme } = useContext(ThemeContext);
-    const [selectedFilter, setSelectedFilter] = useState();
+    const [selectedFilter, setSelectedFilter] = useState('4'); // ✅ CHANGED: Default to 'All Time'
     const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [data, setData] = useState([]);
+    const [orderIdFrom, setOrderIdFrom] = useState(''); // ✅ ADDED: Order ID range filter
+    const [orderIdTo, setOrderIdTo] = useState(''); // ✅ ADDED: Order ID range filter
+    const [allData, setAllData] = useState([]); // ✅ ADDED: Store all data from backend
+    const [filteredData, setFilteredData] = useState([]); // ✅ ADDED: Store filtered data for display
+    const [reportStats, setReportStats] = useState({ // ✅ ADDED: Report statistics
+        totalOrders: 0,
+        completed: 0,
+        inProgress: 0,
+        pending: 0
+    });
 
 
     // Theme-based classes
@@ -64,85 +73,215 @@ export default function Reports() {
         { header: "Message", accessor: "message" },
     ];
 
+    // ✅ UPDATED: Filter buttons with All Time option
     const filterButtons = [
         { value: '1', label: 'Today' },
         { value: '2', label: 'Weekly' },
-        { value: '3', label: 'Monthely' },
+        { value: '3', label: 'Monthly' },
+        { value: '4', label: 'All Time' },
     ];
 
-    // Single function to handle both search types
-    const handleSearch = async (filterValue = null) => {
-        // Update filter state if a filter button was clicked
-        if (filterValue) {
-            setSelectedFilter(filterValue);
+    // ✅ ADDED: Calculate report statistics
+    const calculateStats = (cases) => {
+        const stats = {
+            totalOrders: cases.length,
+            completed: cases.filter(caseItem => caseItem.status === 'Designed Completed').length,
+            inProgress: cases.filter(caseItem => caseItem.status === 'In Progress').length,
+            pending: cases.filter(caseItem => caseItem.status === 'New' || caseItem.status === 'QC Required').length
+        };
+        setReportStats(stats);
+    };
+
+    // ✅ ADDED: Apply all filters function
+    const applyFilters = () => {
+        if (!allData.length) {
+            setFilteredData([]);
+            calculateStats([]);
+            return;
         }
 
-        setIsLoading(true);
+        let filtered = [...allData];
 
-        try {
-            const requestData = {
-                filter: filterValue || selectedFilter,
-                startDate,
-                endDate,
-            };
+        // ✅ ADDED: Apply time period filter
+        const now = new Date();
+        switch (selectedFilter) {
+            case '1': // Today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.order_date);
+                    return itemDate >= today;
+                });
+                break;
+            case '2': // Weekly
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                weekAgo.setHours(0, 0, 0, 0);
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.order_date);
+                    return itemDate >= weekAgo;
+                });
+                break;
+            case '3': // Monthly
+                const monthAgo = new Date();
+                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                monthAgo.setHours(0, 0, 0, 0);
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.order_date);
+                    return itemDate >= monthAgo;
+                });
+                break;
+            case '4': // All Time - no date filtering
+                break;
+            default:
+                break;
+        }
 
-            // Use centralized fetchWithAuth for API call
-            const responseData = await fetchWithAuth("/get-reports", {
-                method: "POST",
-                body: JSON.stringify(requestData),
+        // ✅ ADDED: Apply order ID range filter
+        if (orderIdFrom) {
+            filtered = filtered.filter(item => {
+                const orderId = parseInt(item.orderid);
+                const fromId = parseInt(orderIdFrom);
+                return orderId >= fromId;
             });
-
-            if (responseData?.status === "success") {
-                setData(responseData.cases);
-            } else {
-                setData([]);
-            }
-        } catch (error) {
-            console.error("Report fetch error:", error);
-            setData([]);
-        } finally {
-            setIsLoading(false);
         }
+
+        if (orderIdTo) {
+            filtered = filtered.filter(item => {
+                const orderId = parseInt(item.orderid);
+                const toId = parseInt(orderIdTo);
+                return orderId <= toId;
+            });
+        }
+
+        // ✅ ADDED: Apply custom date range filter
+        if (startDate) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.order_date);
+                const start = new Date(startDate);
+                return itemDate >= start;
+            });
+        }
+
+        if (endDate) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.order_date);
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999); // Include entire end day
+                return itemDate <= end;
+            });
+        }
+
+        setFilteredData(filtered);
+        calculateStats(filtered);
     };
 
-    // Handle search button click
+    // ✅ CHANGED: Updated search button handler
     const handleSearchClick = () => {
-        handleSearch(); // Uses current selectedFilter
+        applyFilters();
     };
 
-    // Handle filter button click
+    // ✅ CHANGED: Updated filter button handler
     const handleFilterClick = (filterValue) => {
-        handleSearch(filterValue);
+        setSelectedFilter(filterValue);
+        // Filters will be applied in useEffect
     };
 
+    // ✅ ADDED: Handle download report
+    const handleDownloadReport = () => {
+        if (filteredData.length === 0) {
+            alert('No data available to download');
+            return;
+        }
+        
+        // Create CSV content
+        const headers = columns.map(col => col.header).join(',');
+        const rows = filteredData.map(item => 
+            columns.map(col => `"${item[col.accessor] || ''}"`).join(',')
+        ).join('\n');
+        
+        const csvContent = `${headers}\n${rows}`;
+        
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `report-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    };
+
+    // ✅ ADDED: Handle reset filters
+    const handleResetFilters = () => {
+        setStartDate('');
+        setEndDate('');
+        setOrderIdFrom('');
+        setOrderIdTo('');
+        setSelectedFilter('4'); // Reset to "All Time"
+        setFilteredData(allData);
+        calculateStats(allData);
+    };
+
+    // ✅ ADDED: Handle order ID input validation
+    const handleOrderIdFromChange = (e) => {
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        setOrderIdFrom(value);
+    };
+
+    const handleOrderIdToChange = (e) => {
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        setOrderIdTo(value);
+    };
+
+    // ✅ ADDED: Apply filters whenever any filter criteria changes
+    useEffect(() => {
+        applyFilters();
+    }, [selectedFilter, allData]);
+
+    // ✅ CHANGED: Updated initial data fetch to use get-reports endpoint
+    useEffect(() => {
+        async function fetchAllCases() {
+            setIsLoading(true);
+            try {
+                const responseData = await fetchWithAuth("/get-reports", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        filter: 'all',
+                        startDate: '',
+                        endDate: '',
+                    }),
+                });
+
+                if (responseData?.status === "success") {
+                    setAllData(responseData.cases);
+                    setFilteredData(responseData.cases);
+                    calculateStats(responseData.cases);
+                } else {
+                    setAllData([]);
+                    setFilteredData([]);
+                    setReportStats({ totalOrders: 0, completed: 0, inProgress: 0, pending: 0 });
+                }
+            } catch (error) {
+                console.error("Report fetch error:", error);
+                setAllData([]);
+                setFilteredData([]);
+                setReportStats({ totalOrders: 0, completed: 0, inProgress: 0, pending: 0 });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchAllCases();
+    }, []);
 
     const getHeaderClass = () => {
         return theme === 'light'
             ? 'bg-gray-200 border-gray-200 text-gray-800'
             : 'bg-gray-800 border-gray-700 text-white';
     };
-
-    useEffect(() => {
-        async function fetchAllCases() {
-            try {
-                const data = await fetchWithAuth('/get-all-cases', {
-                    method: "GET",
-                });
-
-                // data is already the parsed JSON response
-                if (data && data.status === 'success') {
-                    setData(data.new_cases);
-                } else {
-                    setData([]);
-                }
-            } catch (error) {
-                console.error("Error fetching cases:", error);
-                setData([]);
-            }
-        }
-
-        fetchAllCases();
-    }, []);
 
     return (
         <>
@@ -182,10 +321,36 @@ export default function Reports() {
                         {/* Main Card Container */}
                         <div className={`bg-gray-50 rounded-xl ${themeClasses.card} p-4`}>
 
-                            {/* Search Section */}
+                            {/* ✅ UPDATED: Search Section with Order ID range inputs */}
                             <div className="mb-8 ">
-                                <div className="max-w-4xl mx-auto">
-                                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                                <div className="max-w-7xl mx-auto ml-50">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                                        {/* Order ID From */}
+                                        <div className="md:col-span-2">
+                                            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
+                                                Order ID From
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={orderIdFrom}
+                                                onChange={handleOrderIdFromChange}
+                                                placeholder="e.g., 1001"
+                                                className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
+                                            />
+                                        </div>
+                                        {/* Order ID To */}
+                                        <div className="md:col-span-2">
+                                            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
+                                                Order ID To
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={orderIdTo}
+                                                onChange={handleOrderIdToChange}
+                                                placeholder="e.g., 2000"
+                                                className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
+                                            />
+                                        </div>
                                         <div className="md:col-span-2">
                                             <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
                                                 Date From
@@ -210,19 +375,22 @@ export default function Reports() {
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
                                             />
                                         </div>
-                                        <div className="md:col-span-1">
-                                            <button
-                                                onClick={handleSearchClick}
-                                                className={`cursor-pointer w-full h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${themeClasses.button.success}`}
-                                            >
-                                                Search Cases
-                                            </button>
+                                        <div className="md:col-span-4">
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={handleSearchClick}
+                                                    disabled={isLoading}
+                                                    className={`cursor-pointer w-44 h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${isLoading ? 'bg-gray-400' : themeClasses.button.success}`}
+                                                >
+                                                    {isLoading ? 'Searching...' : 'Search Cases'}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Filter Section */}
+                            {/* ✅ UPDATED: Filter Section with All Time option */}
                             <div className="mb-8">
                                 <div className="max-w-full mx-auto">
                                     <div className="flex flex-wrap justify-center gap-3">
@@ -230,10 +398,11 @@ export default function Reports() {
                                             <button
                                                 key={button.value}
                                                 onClick={() => handleFilterClick(button.value)}
+                                                disabled={isLoading}
                                                 className={`cursor-pointer px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 ${selectedFilter === button.value
                                                     ? `${themeClasses.button.filterActive} scale-105`
                                                     : themeClasses.button.filterInactive
-                                                    }`}
+                                                    } ${isLoading ? 'opacity-50' : ''}`}
                                             >
                                                 <div className={`w-2 h-2 rounded-full ${selectedFilter === button.value ? 'bg-white' : 'bg-blue-500'
                                                     }`}></div>
@@ -246,7 +415,8 @@ export default function Reports() {
 
                             {/* Data Table */}
                             <div className="mt-8">
-                                <Datatable columns={columns} data={data} rowsPerPage={50}/>
+                                {/* ✅ CHANGED: Pass filteredData instead of all data */}
+                                <Datatable columns={columns} data={filteredData} rowsPerPage={50}/>
                             </div>
                         </div>
                     </div>
