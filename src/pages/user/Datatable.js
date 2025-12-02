@@ -209,35 +209,20 @@ export default function Datatable({
             : 'bg-gray-100 text-gray-600';
     };
 
-    const sendRedesign = async (orderId, status) => {
-        // ✅ FUNCTIONALITY IMPROVEMENT: Changed error message
-        if (status.toLowerCase() !== "completed") {
-            return {
-                status: "failed",
-                message: "Please wait for order complete"
-            };
-        }
-
+    const sendRedesign = async (orderId) => {
         try {
-            const data = await fetchWithAuth(`send-for-redesign/${orderId}`, {
+            const res = await fetchWithAuth(`send-for-redesign/${orderId}`, {
                 method: "GET",
             });
 
-            if (data.status === "success") {
-                return {
-                    status: "success",
-                    message: data.message
-                };
-            } else {
-                return {
-                    status: "failed",
-                    message: data.message || "Unknown error"
-                };
-            }
+            return {
+                status: res.status,
+                message: res.message || "Unknown response"
+            };
         } catch (error) {
             return {
-                status: "failed",
-                message: "Server error"
+                status: "error",
+                message: "Server error. Please try again later."
             };
         }
     };
@@ -398,35 +383,89 @@ export default function Datatable({
                                                     return;
                                                 }
 
-                                                let successCount = 0;
-                                                let failCount = 0;
+                                                let redesignIds = [];
+                                                let newOrderIds = [];
+                                                let successIds = [];
                                                 let failMessages = [];
 
                                                 for (let id of selectedRows) {
-                                                    const row = data.find((r) => r.orderid === id);
-                                                    if (!row) {
-                                                        failCount++;
-                                                        failMessages.push(`${id}: Order record not found`);
+                                                    const r = data.find((x) => x.orderid === id);
+
+                                                    if (!r) {
+                                                        failMessages.push(`Order ${id}: Record not found`);
                                                         continue;
                                                     }
 
-                                                    const res = await sendRedesign(id, row.status);
+                                                    if (r.status === "New") {
+                                                        newOrderIds.push(id);
+                                                        continue;
+                                                    }
+
+                                                    if (r.status === "Redesign") {
+                                                        redesignIds.push(id);
+                                                        continue;
+                                                    }
+
+                                                    const res = await sendRedesign(id);
 
                                                     if (res.status === "success") {
-                                                        successCount++;
+                                                        successIds.push(id);
                                                     } else {
-                                                        failCount++;
-                                                        failMessages.push(`${id}: ${res.message}`);
+                                                        failMessages.push(`Order ${id}: ${res.message}`);
                                                     }
                                                 }
 
-                                                // ✅ FUNCTIONALITY IMPROVEMENT: Simplified alert message
-                                                let message = '';
-                                                if (failMessages.length) {
-                                                    message += `Details for Failed Requests:\n` + failMessages.join("\n");
+                                                let finalMsg = "";
+
+                                                if (newOrderIds.length === selectedRows.length) {
+                                                    if (newOrderIds.length === 1) {
+                                                        finalMsg = `Order ${newOrderIds[0]} cannot be sent for redesign because it is a new order.`;
+                                                    } else {
+                                                        finalMsg = `All selected orders cannot be sent for redesign because they are new orders.`;
+                                                    }
+                                                    alert(finalMsg);
+                                                    return;
                                                 }
 
-                                                alert(message);
+                                                if (newOrderIds.length === 1) {
+                                                    finalMsg += `Order ${newOrderIds[0]} cannot be sent for redesign because it is a new order.\n\n`;
+                                                }
+
+                                                if (newOrderIds.length > 1) {
+                                                    finalMsg += newOrderIds.map(id => `Order ${id} cannot be sent for redesign because it is a new order.`).join("\n") + "\n\n";
+                                                }
+
+                                                if (redesignIds.length === selectedRows.length - newOrderIds.length) {
+                                                    if (redesignIds.length === 1) {
+                                                        finalMsg += `Order ${redesignIds[0]} already in redesign process.`;
+                                                    } else {
+                                                        finalMsg += `All selected orders are already in redesign process.`;
+                                                    }
+                                                    alert(finalMsg);
+                                                    return;
+                                                }
+
+                                                if (redesignIds.length === 1) {
+                                                    finalMsg += `Order ${redesignIds[0]} already in redesign process.\n\n`;
+                                                }
+
+                                                if (redesignIds.length > 1) {
+                                                    finalMsg += redesignIds.map(id => `Order ${id} already in redesign process.`).join("\n") + "\n\n";
+                                                }
+
+                                                if (successIds.length === 1) {
+                                                    finalMsg += `Order ${successIds[0]} has been forwarded to the design team for redesign.\n\n`;
+                                                }
+
+                                                if (successIds.length > 1) {
+                                                    finalMsg += `All selected orders have been forwarded to the design team for redesign.\n\n`;
+                                                }
+
+                                                if (failMessages.length) {
+                                                    finalMsg += "Failed Requests:\n" + failMessages.join("\n");
+                                                }
+
+                                                alert(finalMsg.trim());
                                             }}
                                             className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg shadow-lg flex items-center gap-2 transition-all duration-200 font-medium text-sm cursor-pointer"
                                         >
