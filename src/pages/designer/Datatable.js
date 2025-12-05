@@ -222,6 +222,7 @@ export default function Datatable({
         }
     };
 
+    const base_url = localStorage.getItem('base_url');
 
     const handleBulkDownload = () => {
         if (!selectedRows.length) {
@@ -244,14 +245,15 @@ export default function Datatable({
 
             if (path && path.trim() !== "") {
                 try {
-                    const parts = path.split("/");
-                    const encodedFile = encodeURIComponent(parts.pop());
-                    const encodedUrl = parts.join("/") + "/" + encodedFile;
+                    const encodedPath = encodeURIComponent(path);
+
+                    // Backend handles download safely
+                    const finalUrl = `${base_url}/download?path=` + encodedPath;
 
                     const link = document.createElement("a");
-                    link.href = encodedUrl;
-                    link.download = `${fileType}_${id}`;
+                    link.href = finalUrl;
                     link.target = "_blank";
+                    link.download = `${fileType}_${id}`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -266,21 +268,12 @@ export default function Datatable({
             }
         });
 
-        // Professional Notification Section
         if (missingFiles.length > 0) {
             alert(
-                `Download Summary\n\n` +
-                `Files Successfully Downloaded: ${downloadedCount}\n` +
-                `Files Not Available: ${missingFiles.length}\n\n` +
-                `File Not found for this IDs: ${missingFiles.join(", ")}`
+                `File Not found`
             );
         }
-        else if (downloadedCount === 0) {
-            alert("No files are available for the selected file type.");
-        }
     };
-
-
 
     return (
         <>
@@ -438,7 +431,7 @@ export default function Datatable({
                                                         {
                                                             col.header === 'Order Id' ? (
                                                                 <div>
-                                                                    <Link to={`/designer/orderDeatails/${row.orderid}`} className="text-blue-600 hover:text-blue-800 hover:underline" > {row.orderid} </Link>
+                                                                    <Link to={`/designer/orderDeatails/${row.orderid}`} className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-bold" > {row.orderid} </Link>
                                                                 </div>
                                                             ) : col.header === 'Message' ? (
                                                                 <div className="flex justify-center items-center relative">
