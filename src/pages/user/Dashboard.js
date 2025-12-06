@@ -20,7 +20,8 @@ import {
     faCalendarWeek,
     faRepeat,
     faStar,
-    faComments
+    faMessage,
+    faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
@@ -42,7 +43,7 @@ export default function Dashboard() {
             [e.target.name]: e.target.value,
         });
     };
-   
+
 
     useEffect(() => {
         async function fetchCardsData() {
@@ -227,6 +228,21 @@ export default function Dashboard() {
                         </button>
 
                         <div className="p-5">
+                            <div className="flex items-center justify-between mb-5">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-9 h-9 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'} flex items-center justify-center`}>
+                                        <FontAwesomeIcon icon={faLightbulb} className={theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} />
+                                    </div>
+                                    <div>
+                                        <h3 className={`text-base font-semibold`}>
+                                            Share Feedback
+                                        </h3>
+                                        <p className={`text-xs`}>
+                                            Help us improve your experience
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
                             <p id="status" className=" mt-4 w-full mb-3"></p>
 
@@ -320,15 +336,43 @@ export default function Dashboard() {
                 </div>
 
 
-                {/* Feedback Button - Compact */}
-                <div className="fixed bottom-14 right-4 z-40">
+                {/* Floating Feedback Button - Bouncing with Sparkles */}
+                <div className="fixed bottom-6 right-4 z-50 animate-bounce">
                     <button
                         onClick={handleOpenModal}
-                        className="w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-lg cursor-pointer"
+                        className="group relative w-14 h-14 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center cursor-pointer hover:scale-110 hover:animate-none"
                     >
-                        <FontAwesomeIcon icon={faComments} className="text-2xl" />
+                        {/* Rainbow glow */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-full opacity-60 blur animate-pulse"></div>
+
+                        {/* Sparkles */}
+                        <div className="absolute -top-2 -right-2">
+                            <FontAwesomeIcon icon={faStar} className="text-yellow-400 text-xs animate-spin" />
+                        </div>
+
+                        <div className="relative z-10">
+                            <FontAwesomeIcon
+                                icon={faMessage}
+                                className="text-xl"
+                            />
+                        </div>
+
+                        {/* Pulse ring */}
+                        <div className="absolute inset-0 border-2 border-white/40 rounded-full animate-ping-slow"></div>
                     </button>
                 </div>
+
+                <style jsx>{`
+  @keyframes ping-slow {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  .animate-ping-slow {
+    animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+`}</style>
             </section>
         )
     } else {
