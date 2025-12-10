@@ -100,7 +100,7 @@ export default function Login() {
                     <img
                         src="/img/logo.png"
                         alt="BravoDent Logo"
-                        className="h-20 w-40 object-contain mb-6"
+                        className="h-30 w-40 object-contain"
                     />
                 </div>
 

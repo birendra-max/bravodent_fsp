@@ -92,11 +92,11 @@ export default function Login() {
             transition={{ delay: 0.2 }}
             className="relative z-10 mb-8"
           >
-            <div className="w-40 h-40 rounded-2xl bg-white/5 backdrop-blur-md flex items-center justify-center border border-white/10">
+            <div className="w-60 h-30 rounded-2xl bg-white/5 backdrop-blur-md flex items-center justify-center border border-white/10">
               <img
                 src="/img/logo.png"
                 alt="Admin Logo"
-                className="w-32 h-32 object-contain"
+                className="w-full h-full object-contain"
               />
             </div>
           </motion.div>
