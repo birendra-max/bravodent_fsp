@@ -18,9 +18,6 @@ import {
     faSave,
     faIdCard,
     faUserTie,
-    faFlask,
-    faStethoscope,
-    faNotesMedical,
     faKey,
     faExclamationTriangle,
     faSpinner
@@ -72,14 +69,8 @@ export default function Profile() {
                 setForm({
                     email: data.designer.email || "",
                     designation: data.designer.designation || "",
-                    occlusion: data.designer.occlusion || "",
-                    labname: data.designer.labname || "",
                     mobile: data.designer.mobile || "",
-                    anatomy: data.designer.anatomy || "",
-                    contact: data.designer.contact || "",
-                    pontic: data.designer.pontic || "",
                     password: "",
-                    remark: data.designer.remark || "",
                 });
             }
         } catch (error) {
@@ -372,7 +363,7 @@ export default function Profile() {
                                         </span>
                                         <span className={`font-semibold text-xs sm:text-sm ${theme === 'light' ? 'text-gray-800' : 'text-white'
                                             }`}>
-                                            {designer.joining_date || 'N/A'}
+                                            {designer.desi_added_date || 'N/A'}
                                         </span>
                                     </div>
                                 </div>
@@ -472,35 +463,6 @@ export default function Profile() {
                                                 />
                                             </div>
 
-                                            {/* Row 2 */}
-                                            <div className="flex flex-col space-y-2">
-                                                <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
-                                                    <FontAwesomeIcon icon={faStethoscope} className="w-3 h-3 text-blue-500 mr-2" />
-                                                    Occlusion
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="occlusion"
-                                                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm sm:text-base ${getInputClass()}`}
-                                                    value={form.occlusion}
-                                                    onChange={handleProfile}
-                                                />
-                                            </div>
-
-                                            <div className="flex flex-col space-y-2">
-                                                <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
-                                                    <FontAwesomeIcon icon={faFlask} className="w-3 h-3 text-blue-500 mr-2" />
-                                                    Lab Name
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="labname"
-                                                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm sm:text-base ${getInputClass()}`}
-                                                    value={form.labname}
-                                                    onChange={handleProfile}
-                                                />
-                                            </div>
-
                                             {/* Row 3 */}
                                             <div className="flex flex-col space-y-2">
                                                 <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
@@ -516,51 +478,9 @@ export default function Profile() {
                                                 />
                                             </div>
 
-                                            <div className="flex flex-col space-y-2">
-                                                <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
-                                                    <FontAwesomeIcon icon={faStethoscope} className="w-3 h-3 text-blue-500 mr-2" />
-                                                    Anatomy
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="anatomy"
-                                                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm sm:text-base ${getInputClass()}`}
-                                                    value={form.anatomy}
-                                                    onChange={handleProfile}
-                                                />
-                                            </div>
-
-                                            {/* Row 4 */}
-                                            <div className="flex flex-col space-y-2">
-                                                <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
-                                                    <FontAwesomeIcon icon={faPhone} className="w-3 h-3 text-blue-500 mr-2" />
-                                                    Contact
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="contact"
-                                                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm sm:text-base ${getInputClass()}`}
-                                                    value={form.contact}
-                                                    onChange={handleProfile}
-                                                />
-                                            </div>
-
-                                            <div className="flex flex-col space-y-2">
-                                                <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
-                                                    <FontAwesomeIcon icon={faStethoscope} className="w-3 h-3 text-blue-500 mr-2" />
-                                                    Pontic
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="pontic"
-                                                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm sm:text-base ${getInputClass()}`}
-                                                    value={form.pontic}
-                                                    onChange={handleProfile}
-                                                />
-                                            </div>
 
                                             {/* Row 5 - Password field with eye button */}
-                                            <div className="md:col-span-2 flex flex-col space-y-2">
+                                            <div className=" flex flex-col space-y-2">
                                                 <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
                                                     <FontAwesomeIcon icon={faKey} className="w-3 h-3 text-blue-500 mr-2" />
                                                     Password
@@ -591,21 +511,6 @@ export default function Profile() {
                                                     <FontAwesomeIcon icon={faKey} className="w-3 h-3 text-blue-400 mr-1" />
                                                     Leave blank to keep current password
                                                 </p>
-                                            </div>
-
-                                            {/* Row 6 - Remarks field */}
-                                            <div className="md:col-span-2 flex flex-col space-y-2">
-                                                <label className={`font-semibold text-xs sm:text-sm uppercase tracking-wide flex items-center ${getLabelClass()}`}>
-                                                    <FontAwesomeIcon icon={faNotesMedical} className="w-3 h-3 text-blue-500 mr-2" />
-                                                    Remarks & Notes
-                                                </label>
-                                                <textarea
-                                                    name="remark"
-                                                    rows="3"
-                                                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 resize-vertical text-sm sm:text-base ${getInputClass()}`}
-                                                    value={form.remark}
-                                                    onChange={handleProfile}
-                                                />
                                             </div>
                                         </div>
 

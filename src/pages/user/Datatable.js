@@ -8,11 +8,6 @@ import { fetchWithAuth } from '../../utils/userapi';
 import {
     faRepeat,
     faFolderOpen,
-    faArrowsRotate,
-    faSearch,
-    faSort,
-    faSortUp,
-    faSortDown,
     faTimes
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -214,7 +209,7 @@ export default function Datatable({
 
         setTimeout(() => {
             setStatus('hide');
-        }, 1000)
+        }, 3000)
 
     }, [data]);
 
