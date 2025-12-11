@@ -51,7 +51,7 @@ export default function Dashboard() {
     useEffect(() => {
         if (cases) {
             const updatedCards = [
-                { id: "home", href: "/designer/home", title: "New Cases", count: cases.new_cases, color: "bg-gray-800", icon: faShoppingCart },
+                { id: "home", href: "/designer/home", title: "New Cases", count: cases.new_cases, color: "bg-gray-700", icon: faShoppingCart },
                 { id: "progress", href: "/designer/in_progress", title: "In Progress", count: cases.progress, color: "bg-yellow-500", icon: faSpinner },
                 { id: "canceled", href: "/designer/canceled_case", title: "Canceled Cases", count: cases.canceled, color: "bg-red-500", icon: faTimes },
                 { id: "completed", href: "/designer/completed_case", title: "Completed Cases", count: cases.completed, color: "bg-green-600", icon: faTasks },
