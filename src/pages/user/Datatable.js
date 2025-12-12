@@ -206,11 +206,6 @@ export default function Datatable({
         if (data && data.length > 0) {
             setStatus("hide");
         }
-
-        setTimeout(() => {
-            setStatus('hide');
-        }, 3000)
-
     }, [data]);
 
     const handleSearch = (e) => {

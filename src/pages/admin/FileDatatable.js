@@ -79,10 +79,6 @@ export default function FileDatatable({
             setStatus("hide");
         }
 
-        setTimeout(() => {
-            setStatus('hide');
-        }, 1000)
-
     }, [data]);
 
     const handleSearch = (e) => {
