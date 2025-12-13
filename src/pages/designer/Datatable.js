@@ -4,15 +4,23 @@ import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { fetchWithAuth } from '../../utils/designerapi';
 import { Link } from 'react-router-dom';
-import { faFolderOpen } from '@fortawesome/free-solid-svg-icons'
-
+import {
+    faFolderOpen,
+    faSearch,
+    faSort,
+    faSortUp,
+    faSortDown
+} from '@fortawesome/free-solid-svg-icons';
 
 export default function Datatable({
     columns = [],
     data = [],
     rowsPerPageOptions = [50, 100, 200, 500],
+    loading = false,
+    error = null
 }) {
     const { theme } = useContext(ThemeContext);
     const [status, setStatus] = useState("show");
@@ -25,6 +33,15 @@ export default function Datatable({
     // ✅ NEW STATES for multi-select & dropdown
     const [selectedRows, setSelectedRows] = useState([]);
     const [fileType, setFileType] = useState("initial");
+
+    // ✅ Control loader based on parent's loading prop
+    useEffect(() => {
+        if (!loading) {
+            setStatus("hide");
+        } else {
+            setStatus("show");
+        }
+    }, [loading]);
 
     // Filter & Sort
     const filteredData = useMemo(() => {
@@ -71,13 +88,6 @@ export default function Datatable({
         const start = (currentPage - 1) * rowsPerPage;
         return filteredData.slice(start, start + rowsPerPage);
     }, [currentPage, filteredData, rowsPerPage]);
-
-    // ✅ Spinner control: hide loader once data is ready
-    useEffect(() => {
-        if (data && data.length > 0) {
-            setStatus("hide");
-        }
-    }, [data]);
 
     const handleSearch = (e) => {
         setSearch(e.target.value);
@@ -207,7 +217,6 @@ export default function Datatable({
                 : [...prev, id]
         );
 
-
     const toggleSelectAll = () => {
         const visibleIds = paginatedData.map((r) => r.orderid);
         if (paginatedData.every((r) => selectedRows.includes(r.orderid))) {
@@ -274,6 +283,7 @@ export default function Datatable({
         <>
             <Loder status={status} />
             <Chatbox orderid={orderid} />
+
             {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
                 <section
@@ -349,7 +359,6 @@ export default function Datatable({
                                     />
                                 </div>
                             </div>
-
 
                             {/* Table */}
                             <table id="datatable" style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -431,13 +440,18 @@ export default function Datatable({
                                                             ) : col.header === 'Message' ? (
                                                                 <div className="flex justify-center items-center relative">
                                                                     <div className="relative group">
-                                                                        <img
-                                                                            src="/img/messages.png"
-                                                                            alt="Message"
-                                                                            className="w-9 h-9 cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
+                                                                        <div
+                                                                            className="w-9 h-9 shadow-lg rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
                                                                             onClick={() => openPopup(`${row.orderid}`)}
-                                                                        />
-                                                                        <span className=" absolute -top-2 -right-2  bg-gradient-to-br from-red-500 via-red-600 to-red-700  text-white text-[12px] font-semibold  rounded-full min-w-[18px] h-[18px]  flex items-center justify-center  shadow-[0_0_8px_rgba(255,0,0,0.6)]ring-2 ring-white/60 backdrop-blur-sm">
+                                                                        >
+                                                                            <img
+                                                                                src="/img/messages.png"
+                                                                                alt="Message"
+                                                                                className="w-9 h-9 cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
+                                                                                onClick={() => openPopup(`${row.orderid}`)}
+                                                                            />
+                                                                        </div>
+                                                                        <span className=" absolute -top-2 -right-2 bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white text-[12px] font-semibold rounded-full min-w-[18px] h-[18px] flex items-center justify-center shadow-[0_0_8px_rgba(255,0,0,0.6)] ring-2 ring-white/60 backdrop-blur-sm">
                                                                             {row.totalMessages > 99 ? '99+' : row.totalMessages}
                                                                         </span>
                                                                     </div>
@@ -483,7 +497,13 @@ export default function Datatable({
                                                                     })()}
                                                                 </div>
                                                             ) : (
-                                                                row[col.accessor] ?? "-"
+                                                                <div style={{
+                                                                    wordBreak: "break-word",
+                                                                    whiteSpace: "normal",
+                                                                    overflowWrap: "break-word"
+                                                                }}>
+                                                                    {row[col.accessor] ?? "-"}
+                                                                </div>
                                                             )
                                                         }
 

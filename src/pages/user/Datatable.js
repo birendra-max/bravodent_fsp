@@ -3,7 +3,7 @@ import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from '../../utils/userapi';
 import {
     faRepeat,
@@ -12,15 +12,15 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 // ✅ Create a separate component for the popup
-const RedesignPopup = ({ 
-    theme, 
-    showRedesignPopup, 
-    pendingRedesignOrders, 
-    redesignMessage, 
-    setRedesignMessage, 
-    isSubmitting, 
-    handleRedesignSubmit, 
-    setShowRedesignPopup 
+const RedesignPopup = ({
+    theme,
+    showRedesignPopup,
+    pendingRedesignOrders,
+    redesignMessage,
+    setRedesignMessage,
+    isSubmitting,
+    handleRedesignSubmit,
+    setShowRedesignPopup
 }) => {
     const textareaRef = useRef(null);
 
@@ -70,8 +70,8 @@ const RedesignPopup = ({
                         </p>
                         <div className="flex flex-wrap gap-1">
                             {pendingRedesignOrders.map((id) => (
-                                <span 
-                                    key={id} 
+                                <span
+                                    key={id}
                                     className={`px-2 py-1 rounded text-xs ${theme === 'dark' ? 'bg-gray-700' : 'bg-blue-100'}`}
                                 >
                                     Order #{id}
@@ -135,6 +135,8 @@ export default function Datatable({
     columns = [],
     data = [],
     rowsPerPageOptions = [50, 100, 200, 500],
+    loading = false,
+    error = null
 }) {
     const { theme } = useContext(ThemeContext);
     const [status, setStatus] = useState("show");
@@ -147,13 +149,22 @@ export default function Datatable({
 
     // ✅ NEW STATES for multi-select & dropdown
     const [selectedRows, setSelectedRows] = useState([]);
-    const [fileType, setFileType] = useState("stl"); // Changed default to "stl"
+    const [fileType, setFileType] = useState("stl");
 
     // ✅ NEW STATES for redesign popup
     const [showRedesignPopup, setShowRedesignPopup] = useState(false);
     const [redesignMessage, setRedesignMessage] = useState("");
     const [pendingRedesignOrders, setPendingRedesignOrders] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // ✅ Control loader based on parent's loading prop
+    useEffect(() => {
+        if (!loading) {
+            setStatus("hide");
+        } else {
+            setStatus("show");
+        }
+    }, [loading]);
 
     // Filter & Sort
     const filteredData = useMemo(() => {
@@ -200,13 +211,6 @@ export default function Datatable({
         const start = (currentPage - 1) * rowsPerPage;
         return filteredData.slice(start, start + rowsPerPage);
     }, [currentPage, filteredData, rowsPerPage]);
-
-    // ✅ Spinner control: hide loader once data is ready
-    useEffect(() => {
-        if (data && data.length > 0) {
-            setStatus("hide");
-        }
-    }, [data]);
 
     const handleSearch = (e) => {
         setSearch(e.target.value);
@@ -257,78 +261,6 @@ export default function Datatable({
         document.getElementById('chatbox').style.display = "block"
     }
 
-    // Theme-based styling functions
-    const getBackgroundClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-900 text-white'
-            : 'bg-gray-200 text-gray-800';
-    };
-
-    const getTableHeaderClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 text-white'
-            : 'bg-blue-600 text-white';
-    };
-
-    const getTableRowClass = (idx) => {
-        if (theme === 'dark') {
-            return idx % 2 === 0 ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white';
-        } else {
-            return idx % 2 === 0 ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-800';
-        }
-    };
-
-    const getInputClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500';
-    };
-
-    const getSelectClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 border-gray-600 text-white'
-            : 'bg-white border-gray-300 text-gray-800';
-    };
-
-    const getPaginationButtonStyle = (isActive = false) => {
-        const baseStyle = {
-            padding: "8px 12px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontWeight: "bold",
-        };
-
-        if (theme === 'dark') {
-            return {
-                ...baseStyle,
-                background: isActive ? "#4f46e5" : "#374151",
-                color: isActive ? "#fff" : "#d1d5db",
-                borderColor: isActive ? "#4f46e5" : "#4b5563",
-            };
-        } else {
-            return {
-                ...baseStyle,
-                background: isActive ? "#007bff" : "#fff",
-                color: isActive ? "#fff" : "#000",
-                borderColor: "#ccc",
-            };
-        }
-    };
-
-    const getDisabledButtonStyle = () => {
-        return theme === 'dark'
-            ? { ...getPaginationButtonStyle(), background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
-            : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
-    };
-
-    const getNoDataClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-800 text-gray-300'
-            : 'bg-gray-100 text-gray-600';
-    };
-
-    // ✅ Updated sendRedesign function
     const sendRedesign = async (orderId, message = "") => {
         try {
             const res = await fetchWithAuth(`send-for-redesign/${orderId}`, {
@@ -481,6 +413,7 @@ export default function Datatable({
         window.location.reload();
     };
 
+
     const base_url = localStorage.getItem('base_url');
 
     const handleBulkDownload = () => {
@@ -534,13 +467,84 @@ export default function Datatable({
         }
     };
 
+    // Theme-based styling functions
+    const getBackgroundClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-900 text-white'
+            : 'bg-gray-200 text-gray-800';
+    };
+
+    const getTableHeaderClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 text-white'
+            : 'bg-blue-600 text-white';
+    };
+
+    const getTableRowClass = (idx) => {
+        if (theme === 'dark') {
+            return idx % 2 === 0 ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white';
+        } else {
+            return idx % 2 === 0 ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-800';
+        }
+    };
+
+    const getInputClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500';
+    };
+
+    const getSelectClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white'
+            : 'bg-white border-gray-300 text-gray-800';
+    };
+
+    const getPaginationButtonStyle = (isActive = false) => {
+        const baseStyle = {
+            padding: "8px 12px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: "bold",
+        };
+
+        if (theme === 'dark') {
+            return {
+                ...baseStyle,
+                background: isActive ? "#4f46e5" : "#374151",
+                color: isActive ? "#fff" : "#d1d5db",
+                borderColor: isActive ? "#4f46e5" : "#4b5563",
+            };
+        } else {
+            return {
+                ...baseStyle,
+                background: isActive ? "#007bff" : "#fff",
+                color: isActive ? "#fff" : "#000",
+                borderColor: "#ccc",
+            };
+        }
+    };
+
+    const getDisabledButtonStyle = () => {
+        return theme === 'dark'
+            ? { ...getPaginationButtonStyle(), background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
+            : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
+    };
+
+    const getNoDataClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-800 text-gray-300'
+            : 'bg-gray-100 text-gray-600';
+    };
+
     return (
         <>
             <Loder status={status} />
             <Chatbox orderid={orderid} />
-            
+
             {/* ✅ Use the separate popup component */}
-            <RedesignPopup 
+            <RedesignPopup
                 theme={theme}
                 showRedesignPopup={showRedesignPopup}
                 pendingRedesignOrders={pendingRedesignOrders}
@@ -704,16 +708,20 @@ export default function Datatable({
                                                             col.header === 'Message' ? (
                                                                 <div className="flex justify-center items-center relative">
                                                                     <div className="relative group">
-                                                                        <img
-                                                                            src="/img/messages.png"
-                                                                            alt="Message"
-                                                                            className="w-9 h-9 cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
+                                                                        <div
+                                                                            className="w-9 h-9 shadow-lg rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
                                                                             onClick={() => openPopup(`${row.orderid}`)}
-                                                                        />
-                                                                        <span className=" absolute -top-2 -right-2  bg-gradient-to-br from-red-500 via-red-600 to-red-700  text-white text-[12px] font-semibold  rounded-full min-w-[18px] h-[18px]  flex items-center justify-center  shadow-[0_0_8px_rgba(255,0,0,0.6)]ring-2 ring-white/60 backdrop-blur-sm">
+                                                                        >
+                                                                            <img
+                                                                                src="/img/messages.png"
+                                                                                alt="Message"
+                                                                                className="w-9 h-9 cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
+                                                                                onClick={() => openPopup(`${row.orderid}`)}
+                                                                            />
+                                                                        </div>
+                                                                        <span className=" absolute -top-2 -right-2 bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white text-[12px] font-semibold rounded-full min-w-[18px] h-[18px] flex items-center justify-center shadow-[0_0_8px_rgba(255,0,0,0.6)] ring-2 ring-white/60 backdrop-blur-sm">
                                                                             {row.totalMessages > 99 ? '99+' : row.totalMessages}
                                                                         </span>
-
                                                                     </div>
                                                                 </div>
                                                             ) : col.header === 'Status' ? (
@@ -757,7 +765,13 @@ export default function Datatable({
                                                                     })()}
                                                                 </div>
                                                             ) : (
-                                                                row[col.accessor] ?? "-"
+                                                                <div style={{
+                                                                    wordBreak: "break-word",
+                                                                    whiteSpace: "normal",
+                                                                    overflowWrap: "break-word"
+                                                                }}>
+                                                                    {row[col.accessor] ?? "-"}
+                                                                </div>
                                                             )
                                                         }
 

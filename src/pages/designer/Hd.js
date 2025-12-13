@@ -136,7 +136,7 @@ export default function Hd() {
                                 <img
                                     src="/img/logo.png"
                                     alt="Logo"
-                                    className="h-6 w-auto sm:h-8 lg:h-10 transition-all duration-300 hover:scale-105"
+                                    className="h-6 w-auto sm:h-8 lg:h-14 transition-all duration-300 hover:scale-105"
                                     onError={(e) => {
                                         e.target.src = '/img/placeholder-logo.png';
                                     }}
