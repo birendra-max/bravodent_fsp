@@ -433,7 +433,7 @@ export default function Datatable({
                 if (fileType === "stl") {
                     // Step 1: get file paths from backend
                     const res = await fetch(`${base_url}/download-all?orderid=${id}`, {
-                        headers: { 'X-Tenant': 'skydent' }
+                        headers: { 'X-Tenant': 'bravodent' }
                     });
 
                     const files = await res.json();
