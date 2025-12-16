@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useRef } from "react";
 import Hd from "./Hd";
 import Foot from "./Foot";
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -11,6 +11,7 @@ export default function NewRequest() {
   const [orderSelection, setOrderSelection] = useState({}); // { fileName: { selectedOrders: [], availableOrders: [] } }
   const token = localStorage.getItem('token');
   let base_url = localStorage.getItem('base_url');
+  const progressIntervalRefs = useRef({});
 
   const handleFiles = async (selectedFiles) => {
     const fileArray = Array.from(selectedFiles);
@@ -47,42 +48,79 @@ export default function NewRequest() {
           // ✅ ADDED: Properties for multi-order handling
           matchingOrders: null, // Will store matching orders when found
           showOrderSelection: false, // Control visibility of order selection
+          fileSize: file.size,
         },
       ]);
       uploadFile(file);
     });
   };
 
-  // ✅ UPDATED: Modified uploadFile to handle multi-order selection
+  const simulateProgress = (fileName) => {
+    // Clear any existing interval for this file
+    if (progressIntervalRefs.current[fileName]) {
+      clearInterval(progressIntervalRefs.current[fileName]);
+    }
+
+    // Create new interval with realistic speed
+    progressIntervalRefs.current[fileName] = setInterval(() => {
+      setFiles((prev) =>
+        prev.map((f) => {
+          if (f.fileName === fileName && f.progress < 95 && f.uploadStatus === "Uploading...") {
+            // More realistic progress simulation
+            let speed;
+            if (f.progress < 70) {
+              speed = 2.5; // Faster at start
+            } else if (f.progress < 90) {
+              speed = 1.2; // Slower near completion
+            } else {
+              speed = 0.5; // Very slow at the end
+            }
+
+            // Add small randomness
+            const randomFactor = 0.9 + Math.random() * 0.2;
+            const increment = speed * randomFactor;
+
+            return {
+              ...f,
+              progress: Math.min(f.progress + increment, 95),
+              message: `Uploading... ${Math.round(f.progress + increment)}%`
+            };
+          }
+          return f;
+        })
+      );
+    }, 300); // Slower update for more realistic feel
+  };
+
+  // ✅ UPDATED: Modified uploadFile to handle multi-order selection and progress simulation
   const uploadFile = async (file, selectedOrderIds = null) => {
     setFiles((prev) =>
       prev.map((f) =>
         f.fileName === file.name
-          ? { ...f, uploadStatus: "Uploading...", progress: 20, showOrderSelection: false }
+          ? {
+            ...f,
+            uploadStatus: "Uploading...",
+            progress: 5,
+            showOrderSelection: false,
+            message: "Starting upload..."
+          }
           : f
       )
     );
 
-    const progressInterval = setInterval(() => {
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.fileName === file.name && f.progress < 80
-            ? { ...f, progress: f.progress + 5 }
-            : f
-        )
-      );
-    }, 300);
+    // Start progress simulation
+    simulateProgress(file.name);
 
     // ✅ ADDED: Check if we have selected order IDs (for multi-order scenario)
     if (selectedOrderIds && selectedOrderIds.length > 0) {
-      await uploadToOrderFileEndpoint(file, selectedOrderIds, progressInterval);
+      await uploadToOrderFileEndpoint(file, selectedOrderIds);
     } else {
       // First time upload - use new-orders endpoint
-      await uploadToNewOrdersEndpoint(file, progressInterval);
+      await uploadToNewOrdersEndpoint(file);
     }
   };
 
-  const uploadToNewOrdersEndpoint = async (file, progressInterval) => {
+  const uploadToNewOrdersEndpoint = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -96,9 +134,13 @@ export default function NewRequest() {
         body: formData,
       });
 
-      clearInterval(progressInterval);
-
       const result = await response.json();
+
+      // Clear interval and update when complete
+      if (progressIntervalRefs.current[file.name]) {
+        clearInterval(progressIntervalRefs.current[file.name]);
+        delete progressIntervalRefs.current[file.name];
+      }
 
       if (result.status === "success") {
         setFiles((prev) =>
@@ -134,7 +176,11 @@ export default function NewRequest() {
         throw new Error(result.message || "Upload failed");
       }
     } catch (error) {
-      clearInterval(progressInterval);
+      if (progressIntervalRefs.current[file.name]) {
+        clearInterval(progressIntervalRefs.current[file.name]);
+        delete progressIntervalRefs.current[file.name];
+      }
+
       setFiles((prev) =>
         prev.map((f) =>
           f.fileName === file.name
@@ -151,10 +197,13 @@ export default function NewRequest() {
   };
 
   // ✅ ADDED: Function to upload to specific orders
-  const uploadToOrderFileEndpoint = async (file, selectedOrderIds, progressInterval) => {
+  const uploadToOrderFileEndpoint = async (file, selectedOrderIds) => {
     try {
-      // Upload to each selected order individually
-      const uploadPromises = selectedOrderIds.map(async (orderId) => {
+      // Track total progress across multiple uploads
+      let totalProgress = 0;
+      const progressPerOrder = 100 / selectedOrderIds.length;
+
+      const uploadPromises = selectedOrderIds.map(async (orderId, index) => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("orderid", orderId);
@@ -172,11 +221,29 @@ export default function NewRequest() {
           body: formData,
         });
 
+        // Update progress for this specific upload
+        totalProgress += progressPerOrder;
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.fileName === file.name
+              ? {
+                ...f,
+                progress: Math.min(Math.round(totalProgress), 100),
+                message: `Uploading to order ${index + 1}/${selectedOrderIds.length}...`
+              }
+              : f
+          )
+        );
+
         return response.json();
       });
 
       const results = await Promise.all(uploadPromises);
-      clearInterval(progressInterval);
+
+      if (progressIntervalRefs.current[file.name]) {
+        clearInterval(progressIntervalRefs.current[file.name]);
+        delete progressIntervalRefs.current[file.name];
+      }
 
       // Check if all uploads were successful
       const allSuccessful = results.every(result => result.status === "success");
@@ -205,7 +272,11 @@ export default function NewRequest() {
         throw new Error(`Some uploads failed: ${errorMessages}`);
       }
     } catch (error) {
-      clearInterval(progressInterval);
+      if (progressIntervalRefs.current[file.name]) {
+        clearInterval(progressIntervalRefs.current[file.name]);
+        delete progressIntervalRefs.current[file.name];
+      }
+
       setFiles((prev) =>
         prev.map((f) =>
           f.fileName === file.name
@@ -287,8 +358,14 @@ export default function NewRequest() {
     }
   };
 
-  // ✅ UPDATED: Reset page also clears order selection
+  // ✅ UPDATED: Reset page also clears order selection and progress intervals
   const resetPage = () => {
+    // Clear all intervals
+    Object.values(progressIntervalRefs.current).forEach(interval => {
+      clearInterval(interval);
+    });
+    progressIntervalRefs.current = {};
+
     setFiles([]);
     setOrderSelection({});
   };
@@ -329,6 +406,69 @@ export default function NewRequest() {
     return theme === 'light'
       ? 'hover:bg-white text-gray-900'
       : 'hover:bg-gray-700 text-white';
+  };
+
+  // Thick & Professional Progress Bar Component
+  const ProgressBar = ({ file }) => {
+    const getBarStyle = () => {
+      switch (file.uploadStatus) {
+        case "Success":
+          return "from-green-500 to-green-400";
+        case "Failed":
+        case "Error":
+          return "from-red-500 to-red-400";
+        case "Multiple Orders Found":
+          return "from-yellow-500 to-yellow-400";
+        case "Uploading...":
+          return "from-blue-600 to-blue-400 animate-pulse";
+        default:
+          return "from-gray-400 to-gray-300";
+      }
+    };
+
+    return (
+      <div className="w-full max-w-xs">
+        <div className="flex items-center gap-4">
+          {/* Progress Container */}
+          <div
+            className={`relative flex-1 h-3 rounded-full overflow-hidden ${theme === "light" ? "bg-gray-200" : "bg-gray-700"
+              }`}
+          >
+            {/* Progress Fill */}
+            <div
+              className={`
+              h-full rounded-full
+              bg-gradient-to-r ${getBarStyle()}
+              transition-all duration-500 ease-out
+              ${file.uploadStatus === "Uploading..."
+                  ? "shadow-[0_0_10px_rgba(59,130,246,0.7)]"
+                  : ""
+                }
+            `}
+              style={{ width: `${file.progress}%` }}
+            />
+          </div>
+
+          {/* Percentage */}
+          <span
+            className={`text-sm font-semibold min-w-[50px] text-right ${theme === "light" ? "text-gray-800" : "text-gray-200"
+              }`}
+          >
+            {Math.round(file.progress)}%
+          </span>
+        </div>
+
+        {/* Status Text */}
+        {file.message && (
+          <div
+            className={`mt-1 text-xs ${theme === "light" ? "text-gray-600" : "text-gray-400"
+              }`}
+          >
+            {file.message}
+          </div>
+        )}
+      </div>
+    );
   };
 
   // ✅ ADDED: Order Selection Component
@@ -396,110 +536,36 @@ export default function NewRequest() {
 
   // ✅ UPDATED: Status badge component to include multi-order handling
   const StatusBadge = ({ status, message, fileLink, file, showOrderSelection }) => {
-    const getStatusConfig = (status) => {
-      const lightConfig = {
-        Success: {
-          bgColor: "bg-gradient-to-r from-green-50 to-green-100",
-          textColor: "text-green-700",
-          borderColor: "border-green-200",
-        },
-        Failed: {
-          bgColor: "bg-gradient-to-r from-red-50 to-red-100",
-          textColor: "text-red-700",
-          borderColor: "border-red-200",
-        },
-        "Uploading...": {
-          bgColor: "bg-gradient-to-r from-blue-50 to-blue-100",
-          textColor: "text-blue-700",
-          borderColor: "border-blue-200",
-        },
-        "Waiting...": {
-          bgColor: "bg-gradient-to-r from-gray-50 to-gray-100",
-          textColor: "text-gray-700",
-          borderColor: "border-gray-200",
-        },
-        "Error": {
-          bgColor: "bg-gradient-to-r from-red-50 to-red-100",
-          textColor: "text-red-700",
-          borderColor: "border-red-200",
-        },
-        // ✅ ADDED: New status for multiple orders
-        "Multiple Orders Found": {
-          bgColor: "bg-gradient-to-r from-yellow-50 to-yellow-100",
-          textColor: "text-yellow-700",
-          borderColor: "border-yellow-200",
-        }
-      };
-
-      const darkConfig = {
-        Success: {
-          bgColor: "bg-gradient-to-r from-green-900/20 to-green-800/20",
-          textColor: "text-green-400",
-          borderColor: "border-green-700",
-        },
-        Failed: {
-          bgColor: "bg-gradient-to-r from-red-900/20 to-red-800/20",
-          textColor: "text-red-400",
-          borderColor: "border-red-700",
-        },
-        "Uploading...": {
-          bgColor: "bg-gradient-to-r from-blue-900/20 to-blue-800/20",
-          textColor: "text-blue-400",
-          borderColor: "border-blue-700",
-        },
-        "Waiting...": {
-          bgColor: "bg-gradient-to-r from-gray-700 to-gray-800",
-          textColor: "text-gray-400",
-          borderColor: "border-gray-600",
-        },
-        "Error": {
-          bgColor: "bg-gradient-to-r from-red-900/20 to-red-800/20",
-          textColor: "text-red-400",
-          borderColor: "border-red-700",
-        },
-        // ✅ ADDED: New status for multiple orders
-        "Multiple Orders Found": {
-          bgColor: "bg-gradient-to-r from-yellow-900/20 to-yellow-800/20",
-          textColor: "text-yellow-400",
-          borderColor: "border-yellow-700",
-        }
-      };
-
-      const config = theme === 'light' ? lightConfig[status] : darkConfig[status];
-
-      return {
-        ...config,
-        shadow: "shadow-sm",
-        icon: (
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${status === "Success" ? "bg-green-500" :
-            status === "Failed" ? "bg-red-500" :
-              status === "Uploading..." ? "bg-blue-500" :
-                status === "Error" ? "bg-red-500" :
-                  // ✅ ADDED: Icon for multiple orders
-                  status === "Multiple Orders Found" ? "bg-yellow-500" :
-                    "bg-gray-400"
-            }`}>
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {status === "Success" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />}
-              {status === "Failed" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />}
-              {status === "Uploading..." && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />}
-              {status === "Waiting..." && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />}
-              {status === "Error" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />}
-              {/* ✅ ADDED: Icon for multiple orders */}
-              {status === "Multiple Orders Found" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />}
-            </svg>
-          </div>
-        )
-      };
+    const getStatusColor = () => {
+      if (status === "Success") {
+        return theme === 'light'
+          ? "bg-green-100 text-green-800 border-green-200"
+          : "bg-green-900/30 text-green-400 border-green-800";
+      }
+      if (status === "Failed" || status === "Error") {
+        return theme === 'light'
+          ? "bg-red-100 text-red-800 border-red-200"
+          : "bg-red-900/30 text-red-400 border-red-800";
+      }
+      if (status === "Uploading...") {
+        return theme === 'light'
+          ? "bg-blue-100 text-blue-800 border-blue-200"
+          : "bg-blue-900/30 text-blue-400 border-blue-800";
+      }
+      if (status === "Multiple Orders Found") {
+        return theme === 'light'
+          ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+          : "bg-yellow-900/30 text-yellow-400 border-yellow-800";
+      }
+      return theme === 'light'
+        ? "bg-gray-100 text-gray-800 border-gray-200"
+        : "bg-gray-800 text-gray-400 border-gray-700";
     };
-
-    const config = getStatusConfig(status);
 
     return (
       <div className="flex flex-col space-y-2">
-        <div className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold border ${config.bgColor} ${config.textColor} ${config.borderColor} ${config.shadow} transition-all duration-200`}>
-          {config.icon}
-          <span className="font-medium">{status}</span>
+        <div className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border ${getStatusColor()}`}>
+          <span>{status}</span>
         </div>
 
         {(status === "Failed" || status === "Error") && message && (
@@ -546,7 +612,7 @@ export default function NewRequest() {
         <section className={theme === 'light' ? 'bg-gray-50' : 'bg-black'}>
           <div className="max-w-full mx-auto mt-4">
             <div className={`rounded-xl shadow-sm border ${getCardClass()}`}>
-              {/* Upload Area - NO CHANGES */}
+              {/* Upload Area */}
               {files.length === 0 && (
                 <div className="p-6">
                   <div
@@ -600,7 +666,7 @@ export default function NewRequest() {
                 </div>
               )}
 
-              {/* Files Table - NO CHANGES to design, only added "Multiple Orders Found" to summary */}
+              {/* Files Table */}
               {files.length > 0 && (
                 <div className="p-6">
                   {/* Header with reset button */}
@@ -608,11 +674,28 @@ export default function NewRequest() {
                     <h2 className="text-xl font-semibold">Uploaded Files</h2>
                     <button
                       onClick={resetPage}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${theme === 'light'
-                        ? 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                        : 'bg-gray-700 hover:bg-gray-600 text-white'
-                        }`}
+                      className={`
+      inline-flex items-center gap-2 px-5 py-2.5
+      rounded-xl font-semibold text-sm
+      transition-all duration-300
+      shadow-md hover:shadow-lg active:scale-95
+      ${theme === "light"
+                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600"
+                          : "bg-gradient-to-r from-blue-700 to-blue-600 text-white hover:from-blue-600 hover:to-blue-500"
+                        }
+    `}
                     >
+                      {/* Icon */}
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+
                       Upload New Files
                     </button>
                   </div>
@@ -633,7 +716,7 @@ export default function NewRequest() {
                     ))}
                   </div>
 
-                  {/* Table Container - Only FILE NAME and STATUS */}
+                  {/* Table Container - Now with 3 columns: FILE NAME, PROGRESS, STATUS */}
                   <div className={`rounded-lg border ${getTableContainerClass()}`}>
                     <div className="overflow-x-auto">
                       <table className="w-full">
@@ -641,6 +724,9 @@ export default function NewRequest() {
                           <tr className={`border-b ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
                             <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
                               FILE NAME
+                            </th>
+                            <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
+                              PROGRESS
                             </th>
                             <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
                               STATUS
@@ -655,16 +741,19 @@ export default function NewRequest() {
                                   {/* ✅ UPDATED: Added color for "Multiple Orders Found" */}
                                   <div className={`w-2 h-2 rounded-full ${file.uploadStatus === "Success" ? "bg-green-500" :
                                     file.uploadStatus === "Failed" ? "bg-red-500" :
-                                      file.uploadStatus === "Uploading..." ? "bg-blue-500 animate-pulse" :
+                                      file.uploadStatus === "Uploading..." ? "bg-blue-500" :
                                         file.uploadStatus === "Error" ? "bg-red-500" :
                                           // ✅ ADDED: Color for multiple orders
                                           file.uploadStatus === "Multiple Orders Found" ? "bg-yellow-500" :
                                             "bg-gray-400"
                                     }`}></div>
-                                  <span className="text-sm font-medium">
+                                  <span className="text-sm font-medium truncate max-w-xs">
                                     {file.fileName}
                                   </span>
                                 </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <ProgressBar file={file} />
                               </td>
                               <td className="px-6 py-4">
                                 {/* ✅ UPDATED: Pass file and showOrderSelection props */}
