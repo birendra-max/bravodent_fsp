@@ -12,7 +12,8 @@ import {
     faSearch,
     faSort,
     faSortUp,
-    faSortDown
+    faSortDown,
+    faBolt
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Datatable({
