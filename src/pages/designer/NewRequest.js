@@ -2,9 +2,11 @@ import { useContext, useState, useRef } from "react";
 import Hd from "./Hd";
 import Foot from "./Foot";
 import { ThemeContext } from "../../Context/ThemeContext";
+import { DesignerContext } from "../../Context/DesignerContext";
 
 export default function NewRequest() {
   const { theme } = useContext(ThemeContext);
+  const { designer } = useContext(DesignerContext);
   const [files, setFiles] = useState([]);
   const [drag, setDragActive] = useState(false);
   // ✅ ADDED: State for order selection
@@ -45,9 +47,8 @@ export default function NewRequest() {
           uploadStatus: "Waiting...",
           message: "",
           file: file,
-          // ✅ ADDED: Properties for multi-order handling
-          matchingOrders: null, // Will store matching orders when found
-          showOrderSelection: false, // Control visibility of order selection
+          matchingOrders: null,
+          showOrderSelection: false,
           fileSize: file.size,
         },
       ]);
@@ -56,7 +57,6 @@ export default function NewRequest() {
   };
 
   const simulateProgress = (fileName) => {
-    // Clear any existing interval for this file
     if (progressIntervalRefs.current[fileName]) {
       clearInterval(progressIntervalRefs.current[fileName]);
     }
@@ -66,14 +66,13 @@ export default function NewRequest() {
       setFiles((prev) =>
         prev.map((f) => {
           if (f.fileName === fileName && f.progress < 95 && f.uploadStatus === "Uploading...") {
-            // More realistic progress simulation
             let speed;
             if (f.progress < 70) {
-              speed = 2.5; // Faster at start
+              speed = 2.5;
             } else if (f.progress < 90) {
-              speed = 1.2; // Slower near completion
+              speed = 1.2;
             } else {
-              speed = 0.5; // Very slow at the end
+              speed = 0.5;
             }
 
             // Add small randomness
@@ -123,6 +122,7 @@ export default function NewRequest() {
   const uploadToNewOrdersEndpoint = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append('desiid', designer.desiid);
 
     try {
       const response = await fetch(`${base_url}/new-orders`, {
@@ -207,7 +207,7 @@ export default function NewRequest() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("orderid", orderId);
-
+        formData.append('desiid', designer.desiid);
         // Determine file type based on extension
         const fileType = file.name.endsWith('.stl') ? 'stl' : 'finished';
         formData.append("type", fileType);
