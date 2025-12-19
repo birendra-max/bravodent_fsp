@@ -9,16 +9,13 @@ export default function NewRequest() {
   const { designer } = useContext(DesignerContext);
   const [files, setFiles] = useState([]);
   const [drag, setDragActive] = useState(false);
-  // ✅ ADDED: State for order selection
-  const [orderSelection, setOrderSelection] = useState({}); // { fileName: { selectedOrders: [], availableOrders: [] } }
+  const [orderSelection, setOrderSelection] = useState({});
   const token = localStorage.getItem('token');
   let base_url = localStorage.getItem('base_url');
   const progressIntervalRefs = useRef({});
 
   const handleFiles = async (selectedFiles) => {
     const fileArray = Array.from(selectedFiles);
-
-    // Allow both ZIP and STL files based on backend
     const validFiles = fileArray.filter((file) =>
       file.name.endsWith(".zip") || file.name.endsWith(".stl")
     );
@@ -61,7 +58,6 @@ export default function NewRequest() {
       clearInterval(progressIntervalRefs.current[fileName]);
     }
 
-    // Create new interval with realistic speed
     progressIntervalRefs.current[fileName] = setInterval(() => {
       setFiles((prev) =>
         prev.map((f) => {
@@ -88,10 +84,9 @@ export default function NewRequest() {
           return f;
         })
       );
-    }, 300); // Slower update for more realistic feel
+    }, 300);
   };
 
-  // ✅ UPDATED: Modified uploadFile to handle multi-order selection and progress simulation
   const uploadFile = async (file, selectedOrderIds = null) => {
     setFiles((prev) =>
       prev.map((f) =>
@@ -107,14 +102,10 @@ export default function NewRequest() {
       )
     );
 
-    // Start progress simulation
     simulateProgress(file.name);
-
-    // ✅ ADDED: Check if we have selected order IDs (for multi-order scenario)
     if (selectedOrderIds && selectedOrderIds.length > 0) {
       await uploadToOrderFileEndpoint(file, selectedOrderIds);
     } else {
-      // First time upload - use new-orders endpoint
       await uploadToNewOrdersEndpoint(file);
     }
   };
@@ -129,14 +120,13 @@ export default function NewRequest() {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant': 'bravodent' // Keep original tenant
+          'X-Tenant': 'bravodent'
         },
         body: formData,
       });
 
       const result = await response.json();
 
-      // Clear interval and update when complete
       if (progressIntervalRefs.current[file.name]) {
         clearInterval(progressIntervalRefs.current[file.name]);
         delete progressIntervalRefs.current[file.name];
@@ -157,7 +147,6 @@ export default function NewRequest() {
           )
         );
       } else if (result.status === "multiple" && result.matches) {
-        // ✅ ADDED: Handle multiple matching orders
         setFiles((prev) =>
           prev.map((f) =>
             f.fileName === file.name
@@ -196,10 +185,9 @@ export default function NewRequest() {
     }
   };
 
-  // ✅ ADDED: Function to upload to specific orders
+
   const uploadToOrderFileEndpoint = async (file, selectedOrderIds) => {
     try {
-      // Track total progress across multiple uploads
       let totalProgress = 0;
       const progressPerOrder = 100 / selectedOrderIds.length;
 
@@ -208,7 +196,7 @@ export default function NewRequest() {
         formData.append("file", file);
         formData.append("orderid", orderId);
         formData.append('desiid', designer.desiid);
-        // Determine file type based on extension
+        
         const fileType = file.name.endsWith('.stl') ? 'stl' : 'finished';
         formData.append("type", fileType);
 
@@ -216,12 +204,11 @@ export default function NewRequest() {
           method: "POST",
           headers: {
             'Authorization': `Bearer ${token}`,
-            'X-Tenant': 'bravodent' // Keep original tenant
+            'X-Tenant': 'bravodent'
           },
           body: formData,
         });
 
-        // Update progress for this specific upload
         totalProgress += progressPerOrder;
         setFiles((prev) =>
           prev.map((f) =>
@@ -245,7 +232,6 @@ export default function NewRequest() {
         delete progressIntervalRefs.current[file.name];
       }
 
-      // Check if all uploads were successful
       const allSuccessful = results.every(result => result.status === "success");
 
       if (allSuccessful) {
@@ -257,13 +243,12 @@ export default function NewRequest() {
                 uploadStatus: "Success",
                 progress: 100,
                 message: `File uploaded successfully to ${selectedOrderIds.length} order(s)`,
-                fileLink: results[0].file_link || "" // Use first result's file link
+                fileLink: results[0].file_link || ""
               }
               : f
           )
         );
       } else {
-        // Some uploads failed
         const errorMessages = results
           .filter(result => result.status !== "success")
           .map(result => result.message)

@@ -268,7 +268,6 @@ export default function Datatable({
             }
 
         } catch (error) {
-            console.error("Run Self error:", error);
             alert("Something went wrong. Please try again.");
         }
     };
@@ -341,7 +340,7 @@ export default function Datatable({
                     document.body.removeChild(link);
                 }
             } catch (err) {
-                console.error("Download error:", err);
+                alert("Download error:", err);
                 missingFiles.push(id);
             }
         }
