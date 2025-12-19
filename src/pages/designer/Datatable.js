@@ -2,17 +2,13 @@ import { useState, useMemo, useEffect, useContext } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
-import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from '../../utils/designerapi';
 import { Link } from 'react-router-dom';
+import { DesignerContext } from "../../Context/DesignerContext";
 import {
     faFolderOpen,
-    faSearch,
-    faSort,
-    faSortUp,
-    faSortDown,
     faBolt
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -24,6 +20,7 @@ export default function Datatable({
     error = null
 }) {
     const { theme } = useContext(ThemeContext);
+    const { designer } = useContext(DesignerContext);
     const [status, setStatus] = useState("show");
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -243,8 +240,16 @@ export default function Datatable({
                 if (!record) continue;
 
                 if (record.status === 'New' || record.status === 'Redesign') {
-                    await fetchWithAuth(`/update-pending/${id}`);
-                    successCount++;
+                    const resp = await fetchWithAuth(`/update-pending`, {
+                        method: "POST",
+                        body: JSON.stringify({ desi_id: designer.desiid, orderid: id })
+                    });
+                    if (resp.status === 'success') {
+                        successCount++;
+                    }
+                    else {
+                        invalidCount++;
+                    }
                 } else {
                     invalidCount++;
                 }
