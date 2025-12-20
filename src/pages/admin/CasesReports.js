@@ -20,6 +20,8 @@ export default function CasesReports() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const themeClasses = {
         main: theme === "dark" ? "bg-gray-950 text-gray-100" : "bg-gray-100 text-gray-900",
@@ -62,39 +64,34 @@ export default function CasesReports() {
     ];
 
     const handleSearch = async (filterValue = null) => {
-        if (filterValue) setSelectedFilter(filterValue);
         setIsLoading(true);
-
+        const isQuickFilter = filterValue !== null;
+        if (isQuickFilter) {
+            setSelectedFilter(filterValue);
+            setStartDate("");
+            setEndDate("");
+        }
         try {
+            setLoading(true);
+            setError(null);
             const responseData = await fetchWithAuth("/get-reports-cases", {
                 method: "POST",
                 body: JSON.stringify({
-                    filter: filterValue || selectedFilter,
-                    startDate,
-                    endDate,
+                    filter: filterValue ?? selectedFilter,
+                    startDate: isQuickFilter ? "" : startDate,
+                    endDate: isQuickFilter ? "" : endDate,
                 }),
             });
 
-            setData(responseData?.status === "success" ? responseData.cases : []);
+            setData(responseData?.status === "success" ? responseData.cases : [], setError("No data found ! in the server"));
         } catch (error) {
-            console.error("Report fetch error:", error);
             setData([]);
+            setError("Network error. Please check your connection.");
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await fetchWithAuth("/get-all-cases", { method: "GET" });
-                setData(res?.status === "success" ? res.all_cases : []);
-            } catch (error) {
-                console.error("Error fetching cases:", error);
-                setData([]);
-            }
-        })();
-    }, []);
 
     return (
         <>

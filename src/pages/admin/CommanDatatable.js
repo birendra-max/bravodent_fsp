@@ -14,6 +14,8 @@ export default function CommanDatatable({
     columns = [],
     data = [],
     rowsPerPageOptions = [50, 100, 200, 500],
+    loading = false,
+    error = null
 }) {
     const { theme } = useContext(ThemeContext);
     const [status, setStatus] = useState("show");
@@ -73,13 +75,15 @@ export default function CommanDatatable({
         return filteredData.slice(start, start + rowsPerPage);
     }, [currentPage, filteredData, rowsPerPage]);
 
-    // ✅ Spinner control: hide loader once data is ready
+    // ✅ Control loader based on parent's loading prop
     useEffect(() => {
-        if (data && data.length > 0) {
+        if (!loading) {
             setStatus("hide");
+        } else {
+            setStatus("show");
         }
-    }, [data]);
-
+    }, [loading]);
+    
     const handleSearch = (e) => {
         setSearch(e.target.value);
         setCurrentPage(1);

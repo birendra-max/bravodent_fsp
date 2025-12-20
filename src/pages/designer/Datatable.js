@@ -19,7 +19,6 @@ export default function Datatable({
     loading = false,
     error = null
 }) {
-    
     const { theme } = useContext(ThemeContext);
     const { designer } = useContext(DesignerContext);
     const [status, setStatus] = useState("show");
