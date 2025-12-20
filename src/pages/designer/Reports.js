@@ -69,6 +69,7 @@ export default function Reports() {
         { header: "Unit", accessor: "unit" },
         { header: "Tooth", accessor: "tooth" },
         { header: "Lab Name", accessor: "labname" },
+        { header: "Run Self By", accessor: "run_self_by" },
         { header: "Date", accessor: "order_date" },
         { header: "Message", accessor: "message" },
     ];
@@ -193,15 +194,15 @@ export default function Reports() {
             alert('No data available to download');
             return;
         }
-        
+
         // Create CSV content
         const headers = columns.map(col => col.header).join(',');
-        const rows = filteredData.map(item => 
+        const rows = filteredData.map(item =>
             columns.map(col => `"${item[col.accessor] || ''}"`).join(',')
         ).join('\n');
-        
+
         const csvContent = `${headers}\n${rows}`;
-        
+
         // Create and download file
         const blob = new Blob([csvContent], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
@@ -416,7 +417,7 @@ export default function Reports() {
                             {/* Data Table */}
                             <div className="mt-8">
                                 {/* ✅ CHANGED: Pass filteredData instead of all data */}
-                                <Datatable columns={columns} data={filteredData} rowsPerPage={50}/>
+                                <Datatable columns={columns} data={filteredData} rowsPerPage={50} />
                             </div>
                         </div>
                     </div>
