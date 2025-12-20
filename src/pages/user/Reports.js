@@ -186,13 +186,13 @@ export default function Reports() {
     const handleDownloadReport = () => {
         if (filteredData.length > 0) {
             const fileName = `report_${new Date().toISOString().split('T')[0]}.csv`;
-            
+
             // Simple CSV export
             const headers = columns.map(col => col.header).join(',');
-            const csvData = filteredData.map(row => 
+            const csvData = filteredData.map(row =>
                 columns.map(col => `"${row[col.accessor] || ''}"`).join(',')
             ).join('\n');
-            
+
             const csvContent = `${headers}\n${csvData}`;
             const blob = new Blob([csvContent], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
@@ -278,7 +278,7 @@ export default function Reports() {
                             <div className="container mx-auto">
                                 <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="text-center sm:text-left">
-                                        <h1 className={`text-2xl sm:text-3xl font-bold ${theme==='light'?'bg-black':'bg-white'} bg-clip-text text-transparent`}>
+                                        <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'bg-black' : 'bg-white'} bg-clip-text text-transparent`}>
                                             Reports & Analytics
                                         </h1>
                                         <p className={`mt-2 text-sm sm:text-base ${themeClasses.text.secondary}`}>
@@ -318,17 +318,19 @@ export default function Reports() {
                                         <FontAwesomeIcon icon={faSearch} className="w-5 h-5 mr-3 text-blue-500" />
                                         Report Criteria
                                     </h2>
+
                                     <div className="flex space-x-3">
                                         <button
                                             onClick={handleResetFilters}
                                             className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all ${theme === 'light'
-                                                ? 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                                                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                                                    ? 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                                                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
                                                 }`}
                                         >
                                             <FontAwesomeIcon icon={faSync} className="w-4 h-4" />
                                             <span>Reset</span>
                                         </button>
+
                                         <button
                                             onClick={handleDownloadReport}
                                             disabled={filteredData.length === 0}
@@ -343,10 +345,11 @@ export default function Reports() {
                                     </div>
                                 </div>
 
-                                <div className="max-w-6xl mx-auto">
-                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                                <div className="max-w-6xl mx-auto overflow-x-auto">
+                                    <div className="grid grid-cols-12 gap-4 items-center">
+
                                         {/* Order ID From */}
-                                        <div className="lg:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
                                                 <FontAwesomeIcon icon={faHashtag} className="w-4 h-4 mr-2 text-blue-500" />
                                                 Order ID From
@@ -356,12 +359,12 @@ export default function Reports() {
                                                 value={orderIdFrom}
                                                 onChange={handleOrderIdFromChange}
                                                 placeholder="e.g., 1001"
-                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${themeClasses.input}`}
                                             />
                                         </div>
 
                                         {/* Order ID To */}
-                                        <div className="lg:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
                                                 <FontAwesomeIcon icon={faHashtag} className="w-4 h-4 mr-2 text-blue-500" />
                                                 Order ID To
@@ -371,12 +374,17 @@ export default function Reports() {
                                                 value={orderIdTo}
                                                 onChange={handleOrderIdToChange}
                                                 placeholder="e.g., 2000"
-                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${themeClasses.input}`}
                                             />
                                         </div>
 
+                                        {/* OR */}
+                                        <div className="col-span-1 flex justify-center items-end font-bold text-gray-400 text-lg mt-4">
+                                            OR
+                                        </div>
+
                                         {/* Start Date */}
-                                        <div className="lg:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
                                                 <FontAwesomeIcon icon={faCalendarAlt} className="w-4 h-4 mr-2 text-blue-500" />
                                                 Start Date
@@ -385,12 +393,12 @@ export default function Reports() {
                                                 type="date"
                                                 value={startDate}
                                                 onChange={(e) => setStartDate(e.target.value)}
-                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${themeClasses.input}`}
                                             />
                                         </div>
 
                                         {/* End Date */}
-                                        <div className="lg:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
                                                 <FontAwesomeIcon icon={faCalendarAlt} className="w-4 h-4 mr-2 text-blue-500" />
                                                 End Date
@@ -399,18 +407,16 @@ export default function Reports() {
                                                 type="date"
                                                 value={endDate}
                                                 onChange={(e) => setEndDate(e.target.value)}
-                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${themeClasses.input}`}
                                             />
                                         </div>
 
-                                        {/* Search Button */}
-                                        <div className="lg:col-span-4">
+                                        {/* Apply Filters */}
+                                        <div className="col-span-3 flex items-end mt-6">
                                             <button
                                                 onClick={handleSearchClick}
                                                 disabled={isLoading}
-                                                className={`w-44 h-12 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer ${isLoading
-                                                        ? 'bg-gray-400 cursor-not-allowed'
-                                                        : themeClasses.button.success
+                                                className={`w-44 h-12 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 ${isLoading ? 'bg-gray-400 cursor-not-allowed' : themeClasses.button.success
                                                     }`}
                                             >
                                                 {isLoading ? (
@@ -426,16 +432,18 @@ export default function Reports() {
                                                 )}
                                             </button>
                                         </div>
+
                                     </div>
 
-                                    {/* Search Tips */}
-                                    <div className="mt-4 text-left">
+                                    {/* Tips */}
+                                    <div className="mt-4">
                                         <p className={`text-xs ${themeClasses.text.muted}`}>
-                                            Tip: Use Order ID range and date filters to refine your report. Showing {filteredData.length} of {allData.length} records.
+                                            Tip: Use Order ID range or Date range to refine your report. Showing {filteredData.length} of {allData.length} records.
                                         </p>
                                     </div>
                                 </div>
                             </div>
+
 
                             {/* Enhanced Filter Section */}
                             <div className="mb-8">
@@ -457,8 +465,8 @@ export default function Reports() {
                                                 onClick={() => handleFilterClick(button.value)}
                                                 disabled={isLoading}
                                                 className={`px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 min-w-[120px] cursor-pointer ${selectedFilter === button.value
-                                                        ? `${themeClasses.button.filterActive} transform scale-105`
-                                                        : themeClasses.button.filterInactive
+                                                    ? `${themeClasses.button.filterActive} transform scale-105`
+                                                    : themeClasses.button.filterInactive
                                                     } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
                                             >
                                                 <FontAwesomeIcon

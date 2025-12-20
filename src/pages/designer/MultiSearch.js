@@ -240,10 +240,11 @@ export default function MultiSearch() {
 
                             {/* Search Section - ✅ UPDATED: Added Order ID range inputs */}
                             <div className="mb-8">
-                                <div className="max-w-7xl mx-auto ml-50">
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                                <div className="max-w-8xl mx-auto ml-50">
+                                    <div className="grid grid-cols-12 gap-4 items-center">
+
                                         {/* Order ID From */}
-                                        <div className="md:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
                                                 Order ID From
                                             </label>
@@ -255,8 +256,9 @@ export default function MultiSearch() {
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
                                             />
                                         </div>
+
                                         {/* Order ID To */}
-                                        <div className="md:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
                                                 Order ID To
                                             </label>
@@ -268,41 +270,53 @@ export default function MultiSearch() {
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
                                             />
                                         </div>
-                                        <div className="md:col-span-2">
+
+                                        {/* OR Divider */}
+                                        <div className="col-span-1 flex justify-center items-end font-bold text-lg text-gray-500 mt-4">
+                                            OR
+                                        </div>
+
+                                        {/* Date From */}
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
                                                 Date From
                                             </label>
                                             <input
                                                 type="date"
-                                                id="snumber"
                                                 value={startDate}
                                                 onChange={(e) => setStartDate(e.target.value)}
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
                                             />
                                         </div>
-                                        <div className="md:col-span-2">
+
+                                        {/* Date To */}
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>
                                                 Date To
                                             </label>
                                             <input
                                                 type="date"
-                                                id="enumber"
                                                 value={endDate}
                                                 onChange={(e) => setEndDate(e.target.value)}
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 ${themeClasses.input}`}
                                             />
                                         </div>
-                                        <div className="md:col-span-4">
+
+                                        {/* Search Button */}
+                                        <div className="col-span-3 flex items-end mt-6">
                                             <button
                                                 onClick={handleSearchClick}
                                                 disabled={isLoading}
-                                                className={`cursor-pointer w-44 h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${isLoading ? 'bg-gray-400' : themeClasses.button.success}`}
+                                                className={`cursor-pointer w-44 h-12 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 ${isLoading ? 'bg-gray-400' : themeClasses.button.success
+                                                    }`}
                                             >
                                                 {isLoading ? 'Searching...' : 'Search Cases'}
                                             </button>
                                         </div>
+
                                     </div>
                                 </div>
+
                             </div>
 
                             {/* Filter Section */}
@@ -331,7 +345,7 @@ export default function MultiSearch() {
                             {/* Data Table */}
                             <div className="mt-8">
                                 {/* ✅ CHANGED: Pass filteredData instead of all data */}
-                                <Datatable columns={columns} data={filteredData} rowsPerPage={50}/>
+                                <Datatable columns={columns} data={filteredData} rowsPerPage={50} />
                             </div>
 
                         </div>

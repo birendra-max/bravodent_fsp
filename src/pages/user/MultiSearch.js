@@ -186,7 +186,7 @@ export default function MultiSearch() {
 
         return filterButtons.map(button => {
             let count = 0;
-            
+
             if (button.value === '1') {
                 count = allData.length;
             } else {
@@ -201,7 +201,7 @@ export default function MultiSearch() {
                 const targetStatus = statusMap[button.value];
                 count = allData.filter(item => item.status === targetStatus).length;
             }
-            
+
             return { ...button, count };
         });
     }, [allData]);
@@ -257,7 +257,7 @@ export default function MultiSearch() {
                             <div className="container mx-auto">
                                 <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="text-center sm:text-left">
-                                        <h1 className={`text-2xl sm:text-3xl font-bold ${theme==='light'?'bg-black':'bg-white'} bg-clip-text text-transparent`}>
+                                        <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'bg-black' : 'bg-white'} bg-clip-text text-transparent`}>
                                             Order Management
                                         </h1>
                                         <p className={`mt-2 text-sm sm:text-base ${themeClasses.text.secondary}`}>
@@ -297,11 +297,12 @@ export default function MultiSearch() {
                                         <FontAwesomeIcon icon={faSearch} className="w-5 h-5 mr-3 text-blue-500" />
                                         Search & Filter
                                     </h2>
+
                                     <button
                                         onClick={handleResetFilters}
                                         className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all ${theme === 'light'
-                                            ? 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                                            : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                                                ? 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                                                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
                                             }`}
                                     >
                                         <FontAwesomeIcon icon={faSync} className="w-4 h-4" />
@@ -309,10 +310,11 @@ export default function MultiSearch() {
                                     </button>
                                 </div>
 
-                                <div className="max-w-6xl mx-auto">
-                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                                <div className="max-w-6xl mx-auto overflow-x-auto">
+                                    <div className="grid grid-cols-12 gap-4 items-center">
+
                                         {/* Order ID From */}
-                                        <div className="lg:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
                                                 <FontAwesomeIcon icon={faHashtag} className="w-4 h-4 mr-2 text-blue-500" />
                                                 Order ID From
@@ -322,12 +324,12 @@ export default function MultiSearch() {
                                                 value={orderIdFrom}
                                                 onChange={handleOrderIdFromChange}
                                                 placeholder="e.g., 1001"
-                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${themeClasses.input}`}
                                             />
                                         </div>
 
                                         {/* Order ID To */}
-                                        <div className="lg:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
                                                 <FontAwesomeIcon icon={faHashtag} className="w-4 h-4 mr-2 text-blue-500" />
                                                 Order ID To
@@ -337,12 +339,17 @@ export default function MultiSearch() {
                                                 value={orderIdTo}
                                                 onChange={handleOrderIdToChange}
                                                 placeholder="e.g., 2000"
-                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${themeClasses.input}`}
                                             />
                                         </div>
 
+                                        {/* OR */}
+                                        <div className="col-span-1 flex justify-center items-end font-bold text-gray-400 text-lg mt-4">
+                                            OR
+                                        </div>
+
                                         {/* Start Date */}
-                                        <div className="lg:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
                                                 <FontAwesomeIcon icon={faCalendarAlt} className="w-4 h-4 mr-2 text-blue-500" />
                                                 Start Date
@@ -351,12 +358,12 @@ export default function MultiSearch() {
                                                 type="date"
                                                 value={startDate}
                                                 onChange={(e) => setStartDate(e.target.value)}
-                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${themeClasses.input}`}
                                             />
                                         </div>
 
                                         {/* End Date */}
-                                        <div className="lg:col-span-2">
+                                        <div className="col-span-2">
                                             <label className={`block text-sm font-semibold ${themeClasses.text.primary} mb-2 flex items-center`}>
                                                 <FontAwesomeIcon icon={faCalendarAlt} className="w-4 h-4 mr-2 text-blue-500" />
                                                 End Date
@@ -365,18 +372,16 @@ export default function MultiSearch() {
                                                 type="date"
                                                 value={endDate}
                                                 onChange={(e) => setEndDate(e.target.value)}
-                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 ${themeClasses.input}`}
+                                                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${themeClasses.input}`}
                                             />
                                         </div>
 
                                         {/* Search Button */}
-                                        <div className="lg:col-span-4">
+                                        <div className="col-span-3 flex items-end mt-6">
                                             <button
                                                 onClick={handleSearchClick}
                                                 disabled={isLoading}
-                                                className={`w-44 h-12 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center cursor-pointer space-x-2 ${isLoading
-                                                    ? 'bg-gray-400 cursor-not-allowed'
-                                                    : themeClasses.button.success
+                                                className={`w-44 h-12 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 ${isLoading ? 'bg-gray-400 cursor-not-allowed' : themeClasses.button.success
                                                     }`}
                                             >
                                                 {isLoading ? (
@@ -392,16 +397,18 @@ export default function MultiSearch() {
                                                 )}
                                             </button>
                                         </div>
+
                                     </div>
 
                                     {/* Search Tips */}
-                                    <div className="mt-4 text-left">
+                                    <div className="mt-4">
                                         <p className={`text-xs ${themeClasses.text.muted}`}>
                                             Tip: Use filters to search within your {allData.length} orders. All filtering happens instantly!
                                         </p>
                                     </div>
                                 </div>
                             </div>
+
 
                             {/* Enhanced Filter Section */}
                             <div className="mb-8">
@@ -446,10 +453,10 @@ export default function MultiSearch() {
 
                             {/* Data Table Section */}
                             <div className="mt-8">
-                                <Datatable 
-                                    columns={columns} 
-                                    data={filteredData} 
-                                    rowsPerPage={50} 
+                                <Datatable
+                                    columns={columns}
+                                    data={filteredData}
+                                    rowsPerPage={50}
                                     theme={theme}
                                 />
                             </div>
