@@ -3,8 +3,8 @@ import { logoutUser } from "./adminauth";
 let isLoggingOut = false; // 🔒 Prevent multiple logouts overlapping
 
 export async function fetchWithAuth(endpoint, options = {}) {
-    let token = localStorage.getItem("token");
-    let base_url = localStorage.getItem('base_url');
+    let token = localStorage.getItem("bravo_admin_token");
+    let base_url = localStorage.getItem('bravo_admin_base_url');
     // 🛡️ Ensure token is valid before using it
     if (!token || token === "null" || token === "undefined" || token.trim() === "") {
         console.warn("Invalid token found in localStorage:", token);

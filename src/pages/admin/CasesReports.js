@@ -16,11 +16,10 @@ import Sidebar from "./Sidebar";
 export default function CasesReports() {
     const { theme } = useContext(ThemeContext);
     const [selectedFilter, setSelectedFilter] = useState();
-    const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const themeClasses = {
@@ -64,7 +63,6 @@ export default function CasesReports() {
     ];
 
     const handleSearch = async (filterValue = null) => {
-        setIsLoading(true);
         const isQuickFilter = filterValue !== null;
         if (isQuickFilter) {
             setSelectedFilter(filterValue);
@@ -83,7 +81,7 @@ export default function CasesReports() {
                 }),
             });
 
-            setData(responseData?.status === "success" ? responseData.cases : [], setError("No data found ! in the server"));
+            setData(responseData?.status === "success" ? responseData.cases : []);
         } catch (error) {
             setData([]);
             setError("Network error. Please check your connection.");
@@ -172,7 +170,7 @@ export default function CasesReports() {
                             ))}
                         </div>
                     </div>
-                    <CasesDatatable columns={columns} data={data} rowsPerPage={50} />
+                    <CasesDatatable columns={columns} data={data} rowsPerPage={50} loading={loading} error={error} />
                 </div>
             </main>
             <Foot />

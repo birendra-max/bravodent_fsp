@@ -5,7 +5,7 @@ export const AdminContext = createContext();
 
 export const AdminProvider = ({ children }) => {
     const [admin, setAdmin] = useState(() => {
-        const storedAdmin = localStorage.getItem('admin');
+        const storedAdmin = localStorage.getItem('bravo_admin');
         return storedAdmin ? JSON.parse(storedAdmin) : null;
     });
 
@@ -13,16 +13,16 @@ export const AdminProvider = ({ children }) => {
 
     useEffect(() => {
         if (admin) {
-            localStorage.setItem('admin', JSON.stringify(admin));
+            localStorage.setItem('bravo_admin', JSON.stringify(admin));
         } else {
-            localStorage.removeItem('admin');
+            localStorage.removeItem('bravo_admin');
         }
     }, [admin]);
 
     const logout = async () => {
         setAdmin(null);
-        localStorage.removeItem('admin');
-        localStorage.removeItem('token');
+        localStorage.removeItem('bravo_admin');
+        localStorage.removeItem('bravo_admin_token');
         localStorage.removeItem('theme');
         navigate('/admin', { replace: true });
     }

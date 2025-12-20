@@ -9,8 +9,8 @@ import config from '../../config';
 
 export default function Login() {
   useEffect(() => {
-    const data = localStorage.getItem('admin') ? localStorage.getItem('admin') : "";
-    const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
+    const data = localStorage.getItem('bravo_admin') ? localStorage.getItem('bravo_admin') : "";
+    const token = localStorage.getItem('bravo_admin_token') ? localStorage.getItem('bravo_admin_token') : "";
 
     if (data !== '' && token !== '') {
       navigate("/admin/dashboard");
@@ -59,8 +59,8 @@ export default function Login() {
       const data = await res.json();
       if (data.status === "success" && data.message === "Login successfully" && data.admin?.id) {
         setAdmin(data.admin);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('base_url', data.base_url);
+        localStorage.setItem('bravo_admin_token', data.token);
+        localStorage.setItem('bravo_admin_base_url', data.base_url);
         setStatus({ type: "success", message: data.message });
         navigate('/admin/dashboard');
       } else {
