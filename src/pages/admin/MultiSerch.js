@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faSearch,
     faFilter,
-    faFileAlt,
     faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from "../../utils/adminapi";
@@ -57,8 +56,8 @@ export default function MultiSearch() {
         { header: "Unit", accessor: "unit" },
         { header: "Tooth", accessor: "tooth" },
         { header: "Lab Name", accessor: "labname" },
+        { header: "Run Self By", accessor: "run_self_by" },
         { header: "Date", accessor: "order_date" },
-        { header: "Message", accessor: "message" },
     ];
 
     const filterButtons = [
@@ -246,7 +245,7 @@ export default function MultiSearch() {
                                 <div className="text-center sm:text-left">
                                     <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'text-gray-800' : 'text-white'
                                         }`}>
-                                        Reports & Analytics
+                                        Multi Search
                                     </h1>
                                     <p className={`mt-1 text-sm sm:text-base ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'
                                         }`}>Generate, filter, and analyze your case data</p>
