@@ -40,13 +40,13 @@ export default function Sidebar() {
             link: "/admin/dashboard",
             type: "single",
         },
-        // {
-        //     name: "Assign Orders",
-        //     icon: faUserGear ,
-        //     id: "assign-orders",
-        //     link: "/admin/assign-orders",
-        //     type: "single",
-        // },
+        {
+            name: "Assign Orders",
+            icon: faUserGear ,
+            id: "assign-orders",
+            link: "/admin/assign-orders",
+            type: "single",
+        },
         {
             name: "Admin",
             icon: faUserShield,
