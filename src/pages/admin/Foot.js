@@ -8,14 +8,14 @@ export default function Foot() {
                     Copyright &copy; 2014-
                     <span>{new Date().getFullYear()}</span>{" "}
                     <Link to="/admin/dashboard" className="text-orange-500 hover:underline">
-                        Skydent
+                        Bravodent
                     </Link>
                 </strong>{" "}
                 All rights reserved.
             </div>
 
             <div className="text-sm mt-2 md:mt-0">
-                <b className="text-white">Skydent</b>
+                <b className="text-white">Bravodent</b>
             </div>
         </footer>
     );

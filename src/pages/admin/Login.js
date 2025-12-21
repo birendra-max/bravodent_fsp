@@ -197,7 +197,7 @@ export default function Login() {
           </form>
 
           <p className="text-xs text-gray-500 mt-10 text-center">
-            Powered by Skydent • AES 256-bit Encrypted Login
+            Powered by Bravodent • AES 256-bit Encrypted Login
           </p>
         </div>
       </motion.div>
