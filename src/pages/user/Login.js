@@ -185,7 +185,7 @@ export default function Login() {
                             </div>
                         </form>
                         <p className="text-xs text-gray-500 mt-8 text-center">
-                            Created with <span className="text-red-500">♥</span> Bravodent
+                            Created with <span className="text-red-500">♥</span> BravoDent
                         </p>
                     </div>
 
