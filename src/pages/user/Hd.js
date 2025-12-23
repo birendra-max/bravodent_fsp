@@ -13,7 +13,10 @@ import {
     faMoon,
     faSun,
     faTimes,
-    faBars
+    faBars,
+    faChevronUp,
+    faChevronDown,
+    faCog
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Hd() {
@@ -127,7 +130,7 @@ export default function Hd() {
                         <div className="flex-shrink-0">
                             <Link
                                 to="/user/home"
-                                className="flex items-center"
+                                className="flex items-center justify-center"
                                 onClick={() => {
                                     setIsOpen(false);
                                     setMobileSearchOpen(false);
@@ -136,7 +139,7 @@ export default function Hd() {
                                 <img
                                     src="/img/logo.png"
                                     alt="Logo"
-                                    className="h-6 w-auto sm:h-8 lg:h-14 transition-all duration-300 hover:scale-105"
+                                    className="h-6 w-auto sm:h-8 lg:h-18 transition-all duration-300 hover:scale-105"
                                     onError={(e) => {
                                         e.target.src = '/img/placeholder-logo.png';
                                     }}
@@ -172,29 +175,40 @@ export default function Hd() {
                             <div className="hidden lg:block search-container">
                                 <form className="flex items-center" onSubmit={handleSearchSubmit}>
                                     <div className="relative group">
-                                        <input
-                                            type="text"
-                                            name="orderid"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            placeholder="Search Order ID..."
-                                            className="pl-4 pr-10 py-2.5 w-64 xl:w-80 bg-gray-800 text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-gray-700 transition-all duration-300 border border-gray-600 text-sm hover:border-gray-500 group-hover:shadow-lg"
-                                        />
-                                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                                            {searchQuery && (
-                                                <button
-                                                    type="button"
-                                                    onClick={clearSearch}
-                                                    className="text-gray-400 hover:text-red-400 transition-colors p-1"
-                                                >
-                                                    <FontAwesomeIcon icon={faTimes} className="w-3 h-3" />
-                                                </button>
-                                            )}
+                                        <div className="relative flex items-center bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 bg-size-200 bg-pos-0 hover:bg-pos-100 transition-all duration-500 rounded-lg p-0.5 shadow-lg">
+                                            <div className="relative flex-grow">
+                                                <input
+                                                    type="text"
+                                                    name="orderid"
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                    placeholder="Search by Orders..."
+                                                    aria-label="Search orders by ID"
+                                                    className="w-74 pl-4 pr-12 py-3 bg-gray-900 text-white placeholder-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-gray-800 transition-all duration-200 text-sm font-medium tracking-wide"
+                                                />
+                                                {searchQuery && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={clearSearch}
+                                                        className="cursor-pointer absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-full"
+                                                        aria-label="Clear search"
+                                                    >
+                                                        <FontAwesomeIcon icon={faTimes} className="w-3 h-3" />
+                                                    </button>
+                                                )}
+                                                <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                    <div className="h-6 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+                                                </div>
+                                            </div>
                                             <button
                                                 type="submit"
-                                                className="text-gray-400 hover:text-orange-400 transition-colors p-1"
+                                                className="cursor-pointer bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-3 px-5 rounded-r-lg transition-all duration-300 flex items-center justify-center min-w-[60px] group-hover:shadow-inner"
+                                                aria-label="Search orders"
                                             >
-                                                <FontAwesomeIcon icon={faSearch} className="w-4 h-4" />
+                                                <FontAwesomeIcon
+                                                    icon={faSearch}
+                                                    className="w-4 h-4 transition-transform duration-300 group-hover:scale-110"
+                                                />
                                             </button>
                                         </div>
                                     </div>
@@ -215,66 +229,115 @@ export default function Hd() {
                                 />
                             </button>
 
-                            {/* Theme Toggle */}
-                            <button
-                                onClick={changeIcon}
-                                className="cursor-pointer transition-all duration-300 rounded-full border-2 border-orange-400 shadow-lg hover:shadow-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 hover:scale-105"
-                                aria-label="Toggle theme"
-                            >
-                                {mode === 'light' ? (
-                                    <FontAwesomeIcon icon={faMoon} className="w-6 h-6 sm:w-5 sm:h-5 text-white" />
-                                ) : (
-                                    <FontAwesomeIcon icon={faSun} className="w-6 h-6 sm:w-5 sm:h-5 text-yellow-400" />
-                                )}
-                            </button>
+                            {/* Theme Toggle - Material Design Switch */}
+                            <div className="flex items-center space-x-3">
+                                <FontAwesomeIcon
+                                    icon={faSun}
+                                    className={`w-4 h-4 transition-colors duration-300 ${mode === 'light' ? 'text-amber-500' : 'text-gray-500'
+                                        }`}
+                                />
 
-                            {/* Profile Dropdown */}
-                            <div className="relative dropdown-container">
                                 <button
-                                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    className="flex items-center text-white hover:text-orange-300 transition-all duration-300 p-1 cursor-pointer rounded-lg hover:bg-gray-800"
+                                    onClick={changeIcon}
+                                    className="cursor-pointer transition-all duration-300 h-6 w-11 p-0.5 relative focus:outline-none focus:ring-2 focus:ring-orange-500/50 rounded-full"
+                                    aria-label="Toggle theme"
+                                    aria-checked={mode === 'dark'}
+                                    role="switch"
                                 >
-                                    <div className="relative">
-                                        <img
-                                            src={user?.pic && user.pic !== '' ? user.pic : '/img/user.webp'}
-                                            alt="User profile"
-                                            className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 rounded-full border-2 border-orange-400 object-cover hover:border-orange-300 transition-colors"
-                                            onError={(e) => {
-                                                e.target.src = '/img/user.webp';
-                                            }}
-                                        />
-                                        <div className="absolute bottom-0 right-0 h-2 w-2 sm:h-2.5 sm:w-2.5 bg-green-500 rounded-full border-2 border-gray-900"></div>
+                                    {/* Inactive track */}
+                                    <div className="w-full h-full bg-gray-700 rounded-full"></div>
+
+                                    {/* Active track overlay */}
+                                    <div className={`absolute top-0.5 left-0.5 right-0.5 bottom-0.5 rounded-full transition-all duration-300 ${mode === 'light'
+                                        ? 'bg-amber-500/20 w-1/2'
+                                        : 'bg-blue-500/20 w-full'
+                                        }`}></div>
+
+                                    {/* Toggle thumb */}
+                                    <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-lg transform transition-all duration-300 ${mode === 'light'
+                                        ? 'left-0.5 bg-gradient-to-b from-amber-200 to-amber-400'
+                                        : 'left-5.5 bg-gradient-to-b from-gray-300 to-gray-500'
+                                        }`}>
+                                        {/* Ripple effect */}
+                                        <div className={`absolute inset-0 rounded-full transition-opacity duration-300 ${mode === 'light' ? 'bg-amber-500/20' : 'bg-gray-600/20'
+                                            }`}></div>
                                     </div>
                                 </button>
 
-                                {dropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-gray-800 rounded-xl shadow-2xl py-2 border border-gray-700 z-50 cursor-pointer backdrop-blur-sm">
-                                        <div className="px-4 py-3 border-b border-gray-700">
-                                            <div className="text-white font-semibold truncate text-sm sm:text-base">
-                                                {user?.name || 'User'}
-                                            </div>
-                                            <div className="text-gray-400 text-xs sm:text-sm truncate mt-1">
-                                                {user?.email || ''}
-                                            </div>
+                                <FontAwesomeIcon
+                                    icon={faMoon}
+                                    className={`w-4 h-4 transition-colors duration-300 ${mode === 'dark' ? 'text-blue-400' : 'text-gray-500'
+                                        }`}
+                                />
+                            </div>
+
+                            {/* Profile Dropdown - Compact Professional */}
+                            <div className="relative dropdown-container">
+                                <button
+                                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-800/80 transition-colors duration-200 group"
+                                    aria-label="User menu"
+                                >
+                                    <div className="relative">
+                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 p-0.5">
+                                            <img
+                                                src={user?.pic && user.pic !== '' ? user.pic : '/img/user.webp'}
+                                                alt="User profile"
+                                                className="h-full w-full rounded-full object-cover"
+                                                onError={(e) => {
+                                                    e.target.src = '/img/user.webp';
+                                                }}
+                                            />
                                         </div>
-                                        <div className="py-1">
-                                            <Link
-                                                to="/user/profile"
-                                                className="block px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 flex items-center text-sm sm:text-base"
-                                                onClick={() => setDropdownOpen(false)}
-                                            >
-                                                <FontAwesomeIcon icon={faUser} className="w-4 h-4 mr-3" />
-                                                Profile
-                                            </Link>
-                                            <button
-                                                onClick={logout}
-                                                className="block w-full text-left px-4 py-3 text-red-400 hover:bg-red-600 hover:text-white transition-all duration-200 flex items-center text-sm sm:text-base"
-                                            >
-                                                <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4 mr-3" />
-                                                Logout
-                                            </button>
-                                        </div>
+                                        <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-gray-900"></div>
                                     </div>
+                                    <FontAwesomeIcon
+                                        icon={dropdownOpen ? faChevronUp : faChevronDown}
+                                        className="w-3 h-3 text-gray-400 transition-transform duration-200"
+                                    />
+                                </button>
+
+                                {dropdownOpen && (
+                                    <>
+                                        <div
+                                            className="fixed inset-0 z-40"
+                                            onClick={() => setDropdownOpen(false)}
+                                        ></div>
+                                        <div className="absolute right-0 mt-2 w-56 bg-gray-900 rounded-lg shadow-xl py-2 border border-gray-800 z-50">
+                                            <div className="px-4 py-3 border-b border-gray-800">
+                                                <div className="text-white font-semibold text-sm truncate">
+                                                    {user?.name || 'User'}
+                                                </div>
+                                                <div className="text-gray-400 text-xs truncate mt-0.5">
+                                                    {user?.email || ''}
+                                                </div>
+                                            </div>
+
+                                            <div className="py-2">
+                                                <Link
+                                                    to="/user/profile"
+                                                    className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
+                                                    onClick={() => setDropdownOpen(false)}
+                                                >
+                                                    <FontAwesomeIcon icon={faUser} className="w-4 h-4 mr-3" />
+                                                    <span className="text-sm">Profile</span>
+                                                </Link>
+                                            </div>
+
+                                            <div className="py-2">
+                                                <button
+                                                    onClick={() => {
+                                                        logout();
+                                                        setDropdownOpen(false);
+                                                    }}
+                                                    className="flex items-center w-full px-4 py-2 text-red-400 hover:bg-red-600/10 hover:text-red-300 transition-colors duration-200"
+                                                >
+                                                    <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4 mr-3" />
+                                                    <span className="text-sm">Logout</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
                             </div>
 
