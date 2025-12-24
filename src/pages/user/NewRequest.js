@@ -231,13 +231,11 @@ export default function NewRequest() {
 
   const cancelOrder = async (orderId, fileName) => {
     if (!orderId || orderId === "-") {
-      // If order hasn't been uploaded yet, just cancel the upload
       cancelUpload(fileName);
       return;
     }
 
     try {
-      // Update frontend status immediately for better UX
       setFiles(prev =>
         prev.map(f =>
           f.fileName === fileName
@@ -246,21 +244,8 @@ export default function NewRequest() {
         )
       );
 
-      const response = await fetch(`${base_url}/cancel-order`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${token}`,
-          'X-Tenant': 'bravodent'
-        },
-        body: JSON.stringify({
-          order_id: orderId,
-          cancelled_by: user.userid
-        }),
-      });
-
-      const result = await response.json();
-
+      const response = await fetchWithAuth(`/cancel-order/${orderId}`);
+      const result = response;
       if (result.status === 'success') {
         setFiles(prev =>
           prev.map(f =>
@@ -724,7 +709,7 @@ export default function NewRequest() {
                                   onChange={(e) => setSelectedDuration(e.target.value)}
                                   className="sr-only"
                                 />
-                                <div className={`w-8 h-8 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Rush"
+                                <div className={`w-7 h-7 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Rush"
                                   ? "border-blue-600 bg-blue-600 shadow-md"
                                   : theme === "light"
                                     ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
@@ -751,7 +736,7 @@ export default function NewRequest() {
                                   onChange={(e) => setSelectedDuration(e.target.value)}
                                   className="sr-only"
                                 />
-                                <div className={`w-8 h-8 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Same Day"
+                                <div className={`w-7 h-7 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Same Day"
                                   ? "border-blue-600 bg-blue-600 shadow-md"
                                   : theme === "light"
                                     ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
@@ -778,7 +763,7 @@ export default function NewRequest() {
                                   onChange={(e) => setSelectedDuration(e.target.value)}
                                   className="sr-only"
                                 />
-                                <div className={`w-8 h-8 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Next Day"
+                                <div className={`w-7 h-7 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Next Day"
                                   ? "border-blue-600 bg-blue-600 shadow-md"
                                   : theme === "light"
                                     ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"

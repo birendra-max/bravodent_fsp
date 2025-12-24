@@ -382,9 +382,9 @@ export default function Chatbox({ orderid }) {
                             {userRole === 'client' ? 'Designer Team' : orderid}
                         </h4>
                         <div className="flex items-center gap-1">
-                            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                            <div className={`w-2 h-2 rounded-full bg-green-400`}></div>
                             <span className="text-xs text-gray-300">
-                                {isConnected ? 'Connected' : 'Connecting...'}
+                                Connected
                             </span>
                         </div>
                     </div>
