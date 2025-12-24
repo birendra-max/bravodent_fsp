@@ -3,7 +3,6 @@ import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from '../../utils/userapi';
 import {
     faRepeat,
@@ -46,85 +45,178 @@ const RedesignPopup = ({
     if (!showRedesignPopup) return null;
 
     return (
-        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className={`rounded-xl shadow-2xl w-full max-w-md ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-                {/* Header */}
-                <div className={`flex justify-between items-center p-4 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                    <h2 className="text-lg font-bold">
-                        Send for Redesign
-                    </h2>
-                    <button
-                        onClick={handleClosePopup}
-                        disabled={isSubmitting}
-                        className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <FontAwesomeIcon icon={faTimes} />
-                    </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div
+                className={`rounded-2xl shadow-2xl w-full max-w-lg ${theme === 'dark'
+                    ? 'bg-gradient-to-br from-gray-900 to-gray-800 text-white border border-gray-700/50'
+                    : 'bg-gradient-to-br from-white to-gray-50 text-gray-800 border border-gray-200/50'}`}
+            >
+                {/* Header with gradient */}
+                <div className={`rounded-t-2xl p-5 ${theme === 'dark'
+                    ? 'bg-gradient-to-r from-orange-900/20 to-red-900/20 border-b border-orange-800/30'
+                    : 'bg-gradient-to-r from-orange-50 to-red-50 border-b border-orange-200'}`}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-xl ${theme === 'dark'
+                                ? 'bg-gradient-to-br from-orange-600 to-red-600'
+                                : 'bg-gradient-to-br from-orange-500 to-red-500'}`}>
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold">
+                                    Send for Redesign
+                                </h2>
+                                <p className={`text-sm ${theme === 'dark' ? 'text-orange-300' : 'text-orange-600'}`}>
+                                    Provide feedback for the design team
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleClosePopup}
+                            disabled={isSubmitting}
+                            className={`p-2 rounded-xl hover:bg-gray-800/50 text-gray-400 hover:text-white ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Body */}
-                <div className="p-4">
-                    <div className="mb-4">
-                        <p className="mb-2">
-                            Order{pendingRedesignOrders.length > 1 ? 's' : ''} to send for redesign:
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                            {pendingRedesignOrders.map((id) => (
-                                <span
+                <div className="p-6">
+                    {/* Selected Orders */}
+                    <div className={`mb-6 p-4 rounded-xl ${theme === 'dark'
+                        ? 'bg-gradient-to-r from-gray-800 to-gray-900/80 border border-gray-700/50'
+                        : 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200'}`}>
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className={`p-1.5 rounded-lg ${theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
+                                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </div>
+                            <span className={`font-semibold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                                {pendingRedesignOrders.length} Order{pendingRedesignOrders.length > 1 ? 's' : ''} Selected
+                            </span>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            {pendingRedesignOrders.map((id, index) => (
+                                <div
                                     key={id}
-                                    className={`px-2 py-1 rounded text-xs ${theme === 'dark' ? 'bg-gray-700' : 'bg-blue-100'}`}
+                                    className={`px-3 py-2 rounded-lg flex items-center gap-2 ${theme === 'dark'
+                                        ? 'bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border border-blue-800/30'
+                                        : 'bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200'}`}
                                 >
-                                    Order #{id}
-                                </span>
+                                    <div className={`w-2 h-2 rounded-full ${index % 3 === 0 ? 'bg-green-500' : index % 3 === 1 ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
+                                    <span className="font-medium text-sm">#{id}</span>
+                                </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block mb-1">
-                            Message for Design Team <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                            ref={textareaRef}
-                            value={redesignMessage}
-                            onChange={(e) => setRedesignMessage(e.target.value)}
-                            placeholder="Enter reason for redesign or instructions..."
-                            className={`w-full p-3 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'}`}
-                            rows="4"
-                            disabled={isSubmitting}
-                        />
+                    {/* Message Input */}
+                    <div className="mb-6">
+                        <div className="flex items-center mb-3">
+                            <label className={`font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
+                                <div className={`p-1.5 rounded-lg ${theme === 'dark' ? 'bg-orange-900/30' : 'bg-orange-100'}`}>
+                                    <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                Design Feedback
+                                <span className="text-red-500 ml-1">*</span>
+                            </label>
+                        </div>
+
+                        <div className="relative">
+                            <textarea
+                                ref={textareaRef}
+                                value={redesignMessage}
+                                onChange={(e) => setRedesignMessage(e.target.value)}
+                                placeholder="Describe what needs to be changed or improved... ✍️"
+                                className={`w-full p-4 rounded-xl border-2 focus:outline-none focus:ring-2 resize-none
+              ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}
+              ${theme === 'dark'
+                                        ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500/20'
+                                        : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/20'}`}
+                                rows="5"
+                                disabled={isSubmitting}
+                            />
+                            <div className="absolute bottom-3 right-3">
+                                <div className={`p-1 rounded-lg ${theme === 'dark' ? 'bg-gray-800/80' : 'bg-gray-100/80'}`}>
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} flex justify-end gap-2`}>
-                    <button
-                        onClick={handleClosePopup}
-                        disabled={isSubmitting}
-                        className={`px-4 py-2 rounded font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleRedesignSubmit}
-                        disabled={isSubmitting || !redesignMessage.trim()}
-                        className={`px-4 py-2 rounded font-medium flex items-center gap-2 ${isSubmitting || !redesignMessage.trim()
-                            ? theme === 'dark' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700'
-                            }`}
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                Processing...
-                            </>
-                        ) : (
-                            <>
-                                <FontAwesomeIcon icon={faRepeat} />
-                                Send{pendingRedesignOrders.length > 1 ? ` (${pendingRedesignOrders.length})` : ''}
-                            </>
-                        )}
-                    </button>
+                {/* Footer with gradient */}
+                <div className={`rounded-b-2xl p-5 ${theme === 'dark'
+                    ? 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border-t border-gray-700/50'
+                    : 'bg-gradient-to-r from-gray-50 to-gray-100/80 border-t border-gray-200'}`}>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                            onClick={handleClosePopup}
+                            disabled={isSubmitting}
+                            className={`px-5 py-3 rounded-xl font-medium flex-1 flex items-center justify-center gap-2 ${isSubmitting
+                                ? 'opacity-50 cursor-not-allowed'
+                                : theme === 'dark'
+                                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-gray-900 border border-gray-300'}`}
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleRedesignSubmit}
+                            disabled={isSubmitting || !redesignMessage.trim()}
+                            className={`px-5 py-3 rounded-xl font-medium flex-1 flex items-center justify-center gap-2 ${isSubmitting || !redesignMessage.trim()
+                                ? theme === 'dark'
+                                    ? 'bg-gradient-to-r from-gray-700 to-gray-800 text-gray-400 cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 hover:from-orange-600 hover:via-orange-700 hover:to-red-700 text-white shadow-lg hover:shadow-xl shadow-orange-500/25'
+                                }`}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                    <span>Sending...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    <span>
+                                        Send{pendingRedesignOrders.length > 1 ? ` ${pendingRedesignOrders.length} Orders` : ' for Redesign'}
+                                    </span>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Progress indicator (shown only when submitting) */}
+                    {isSubmitting && (
+                        <div className="mt-4">
+                            <div className={`h-1 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                                <div className="h-full bg-gradient-to-r from-orange-500 to-red-500 animate-pulse"></div>
+                            </div>
+                            <p className={`text-center text-xs mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Processing your redesign request...
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -596,65 +688,84 @@ export default function Datatable({
                     {Array.isArray(columns) && columns.length > 0 && (
                         <>
                             {/* Search + Rows per page */}
-                            <div
-                                style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}
-                            >
-                                <div className="flex justify-around items-center gap-4">
-                                    {/* Rows per page dropdown */}
-                                    <label className={theme === "dark" ? "text-white" : "text-gray-800"}>
-                                        Rows per page:{" "}
-                                        <select
-                                            value={rowsPerPage}
-                                            onChange={handleRowsPerPageChange}
-                                            className={`p-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-400 ${getSelectClass()}`}
-                                        >
-                                            {rowsPerPageOptions.map((option) => (
-                                                <option key={option} value={option}>
-                                                    {option}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
+                            <div className="mb-4">
+                                <div className="flex flex-col lg:flex-row items-stretch gap-8">
+                                    {/* Left panel - Clean minimal with colorful buttons */}
+                                    <div className={`flex-1 rounded-lg border ${theme === 'light' ? 'bg-white border-gray-100' : 'bg-gray-900 border-gray-800'}`}>
+                                        <div className="flex flex-col md:flex-row items-center p-4 gap-4">
+                                            {/* File type selector - Clean */}
+                                            <div className="flex-1 w-full">
+                                                <div className="flex items-center gap-4">
+                                                    <span className={`text-sm font-medium whitespace-nowrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                                                        File Type:
+                                                    </span>
+                                                    <div className="flex-1">
+                                                        <select
+                                                            value={fileType}
+                                                            onChange={(e) => setFileType(e.target.value)}
+                                                            className={`w-full px-3 py-2 text-sm border-b focus:outline-none ${theme === 'light'
+                                                                ? 'bg-transparent text-black border-gray-300 focus:border-blue-500'
+                                                                : 'bg-gray-800 text-white border-gray-600 focus:border-blue-500'}`}
+                                                        >
+                                                            <option value="stl">STL Files</option>
+                                                            <option value="finish">Finished Files</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                    {/* Bulk Actions Toolbar - Moved to top */}
-                                    <div className={`flex items-center gap-3 px-4 py-2`}>
-                                        {/* ✅ FUNCTIONALITY IMPROVEMENT: Updated file type options */}
-                                        <select
-                                            value={fileType}
-                                            onChange={(e) => setFileType(e.target.value)}
-                                            className={`px-3 py-2 rounded-lg border text-sm focus:outline-none transition-all ${getSelectClass()}`}
-                                        >
-                                            {/* <option value="initial">Initial Files</option> */}
-                                            <option value="stl">STL Files</option>
-                                            <option value="finish">Finished Files</option>
-                                        </select>
+                                            {/* Action buttons - Colorful but clean */}
+                                            <div className="flex gap-3 w-full md:w-auto">
+                                                <button
+                                                    onClick={handleBulkDownload}
+                                                    className={`group flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium text-sm transition-all duration-200 
+              ${theme === 'light'
+                                                            ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-sm hover:shadow-md'
+                                                            : 'bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white shadow-sm hover:shadow-md'}`}
+                                                >
+                                                    <svg className="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                    </svg>
+                                                    Download All
+                                                </button>
 
-                                        <button
-                                            onClick={handleBulkDownload}
-                                            className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-lg flex items-center gap-2 transition-all duration-200 font-medium text-sm cursor-pointer"
-                                        >
-                                            <FontAwesomeIcon icon={faDownload} /> Download All
-                                        </button>
-
-                                        <button
-                                            onClick={openRedesignPopup}
-                                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg shadow-lg flex items-center gap-2 transition-all duration-200 font-medium text-sm cursor-pointer"
-                                        >
-                                            <FontAwesomeIcon icon={faRepeat} /> Send for Redesign
-                                        </button>
+                                                <button
+                                                    onClick={openRedesignPopup}
+                                                    className={`group flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium text-sm transition-all duration-200 
+              ${theme === 'light'
+                                                            ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-sm hover:shadow-md'
+                                                            : 'bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white shadow-sm hover:shadow-md'}`}
+                                                >
+                                                    <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                    </svg>
+                                                    Send for Redesign
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                </div>
-
-                                {/* Search bar */}
-                                <div>
-                                    <input
-                                        type="text"
-                                        placeholder="Search..."
-                                        value={search}
-                                        onChange={handleSearch}
-                                        className={`p-2 w-64 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${getInputClass()}`}
-                                    />
+                                    {/* Search bar - Clean with colorful focus */}
+                                    <div className={`rounded-lg border p-4 ${theme === 'light' ? 'bg-white border-gray-100' : 'bg-gray-900 border-gray-800'}`}>
+                                        <div className="relative group">
+                                            <input
+                                                type="text"
+                                                placeholder="Search files..."
+                                                value={search}
+                                                onChange={handleSearch}
+                                                className={`pl-10 pr-4 py-2.5 w-full lg:w-72 rounded-lg text-sm focus:outline-none transition-all duration-200 ${theme === 'light'
+                                                    ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 group-hover:border-blue-400'
+                                                    : 'bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 group-hover:border-blue-600'}`}
+                                            />
+                                            <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 ${theme === 'light'
+                                                ? 'text-gray-400 group-focus-within:text-blue-500'
+                                                : 'text-gray-500 group-focus-within:text-blue-400'}`}>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -735,17 +846,19 @@ export default function Datatable({
                                                                 <div className="flex justify-center items-center relative">
                                                                     <div className="relative group">
                                                                         <div
-                                                                            className="w-9 h-9 shadow-lg rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
+                                                                            className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] shadow-lg"
                                                                             onClick={() => openPopup(`${row.orderid}`)}
                                                                         >
-                                                                            <img
-                                                                                src="/img/messages.png"
-                                                                                alt="Message"
-                                                                                className="w-9 h-9 cursor-pointer transition-all duration-200 group-hover:scale-110 group-hover:rotate-12"
-                                                                                onClick={() => openPopup(`${row.orderid}`)}
-                                                                            />
+                                                                            {/* Professional chat icon */}
+                                                                            <svg
+                                                                                className="w-6 h-6 text-slate-200"
+                                                                                fill="currentColor"
+                                                                                viewBox="0 0 24 24"
+                                                                            >
+                                                                                <path d="M4 4h16v11H8l-4 4V4z" />
+                                                                            </svg>
                                                                         </div>
-                                                                        <span className=" absolute -top-2 -right-2 bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white text-[12px] font-semibold rounded-full min-w-[18px] h-[18px] flex items-center justify-center shadow-[0_0_8px_rgba(255,0,0,0.6)] ring-2 ring-white/60 backdrop-blur-sm">
+                                                                        <span className="absolute -top-2 -right-2 bg-gradient-to-br from-green-500 to-green-600 text-white text-xs font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center shadow-lg ring-2 ring-white/80">
                                                                             {row.totalMessages > 99 ? '99+' : row.totalMessages}
                                                                         </span>
                                                                     </div>
@@ -822,9 +935,25 @@ export default function Datatable({
                             {/* Pagination */}
                             {paginatedData.length > 0 && (
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "15px" }}>
-                                    <div className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                                        Showing {paginatedData.length} of {filteredData.length} entries
-                                    </div>
+                                    {/* Rows per page dropdown */}
+                                    <label className={theme === "dark" ? "text-white" : "text-gray-800"}>
+                                        Rows per page:{" "}
+                                        <select
+                                            value={rowsPerPage}
+                                            onChange={handleRowsPerPageChange}
+                                            className={`p-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-400 ${getSelectClass()}`}
+                                        >
+                                            {rowsPerPageOptions.map((option) => (
+                                                <option key={option} value={option}>
+                                                    {option}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600 pl-4 '}>
+                                            Showing {paginatedData.length} of {filteredData.length} entries
+                                        </span>
+                                    </label>
 
                                     <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                                         <button

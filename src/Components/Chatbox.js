@@ -400,7 +400,7 @@ export default function Chatbox({ orderid }) {
             </div>
 
             {/* Messages */}
-            <div ref={chatBodyRef} className="p-3 h-[78%] overflow-y-auto space-y-3 bg-gradient-to-br from-gray-900 to-gray-800">
+            <div ref={chatBodyRef} className="p-3 h-[78%] overflow-y-auto space-y-3 bg-slate-950">
                 {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                         <p className="text-gray-400 text-sm">No messages yet. Start chatting!</p>

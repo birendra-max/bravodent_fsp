@@ -168,7 +168,7 @@ export default function NewRequest() {
           );
           reject(new Error(`Server error: ${xhr.status}`));
         }
-        
+
         setUploadRequests(prev => {
           const newRequests = { ...prev };
           delete newRequests[file.name];
@@ -190,7 +190,7 @@ export default function NewRequest() {
           )
         );
         reject(new Error('Network error'));
-        
+
         setUploadRequests(prev => {
           const newRequests = { ...prev };
           delete newRequests[file.name];
@@ -218,7 +218,7 @@ export default function NewRequest() {
             : f
         )
       );
-      
+
       setUploadRequests(prev => {
         const newRequests = { ...prev };
         delete newRequests[fileName];
@@ -528,21 +528,7 @@ export default function NewRequest() {
               )}
 
               {files.length > 0 && (
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    {[
-                      { count: files.length, label: "Total Files", gradient: "from-blue-500 to-blue-600" },
-                      { count: files.filter(f => f.uploadStatus === "Success").length, label: "Completed", gradient: "from-green-500 to-green-600" },
-                      { count: files.filter(f => f.uploadStatus.startsWith("Uploading...")).length, label: "In Progress", gradient: "from-yellow-500 to-yellow-600" },
-                      { count: files.filter(f => f.uploadStatus === "Waiting...").length, label: "Pending", gradient: "from-gray-500 to-gray-600" },
-                    ].map((card, index) => (
-                      <div key={index} className={`bg-gradient-to-r ${card.gradient} text-white rounded-lg p-4 shadow-sm`}>
-                        <div className="text-2xl font-bold">{card.count}</div>
-                        <div className="text-opacity-90 text-sm">{card.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
+                <div className="p-2">
                   <div className={`rounded-lg border ${getTableContainerClass()}`}>
                     <div className="overflow-x-auto">
                       <table className="w-full">
@@ -550,16 +536,17 @@ export default function NewRequest() {
                           <tr className={`border-b ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
                             {[
                               { name: "ORDER ID", width: "w-32" },
-                              { name: "FILE NAME", width: "w-62" },
+                              { name: "FILE NAME", width: "w-40" },
                               { name: "STATUS", width: "w-48" },
                               { name: "PRODUCT TYPE", width: "w-32" },
                               { name: "UNIT", width: "w-20" },
                               { name: "TOOTH", width: "w-20" },
+                              { name: "ACTION", width: "w-20" },
                               { name: "MESSAGE", width: "w-48" },
                             ].map((header, index) => (
                               <th
                                 key={index}
-                                className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${header.width} ${getTableHeaderClass()}`}
+                                className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${header.width} ${getTableHeaderClass()}`}
                               >
                                 {header.name}
                               </th>
@@ -574,14 +561,14 @@ export default function NewRequest() {
                                   {file.orderId}
                                 </span>
                               </td>
-                              <td className="px-4 py-3 w-44">
+                              <td className="px-4 py-3 w-18">
                                 <div className="flex items-center space-x-3">
                                   <div className={`w-2 h-2 rounded-full ${file.uploadStatus === "Success" ? "bg-green-500" :
                                     file.uploadStatus === "Failed" ? "bg-red-500" :
                                       file.uploadStatus.startsWith("Uploading...") ? "bg-blue-500 animate-pulse" :
                                         "bg-gray-400"
                                     }`}></div>
-                                  <span className="text-sm font-medium truncate max-w-sm">
+                                  <span className="text-sm font-medium truncate word-wrap">
                                     {file.fileName}
                                   </span>
                                 </div>
@@ -597,6 +584,16 @@ export default function NewRequest() {
                               </td>
                               <td className="px-4 py-3">
                                 <span className="text-sm font-medium">{file.tooth}</span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <td className="px-4 py-3">
+                                  <button
+                                    className={`cursor-pointer px-3 py-1.5 text-md font-semibold rounded bg-red-600 text-white hover:bg-red-700 transition-colors `}
+                                  >
+                                    Cancel
+                                  </button>
+                                </td>
+
                               </td>
                               <td className="px-4 py-3">
                                 <input
