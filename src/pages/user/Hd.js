@@ -16,7 +16,6 @@ import {
     faBars,
     faChevronUp,
     faChevronDown,
-    faCog
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Hd() {
