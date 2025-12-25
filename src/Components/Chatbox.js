@@ -10,28 +10,17 @@ import { AdminContext } from '../Context/AdminContext';
 import config from '../config';
 
 export default function Chatbox({ orderid }) {
-    console.log("Chatbox orderid:", orderid);
-
-    // Get correct token based on user type
     const userToken = localStorage.getItem('token');
     const adminToken = localStorage.getItem('bravo_admin_token');
     const designerToken = localStorage.getItem('designer_token') || localStorage.getItem('token');
-
-    // Priority: user token > admin token > designer token
     const token = userToken || adminToken || designerToken || "";
 
     const userCtx = useContext(UserContext);
     const designerCtx = useContext(DesignerContext);
     const adminCtx = useContext(AdminContext);
 
-    // Detect user role and ID
     let currentUser = null, userId = null, userRole = null, userName = null;
 
-    console.log("User context:", userCtx?.user);
-    console.log("Admin context:", adminCtx?.admin);
-    console.log("Designer context:", designerCtx?.designer);
-
-    // Check which context has a valid user
     if (userCtx?.user?.userid) {
         currentUser = userCtx.user;
         userId = currentUser.userid;
@@ -48,7 +37,6 @@ export default function Chatbox({ orderid }) {
         userRole = 'admin';
         userName = currentUser.name || 'Admin';
     } else {
-        // Try to get from localStorage as fallback
         try {
             const storedUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
             const storedAdmin = localStorage.getItem('bravo_admin') ? JSON.parse(localStorage.getItem('bravo_admin')) : null;
@@ -67,12 +55,8 @@ export default function Chatbox({ orderid }) {
                 userRole = 'designer';
                 userName = storedDesigner.name || 'Designer';
             }
-        } catch (e) {
-            console.error("Error parsing stored user:", e);
-        }
+        } catch (e) {}
     }
-
-    console.log("Detected user:", { userId, userRole, userName, tokenExists: !!token });
 
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -84,11 +68,8 @@ export default function Chatbox({ orderid }) {
     const eventSourceRef = useRef(null);
     const lastMessageIdRef = useRef(0);
     const posRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
-
-    // Track recently sent messages to avoid duplicates
     const recentlySentMessagesRef = useRef(new Set());
 
-    // Auto-resize textarea
     useEffect(() => {
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
@@ -96,39 +77,26 @@ export default function Chatbox({ orderid }) {
         }
     }, [newMessage]);
 
-    // Reset messages when order changes
     useEffect(() => {
-        if (!orderid) {
-            console.log("No orderid provided, skipping chat setup");
-            return;
-        }
-
-        console.log("Setting up chat for order:", orderid, "with token:", token ? "Yes" : "No");
+        if (!orderid) return;
 
         setMessages([]);
         setNewMessage('');
         lastMessageIdRef.current = 0;
         recentlySentMessagesRef.current.clear();
 
-        // Close existing connection
         if (eventSourceRef.current) {
             eventSourceRef.current.close();
             eventSourceRef.current = null;
         }
 
-        // Load chat history when order changes
         if (orderid && token) {
             loadChatHistory();
-        } else {
-            console.error("Cannot load chat: missing orderid or token");
         }
     }, [orderid]);
 
-    // Load initial chat history
     const loadChatHistory = async () => {
         try {
-            console.log("Loading chat history for order:", orderid);
-
             const response = await fetch(`${config.API_BASE_URL}/chat/get-chat-history/${orderid}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -136,16 +104,12 @@ export default function Chatbox({ orderid }) {
                 }
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) return;
 
             const data = await response.json();
-            console.log("Chat history response:", data);
 
             if (data.status === 'success' && data.data) {
                 const formatted = data.data.map(msg => {
-                    // FIXED: Client messages ALWAYS left, Admin/Designer ALWAYS right
                     const isRight = msg.user_type === 'Admin' || msg.user_type === 'Designer';
 
                     return {
@@ -155,7 +119,7 @@ export default function Chatbox({ orderid }) {
                         timestamp: msg.message_date,
                         user_type: msg.user_type,
                         user_name: msg.user_name || msg.user_type,
-                        alignment: isRight ? 'right' : 'left', // Client=left, Admin/Designer=right
+                        alignment: isRight ? 'right' : 'left',
                         file_path: msg.file_path || null,
                         filename: msg.attachment || null,
                         hasAttachment: !!msg.file_path,
@@ -167,20 +131,14 @@ export default function Chatbox({ orderid }) {
 
                 setMessages(formatted);
 
-                // Set the last message ID for SSE
                 if (formatted.length > 0) {
                     lastMessageIdRef.current = Math.max(...formatted.map(m => m.id));
-                    console.log("Last message ID set to:", lastMessageIdRef.current);
                 }
 
-                // Start SSE connection after loading history
                 startSSEConnection();
-            } else {
-                console.error("Failed to load chat history:", data.message);
             }
         } catch (error) {
-            console.error("❌ Failed to load chat history:", error);
-            startSSEConnection(); // Still try to connect to SSE
+            startSSEConnection();
         }
     };
 
@@ -195,43 +153,33 @@ export default function Chatbox({ orderid }) {
         }
     };
 
-    // Get user type for API based on role
     const getUserTypeForApi = () => {
         if (userRole === 'client') return 'Client';
         if (userRole === 'designer') return 'Designer';
         if (userRole === 'admin') return 'Admin';
-        return 'Designer'; // fallback
+        return 'Designer';
     };
 
-    // Start SSE connection
     const startSSEConnection = () => {
-        if (!orderid || !token || eventSourceRef.current) {
-            console.log("Cannot start SSE: missing orderid or token or already connected");
-            return;
-        }
+        if (!orderid || !token || eventSourceRef.current) return;
 
         const url = `${config.API_BASE_URL}/chat/stream-chat/${orderid}?lastId=${lastMessageIdRef.current}&tenant=bravodent`;
-        console.log("Starting SSE connection to:", url);
 
         try {
             eventSourceRef.current = new EventSource(url);
 
             eventSourceRef.current.onopen = () => {
-                console.log("✅ SSE connection opened");
                 setIsConnected(true);
             };
 
             eventSourceRef.current.onmessage = (event) => {
-                // Skip heartbeat messages
                 if (event.data === ': heartbeat') return;
 
                 try {
                     const data = JSON.parse(event.data);
-                    console.log("SSE message received:", data);
 
                     if (data.messages && Array.isArray(data.messages)) {
                         const newMessages = data.messages.map(msg => {
-                            // FIXED: Same logic - Client messages left, Admin/Designer right
                             const isRight = msg.user_type === 'Admin' || msg.user_type === 'Designer';
 
                             return {
@@ -241,7 +189,7 @@ export default function Chatbox({ orderid }) {
                                 timestamp: formatTimestamp(msg.message_date),
                                 user_type: msg.user_type,
                                 user_name: msg.user_name || msg.user_type,
-                                alignment: isRight ? 'right' : 'left', // Client=left, Admin/Designer=right
+                                alignment: isRight ? 'right' : 'left',
                                 file_path: msg.file_path || null,
                                 filename: msg.attachment || null,
                                 hasAttachment: !!msg.file_path,
@@ -257,81 +205,58 @@ export default function Chatbox({ orderid }) {
 
                             if (unique.length > 0) {
                                 lastMessageIdRef.current = Math.max(...unique.map(m => m.id));
-                                console.log("New messages added, lastId:", lastMessageIdRef.current);
                                 return [...prev, ...unique];
                             }
                             return prev;
                         });
                     }
-                } catch (err) {
-                    console.error("❌ SSE parse error:", err);
-                }
+                } catch (err) {}
             };
 
-            eventSourceRef.current.addEventListener('connected', (event) => {
-                console.log("✅ SSE connected event received");
+            eventSourceRef.current.addEventListener('connected', () => {
                 setIsConnected(true);
             });
 
-            eventSourceRef.current.addEventListener('end', (event) => {
-                console.log("🔚 SSE stream ended");
+            eventSourceRef.current.addEventListener('end', () => {
                 eventSourceRef.current?.close();
                 setIsConnected(false);
             });
 
-            eventSourceRef.current.onerror = (err) => {
-                console.error("❌ SSE error:", err);
+            eventSourceRef.current.onerror = () => {
                 setIsConnected(false);
 
-                // Attempt to reconnect after 3 seconds
                 setTimeout(() => {
                     if (eventSourceRef.current) {
                         eventSourceRef.current.close();
                         eventSourceRef.current = null;
                     }
-                    console.log("Attempting to reconnect SSE...");
                     startSSEConnection();
                 }, 3000);
             };
 
         } catch (error) {
-            console.error("❌ Failed to create SSE connection:", error);
             setIsConnected(false);
         }
     };
 
-    // Auto-scroll on new messages
     useEffect(() => {
         if (chatBodyRef.current) {
             chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
         }
     }, [messages]);
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             if (eventSourceRef.current) {
                 eventSourceRef.current.close();
-                console.log("SSE connection closed on unmount");
             }
         };
     }, []);
 
-    // Send message (text)
     const sendMessage = async () => {
-        if (!newMessage.trim() || !orderid || !userId) {
-            console.log("Cannot send message: missing content, orderid, or userId");
-            return;
-        }
+        if (!newMessage.trim() || !orderid || !userId) return;
 
         const messageText = newMessage.trim();
-        console.log("Sending message:", {
-            orderid,
-            text: messageText,
-            userRole,
-            userTypeForApi: getUserTypeForApi(),
-            userId
-        });
 
         try {
             const response = await fetch(`${config.API_BASE_URL}/chat/send-message`, {
@@ -349,40 +274,31 @@ export default function Chatbox({ orderid }) {
             });
 
             const data = await response.json();
-            console.log("Send message response:", data);
 
             if (data.status === 'success') {
                 lastMessageIdRef.current = data.data.id;
                 setNewMessage('');
             } else {
-                console.error("Failed to send message:", data.message);
                 alert(`Failed to send message: ${data.message}`);
             }
         } catch (err) {
-            console.error("Send message error:", err);
             alert("Network error. Please check your connection.");
         }
     };
 
-    // File upload
     const handleFileUpload = async (e) => {
         const files = Array.from(e.target.files);
-        if (!files.length || !orderid) {
-            console.log("No files selected or no orderid");
-            return;
-        }
+        if (!files.length || !orderid) return;
 
         for (const file of files) {
             const formData = new FormData();
             formData.append('orderid', orderid);
             formData.append('chatfile', file);
 
-            // Create a unique identifier for this file upload to track duplicates
             const fileKey = `${file.name}_${Date.now()}`;
             recentlySentMessagesRef.current.add(fileKey);
 
             try {
-                console.log("Uploading file:", file.name);
                 const res = await fetch(`${config.API_BASE_URL}/chat/chat-file`, {
                     method: 'POST',
                     headers: {
@@ -393,37 +309,30 @@ export default function Chatbox({ orderid }) {
                 });
 
                 const result = await res.json();
-                console.log("File upload response:", result);
 
                 if (result.status !== 'success') {
-                    console.error("❌ Upload failed:", result.message);
                     alert(`Upload failed: ${result.message}`);
                 }
 
-                // Remove the file key after 5 seconds
                 setTimeout(() => {
                     recentlySentMessagesRef.current.delete(fileKey);
                 }, 5000);
 
             } catch (err) {
-                console.error("❌ File upload error:", err);
                 alert("File upload failed. Please try again.");
             }
         }
 
-        // Clear file input after all uploads
         e.target.value = '';
     };
 
     const triggerFileInput = () => fileInputRef.current?.click();
 
-    // Updated handleKeyDown for textarea
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
         }
-        // Allow Shift+Enter for new line
     };
 
     const downloadFile = (url, name) => {
@@ -437,9 +346,6 @@ export default function Chatbox({ orderid }) {
             const encodedPath = encodeURIComponent(url);
             const finalUrl = `${base_url}/download?path=${encodedPath}`;
 
-            console.log("Downloading file:", finalUrl);
-
-            // Create download link
             const link = document.createElement("a");
             link.href = finalUrl;
             link.target = "_blank";
@@ -448,12 +354,10 @@ export default function Chatbox({ orderid }) {
             link.click();
             document.body.removeChild(link);
         } catch (error) {
-            alert("⚠️ Error while downloading file");
-            console.error("Download error:", error);
+            alert("Error while downloading file");
         }
     };
 
-    // Draggable chatbox
     useEffect(() => {
         const chatbox = chatboxRef.current;
         const header = document.getElementById("chatHeader");
@@ -478,7 +382,6 @@ export default function Chatbox({ orderid }) {
         return () => header.removeEventListener("mousedown", mouseDownHandler);
     }, []);
 
-    // Get icon for user type
     const getUserIcon = (userType) => {
         switch (userType) {
             case 'Admin': return faCrown;
@@ -504,7 +407,6 @@ export default function Chatbox({ orderid }) {
         }
     };
 
-    // Get chat header title
     const getChatHeaderTitle = () => {
         if (userRole === 'client') return 'Designer Team';
         if (userRole === 'designer') return `Order: ${orderid}`;
@@ -519,7 +421,6 @@ export default function Chatbox({ orderid }) {
             style={{ position: "fixed", top: "80px", right: "24px" }}
             className="md:w-[400px] w-[300px] h-[520px] rounded-xl shadow-xl border border-blue-400/30 bg-gradient-to-br from-gray-900 to-gray-800 z-[999] hidden overflow-hidden backdrop-blur-sm"
         >
-            {/* Header */}
             <div id="chatHeader" className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-800/60 to-purple-800/60 rounded-t-xl border-b border-blue-400/30 cursor-move select-none">
                 <div className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md ring-1 ring-blue-400/50 ${userRole === 'admin' ? 'bg-gradient-to-br from-purple-500 to-pink-500' :
@@ -556,7 +457,6 @@ export default function Chatbox({ orderid }) {
                 </div>
             </div>
 
-            {/* Messages */}
             <div ref={chatBodyRef} className="p-3 h-[78%] overflow-y-auto space-y-3 bg-slate-950">
                 {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
@@ -613,7 +513,6 @@ export default function Chatbox({ orderid }) {
                 )}
             </div>
 
-            {/* Input */}
             <div className="absolute bottom-0 left-0 right-0 border-t border-blue-400/20 px-3 py-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-b-xl">
                 <div className="flex items-start gap-1.5">
                     <input ref={fileInputRef} type="file" onChange={handleFileUpload} multiple className="hidden" />

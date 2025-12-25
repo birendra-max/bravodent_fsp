@@ -62,8 +62,10 @@ export default function MultiSearch() {
         { header: "Unit", accessor: "unit" },
         { header: "Tooth", accessor: "tooth" },
         { header: "Lab Name", accessor: "labname" },
-        { header: "Run Self By", accessor: "run_self_by" },
         { header: "Date", accessor: "order_date" },
+        { header: "Run Self By", accessor: "run_self_by" },
+        { header: "Assign To", accessor: "assign_to" },
+        { header: "Assign Date", accessor: "assign_date" },
         { header: "Message", accessor: "message" },
     ];
 
