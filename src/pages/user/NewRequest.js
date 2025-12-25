@@ -488,6 +488,33 @@ export default function NewRequest() {
       };
     };
 
+    // For Uploading status, show progress bar ONLY
+    if (status.startsWith("Uploading...")) {
+      return (
+        <div className="w-full">
+          <div
+            className="progress-bar bg-success rounded overflow-hidden"
+            role="progressbar"
+            style={{
+              width: `${progress}%`,
+              height: '40px',
+              padding: '10px',
+              whiteSpace: 'pre-wrap',
+              backgroundColor: '#28a745',
+              color: 'white',
+              fontWeight: '500',
+              fontSize: '13px',
+              textAlign: 'center',
+              transition: 'width 0.3s ease-in-out'
+            }}
+          >
+            {progress}% {progress === 100 ? 'Completed' : ''}
+          </div>
+        </div>
+      );
+    }
+
+    // For all other statuses, show the regular status badge
     const config = getStatusConfig(status.split(' ')[0]);
 
     return (
@@ -507,15 +534,6 @@ export default function NewRequest() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
             <span className="flex-1">{message}</span>
-          </div>
-        )}
-
-        {status.startsWith("Uploading...") && (
-          <div className={`w-full bg-gray-200 rounded-full h-2 ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`}>
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            ></div>
           </div>
         )}
       </div>
@@ -709,7 +727,7 @@ export default function NewRequest() {
                                   onChange={(e) => setSelectedDuration(e.target.value)}
                                   className="sr-only"
                                 />
-                                <div className={`w-7 h-7 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Rush"
+                                <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Rush"
                                   ? "border-blue-600 bg-blue-600 shadow-md"
                                   : theme === "light"
                                     ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
@@ -736,7 +754,7 @@ export default function NewRequest() {
                                   onChange={(e) => setSelectedDuration(e.target.value)}
                                   className="sr-only"
                                 />
-                                <div className={`w-7 h-7 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Same Day"
+                                <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Same Day"
                                   ? "border-blue-600 bg-blue-600 shadow-md"
                                   : theme === "light"
                                     ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
@@ -763,7 +781,7 @@ export default function NewRequest() {
                                   onChange={(e) => setSelectedDuration(e.target.value)}
                                   className="sr-only"
                                 />
-                                <div className={`w-7 h-7 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Next Day"
+                                <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Next Day"
                                   ? "border-blue-600 bg-blue-600 shadow-md"
                                   : theme === "light"
                                     ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
