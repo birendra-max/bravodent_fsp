@@ -111,7 +111,7 @@ export default function Login() {
           </p>
 
           <p className="text-xs text-gray-500 mt-8">
-            © 2025 Sdkydent Admin Panel
+            © 2025 BravoDent Admin Panel
           </p>
         </div>
 
