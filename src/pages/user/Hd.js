@@ -7,7 +7,6 @@ import {
     faHome,
     faUpload,
     faSearch,
-    faChartBar,
     faUser,
     faSignOutAlt,
     faMoon,
@@ -16,6 +15,7 @@ import {
     faBars,
     faChevronUp,
     faChevronDown,
+    faBuildingColumns   
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Hd() {
@@ -91,7 +91,7 @@ export default function Hd() {
     const navItems = [
         { href: "/user/home", label: "Home", key: "index", icon: faHome },
         { href: "/user/new_request", label: "File Upload", key: "new_request", icon: faUpload },
-        { href: "/user/reports", label: "Billing Reports", key: "reports", icon: faChartBar }
+        { href: "/user/reports", label: "Billing Reports", key: "reports", icon: faBuildingColumns   }
     ];
 
     const applyTheme = (newTheme) => {

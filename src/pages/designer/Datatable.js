@@ -272,7 +272,7 @@ export default function Datatable({
         }
     };
 
-    const base_url = localStorage.getItem('base_url');
+    const base_url = localStorage.getItem('bravo_designer_base_url');
 
     const handleBulkDownload = async () => {
         if (!selectedRows.length) {

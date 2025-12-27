@@ -7,7 +7,7 @@ import { UserContext } from "../../Context/UserContext";
 import { fetchWithAuth } from '../../utils/userapi';
 
 export default function NewRequest() {
-  let base_url = localStorage.getItem('base_url');
+  let base_url = localStorage.getItem('bravo_user_base_url');
   const { theme } = useContext(ThemeContext);
   const { user, logout } = useContext(UserContext);
   const navigate = useNavigate();
