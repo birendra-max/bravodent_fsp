@@ -97,7 +97,7 @@ export default function Dashboard() {
     };
 
     const feedBackaRef = useRef(null);
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('bravo_user_token');
     const saveFeedback = async () => {
         if (form.feedback === '') {
             feedBackaRef.current.focus();

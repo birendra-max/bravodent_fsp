@@ -10,9 +10,9 @@ import { AdminContext } from '../Context/AdminContext';
 import config from '../config';
 
 export default function Chatbox({ orderid }) {
-    const userToken = localStorage.getItem('token');
+    const userToken = localStorage.getItem('bravo_user_token');
     const adminToken = localStorage.getItem('bravo_admin_token');
-    const designerToken = localStorage.getItem('designer_token') || localStorage.getItem('token');
+    const designerToken = localStorage.getItem('bravo_designer_token');
     const token = userToken || adminToken || designerToken || "";
 
     const userCtx = useContext(UserContext);
@@ -55,7 +55,7 @@ export default function Chatbox({ orderid }) {
                 userRole = 'designer';
                 userName = storedDesigner.name || 'Designer';
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     const [messages, setMessages] = useState([]);
@@ -210,7 +210,7 @@ export default function Chatbox({ orderid }) {
                             return prev;
                         });
                     }
-                } catch (err) {}
+                } catch (err) { }
             };
 
             eventSourceRef.current.addEventListener('connected', () => {
@@ -342,7 +342,7 @@ export default function Chatbox({ orderid }) {
         }
 
         try {
-            const base_url = localStorage.getItem("base_url") || config.API_BASE_URL;
+            const base_url = localStorage.getItem("bravo_user_base_url");
             const encodedPath = encodeURIComponent(url);
             const finalUrl = `${base_url}/download?path=${encodedPath}`;
 

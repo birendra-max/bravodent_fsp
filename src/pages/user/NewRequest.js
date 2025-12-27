@@ -60,7 +60,7 @@ export default function NewRequest() {
     });
   };
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('bravo_user_token');
 
   const uploadFile = async (file) => {
     try {

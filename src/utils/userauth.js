@@ -1,7 +1,7 @@
 export function logoutUser() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  
-  // redirect to login
+  localStorage.removeItem('bravo_user');
+  localStorage.removeItem('bravo_user_token');
+  localStorage.removeItem('bravo_user_base_url');
+  localStorage.removeItem('theme');
   window.location.href = "/user";
 }

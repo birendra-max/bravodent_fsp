@@ -5,7 +5,7 @@ export const DesignerContext = createContext();
 
 export const DesignerProvider = ({ children }) => {
     const [designer, setDesigner] = useState(() => {
-        const storedDesigner = localStorage.getItem('designer');
+        const storedDesigner = localStorage.getItem('bravodent_designer');
         return storedDesigner ? JSON.parse(storedDesigner) : null;
     });
 
@@ -13,16 +13,17 @@ export const DesignerProvider = ({ children }) => {
 
     useEffect(() => {
         if (designer) {
-            localStorage.setItem('designer', JSON.stringify(designer));
+            localStorage.setItem('bravodent_designer', JSON.stringify(designer));
         } else {
-            localStorage.removeItem('designer');
+            localStorage.removeItem('bravodent_designer');
         }
     }, [designer]);
 
     const logout = async () => {
         setDesigner(null);
-        localStorage.removeItem('designer');
-        localStorage.removeItem('token');
+        localStorage.removeItem('bravo_designer');
+        localStorage.removeItem('bravo_designer_token');
+        localStorage.removeItem('bravo_designer_base_url');
         localStorage.removeItem('theme');
         navigate('/designer', { replace: true });
     }

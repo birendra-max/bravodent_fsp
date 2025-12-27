@@ -21,8 +21,9 @@ export const AdminProvider = ({ children }) => {
 
     const logout = async () => {
         setAdmin(null);
-        localStorage.removeItem('bravo_admin');
-        localStorage.removeItem('bravo_admin_token');
+        localStorage.removeItem("bravo_admin_token");
+        localStorage.removeItem("braov_admin");
+        localStorage.removeItem('bravo_admin_base_url');
         localStorage.removeItem('theme');
         navigate('/admin', { replace: true });
     }

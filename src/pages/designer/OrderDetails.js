@@ -32,7 +32,7 @@ import { UserContext } from "../../Context/UserContext";
 import { DesignerContext } from "../../Context/DesignerContext";
 
 function Chatbox({ orderid, theme }) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('bravo_designer_token');
     const userCtx = useContext(UserContext);
     const designerCtx = useContext(DesignerContext);
     let userRole = null;

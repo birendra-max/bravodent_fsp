@@ -21,8 +21,8 @@ import {
 export default function Hd() {
 
     useEffect(() => {
-        const data = localStorage.getItem('user') ? localStorage.getItem('user') : "";
-        const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
+        const data = localStorage.getItem('bravo_user') ? localStorage.getItem('bravo_user') : "";
+        const token = localStorage.getItem('bravo_user_token') ? localStorage.getItem('bravo_user_token') : "";
 
         if (data === '' && token === '') {
             navigate('/user');
@@ -91,8 +91,7 @@ export default function Hd() {
     const navItems = [
         { href: "/user/home", label: "Home", key: "index", icon: faHome },
         { href: "/user/new_request", label: "File Upload", key: "new_request", icon: faUpload },
-        { href: "/user/multisearch", label: "Advance Search", key: "multisearch", icon: faSearch },
-        { href: "/user/reports", label: "Reports", key: "reports", icon: faChartBar }
+        { href: "/user/reports", label: "Billing Reports", key: "reports", icon: faChartBar }
     ];
 
     const applyTheme = (newTheme) => {

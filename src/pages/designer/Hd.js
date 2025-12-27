@@ -21,8 +21,8 @@ import {
 export default function Hd() {
 
     useEffect(() => {
-        const data = localStorage.getItem('designer') ? localStorage.getItem('designer') : "";
-        const token = localStorage.getItem('token') ? localStorage.getItem('token') : "";
+        const data = localStorage.getItem('bravo_designer') ? localStorage.getItem('bravo_designer') : "";
+        const token = localStorage.getItem('bravo_designer_token') ? localStorage.getItem('bravo_designer_token') : "";
 
         if (data === '' && token === '') {
             navigate('/designer');
