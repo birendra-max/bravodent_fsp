@@ -543,7 +543,7 @@ export default function NewRequest() {
   return (
     <>
       <Hd />
-      <main id="main" className={`flex-grow px-2 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18`}>
+      <main id="main" className={`flex-grow transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-18 sm:pt-18 mt-2`}>
         {showSuccessPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className={`rounded-xl p-8 max-w-md mx-4 shadow-2xl ${theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-white'}`}>
@@ -569,10 +569,10 @@ export default function NewRequest() {
         )}
 
         <section className={theme === 'light' ? 'bg-gray-50' : 'bg-black'}>
-          <div className="max-w-full mx-auto mt-4">
+          <div className="max-w-full mx-auto">
             <div className={`rounded-xl shadow-lg border ${getCardClass()}`}>
               {files.length === 0 && (
-                <div className="p-6">
+                <div className="p-2">
                   <div
                     className={getUploadAreaClass()}
                     onDragEnter={(e) => {

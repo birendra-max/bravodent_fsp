@@ -28,6 +28,7 @@ export default function Reports() {
     const [orderIdTo, setOrderIdTo] = useState('');
     const [allData, setAllData] = useState([]); // Store all data from backend
     const [filteredData, setFilteredData] = useState([]); // Store filtered data for display
+    const [activeFilterType, setActiveFilterType] = useState('time'); // 'time' or 'custom'
 
     // Professional theme-based classes
     const getThemeClasses = () => {
@@ -90,8 +91,109 @@ export default function Reports() {
         { value: '4', label: 'All Time', icon: faFilter },
     ];
 
-    // Filter data based on all criteria
-    const applyFilters = () => {
+    // Universal date parser that works across all browsers
+    const parseOrderDateOnly = (dateStr) => {
+        if (!dateStr) return null;
+
+        try {
+            // Format: "14-Mar-2023 07:32:31am" or similar
+            const [datePart] = dateStr.split(' ');
+
+            // Split the date part
+            const [day, monthStr, year] = datePart.split('-');
+
+            // Month mapping
+            const monthMap = {
+                'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3,
+                'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7,
+                'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+            };
+
+            const monthIndex = monthMap[monthStr];
+            if (monthIndex === undefined) {
+                // Try parsing as ISO format or other formats
+                const parsedDate = new Date(dateStr);
+                if (isNaN(parsedDate.getTime())) {
+                    return null;
+                }
+                // Reset time to midnight for date-only comparison
+                parsedDate.setHours(0, 0, 0, 0);
+                return parsedDate;
+            }
+
+            // Create date using UTC to avoid timezone issues
+            const date = new Date(Date.UTC(parseInt(year), monthIndex, parseInt(day)));
+            date.setHours(0, 0, 0, 0);
+
+            return date;
+        } catch (error) {
+            console.error("Error parsing date:", dateStr, error);
+            return null;
+        }
+    };
+
+    // Helper function to get start of day (midnight) for a date
+    const getStartOfDay = (date) => {
+        const newDate = new Date(date);
+        newDate.setHours(0, 0, 0, 0);
+        return newDate;
+    };
+
+    // Apply TIME-BASED filters (Today/Weekly/Monthly/All Time)
+    const applyTimeFilters = () => {
+        if (!allData.length) {
+            setFilteredData([]);
+            return;
+        }
+
+        let filtered = [...allData];
+        const today = getStartOfDay(new Date());
+
+        // ===== Time period filter =====
+        switch (selectedFilter) {
+            case '1': { // Today
+                filtered = filtered.filter(item => {
+                    const itemDate = parseOrderDateOnly(item.order_date);
+                    return itemDate && itemDate.getTime() === today.getTime();
+                });
+                break;
+            }
+
+            case '2': { // Last 7 Days
+                const weekAgo = new Date(today);
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                weekAgo.setHours(0, 0, 0, 0);
+
+                filtered = filtered.filter(item => {
+                    const itemDate = parseOrderDateOnly(item.order_date);
+                    return itemDate && itemDate >= weekAgo;
+                });
+                break;
+            }
+
+            case '3': { // Last 30 Days
+                const monthAgo = new Date(today);
+                monthAgo.setDate(monthAgo.getDate() - 30);
+                monthAgo.setHours(0, 0, 0, 0);
+
+                filtered = filtered.filter(item => {
+                    const itemDate = parseOrderDateOnly(item.order_date);
+                    return itemDate && itemDate >= monthAgo;
+                });
+                break;
+            }
+
+            case '4': // All Time
+            default:
+                // No filtering needed for All Time
+                break;
+        }
+
+        setFilteredData(filtered);
+    };
+
+    // Apply CUSTOM filters (Order ID range OR Date range)
+    const applyCustomFilters = () => {
         if (!allData.length) {
             setFilteredData([]);
             return;
@@ -99,87 +201,64 @@ export default function Reports() {
 
         let filtered = [...allData];
 
-        // Apply time period filter
-        const now = new Date();
-        switch (selectedFilter) {
-            case '1': // Today
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                filtered = filtered.filter(item => {
-                    const itemDate = new Date(item.order_date);
-                    return itemDate >= today;
-                });
-                break;
-            case '2': // Weekly
-                const weekAgo = new Date();
-                weekAgo.setDate(weekAgo.getDate() - 7);
-                weekAgo.setHours(0, 0, 0, 0);
-                filtered = filtered.filter(item => {
-                    const itemDate = new Date(item.order_date);
-                    return itemDate >= weekAgo;
-                });
-                break;
-            case '3': // Monthly
-                const monthAgo = new Date();
-                monthAgo.setMonth(monthAgo.getMonth() - 1);
-                monthAgo.setHours(0, 0, 0, 0);
-                filtered = filtered.filter(item => {
-                    const itemDate = new Date(item.order_date);
-                    return itemDate >= monthAgo;
-                });
-                break;
-            case '4': // All Time - no date filtering
-                break;
-            default:
-                break;
-        }
-
-        // Apply order ID range filter
+        // ===== Order ID filter =====
         if (orderIdFrom) {
+            const fromId = parseInt(orderIdFrom);
             filtered = filtered.filter(item => {
-                const orderId = parseInt(item.orderid);
-                const fromId = parseInt(orderIdFrom);
-                return orderId >= fromId;
+                const itemId = parseInt(item.orderid);
+                return !isNaN(itemId) && itemId >= fromId;
             });
         }
 
         if (orderIdTo) {
+            const toId = parseInt(orderIdTo);
             filtered = filtered.filter(item => {
-                const orderId = parseInt(item.orderid);
-                const toId = parseInt(orderIdTo);
-                return orderId <= toId;
+                const itemId = parseInt(item.orderid);
+                return !isNaN(itemId) && itemId <= toId;
             });
         }
 
-        // Apply custom date range filter
+        // ===== Custom Date Range (DATE ONLY) =====
         if (startDate) {
+            const start = getStartOfDay(new Date(startDate));
+
             filtered = filtered.filter(item => {
-                const itemDate = new Date(item.order_date);
-                const start = new Date(startDate);
-                return itemDate >= start;
+                const itemDate = parseOrderDateOnly(item.order_date);
+                return itemDate && itemDate >= start;
             });
         }
 
         if (endDate) {
+            const end = getStartOfDay(new Date(endDate));
+
             filtered = filtered.filter(item => {
-                const itemDate = new Date(item.order_date);
-                const end = new Date(endDate);
-                end.setHours(23, 59, 59, 999); // Include entire end day
-                return itemDate <= end;
+                const itemDate = parseOrderDateOnly(item.order_date);
+                return itemDate && itemDate <= end;
             });
         }
 
         setFilteredData(filtered);
     };
 
-    // Handle search button click
-    const handleSearchClick = () => {
-        applyFilters();
+    // Main apply filters function
+    const applyFilters = () => {
+        if (activeFilterType === 'time') {
+            applyTimeFilters();
+        } else if (activeFilterType === 'custom') {
+            applyCustomFilters();
+        }
     };
 
-    // Handle filter button click
+    // Handle search button click for custom filters
+    const handleSearchClick = () => {
+        setActiveFilterType('custom');
+        applyCustomFilters();
+    };
+
+    // Handle filter button click for time filters
     const handleFilterClick = (filterValue) => {
         setSelectedFilter(filterValue);
+        setActiveFilterType('time');
     };
 
     // Handle download report
@@ -190,16 +269,22 @@ export default function Reports() {
             // Simple CSV export
             const headers = columns.map(col => col.header).join(',');
             const csvData = filteredData.map(row =>
-                columns.map(col => `"${row[col.accessor] || ''}"`).join(',')
+                columns.map(col => {
+                    const value = row[col.accessor] || '';
+                    // Escape quotes and wrap in quotes
+                    return `"${String(value).replace(/"/g, '""')}"`;
+                }).join(',')
             ).join('\n');
 
             const csvContent = `${headers}\n${csvData}`;
-            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.download = fileName;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
         } else {
             alert('No data to export');
@@ -212,7 +297,9 @@ export default function Reports() {
         setEndDate('');
         setOrderIdFrom('');
         setOrderIdTo('');
-        setSelectedFilter('4'); // Reset to "All Time"
+        setSelectedFilter('4');
+        setActiveFilterType('time');
+        // Reset filteredData to show all data
         setFilteredData(allData);
     };
 
@@ -230,13 +317,26 @@ export default function Reports() {
     const getHeaderClass = () => {
         return theme === 'light'
             ? 'bg-gray-200 text-gray-800'
-            : 'bg-gray-200 text-white';
+            : 'bg-gray-800 text-white';
     };
 
-    // Apply filters whenever any filter criteria changes
+    // Apply filters whenever selectedFilter changes (for time filters)
     useEffect(() => {
-        applyFilters();
-    }, [selectedFilter, allData]);
+        if (activeFilterType === 'time') {
+            applyTimeFilters();
+        }
+    }, [selectedFilter]);
+
+    // Apply filters when custom filter inputs change
+    useEffect(() => {
+        if (activeFilterType === 'custom') {
+            const timeoutId = setTimeout(() => {
+                applyCustomFilters();
+            }, 300);
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [startDate, endDate, orderIdFrom, orderIdTo, activeFilterType]);
 
     // Initial data fetch
     useEffect(() => {
@@ -248,8 +348,8 @@ export default function Reports() {
                 });
 
                 if (data && data.status === 'success') {
-                    setAllData(data.new_cases);
-                    setFilteredData(data.new_cases); // Initially show all data
+                    setAllData(data.new_cases || []);
+                    setFilteredData(data.new_cases || []);
                 } else {
                     setAllData([]);
                     setFilteredData([]);
@@ -278,7 +378,7 @@ export default function Reports() {
                             <div className="container mx-auto">
                                 <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="text-center sm:text-left">
-                                        <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'bg-black' : 'bg-white'} bg-clip-text text-transparent`}>
+                                        <h1 className={`text-2xl sm:text-3xl font-bold ${theme === 'light' ? 'text-black' : 'text-white'}`}>
                                             Reports & Analytics
                                         </h1>
                                         <p className={`mt-2 text-sm sm:text-base ${themeClasses.text.secondary}`}>
@@ -323,8 +423,8 @@ export default function Reports() {
                                         <button
                                             onClick={handleResetFilters}
                                             className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all ${theme === 'light'
-                                                    ? 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                                                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                                                ? 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                                                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
                                                 }`}
                                         >
                                             <FontAwesomeIcon icon={faSync} className="w-4 h-4" />
@@ -335,8 +435,8 @@ export default function Reports() {
                                             onClick={handleDownloadReport}
                                             disabled={filteredData.length === 0}
                                             className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all ${filteredData.length === 0
-                                                    ? 'bg-gray-400 cursor-not-allowed'
-                                                    : themeClasses.button.download
+                                                ? 'bg-gray-400 cursor-not-allowed'
+                                                : themeClasses.button.download
                                                 }`}
                                         >
                                             <FontAwesomeIcon icon={faDownload} className="w-4 h-4" />
@@ -464,14 +564,14 @@ export default function Reports() {
                                                 key={button.value}
                                                 onClick={() => handleFilterClick(button.value)}
                                                 disabled={isLoading}
-                                                className={`px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 min-w-[120px] cursor-pointer ${selectedFilter === button.value
+                                                className={`px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 min-w-[120px] cursor-pointer ${selectedFilter === button.value && activeFilterType === 'time'
                                                     ? `${themeClasses.button.filterActive} transform scale-105`
                                                     : themeClasses.button.filterInactive
                                                     } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
                                             >
                                                 <FontAwesomeIcon
                                                     icon={button.icon}
-                                                    className={`w-4 h-4 ${selectedFilter === button.value ? 'text-white' : 'text-blue-500'
+                                                    className={`w-4 h-4 ${selectedFilter === button.value && activeFilterType === 'time' ? 'text-white' : 'text-blue-500'
                                                         }`}
                                                 />
                                                 <span className="font-medium">{button.label}</span>
