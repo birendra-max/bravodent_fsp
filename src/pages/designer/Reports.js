@@ -16,7 +16,7 @@ import {
     faSync,
     faHashtag
 } from '@fortawesome/free-solid-svg-icons';
-import { fetchWithAuth } from '../../utils/userapi';
+import { fetchWithAuth } from '../../utils/designerapi';
 
 export default function Reports() {
     const { theme } = useContext(ThemeContext);

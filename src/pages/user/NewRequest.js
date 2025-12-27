@@ -358,7 +358,7 @@ export default function NewRequest() {
   };
 
   const getUploadAreaClass = () => {
-    const baseClass = "border-3 min-h-[75vh] flex justify-center items-center flex-col border-dashed rounded-2xl p-12 text-center transition-all duration-200";
+    const baseClass = "border-3 w-full h-full flex justify-center items-center flex-col border-dashed rounded-2xl p-12 text-center transition-all duration-200";
 
     if (theme === 'light') {
       return drag
@@ -543,7 +543,7 @@ export default function NewRequest() {
   return (
     <>
       <Hd />
-      <main id="main" className={`flex-grow transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-18 sm:pt-18 mt-2`}>
+      <main id="main" className={`flex-grow transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18`}>
         {showSuccessPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className={`rounded-xl p-8 max-w-md mx-4 shadow-2xl ${theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-white'}`}>
@@ -568,314 +568,310 @@ export default function NewRequest() {
           </div>
         )}
 
-        <section className={theme === 'light' ? 'bg-gray-50' : 'bg-black'}>
-          <div className="max-w-full mx-auto">
-            <div className={`rounded-xl shadow-lg border ${getCardClass()}`}>
-              {files.length === 0 && (
-                <div className="p-2">
-                  <div
-                    className={getUploadAreaClass()}
-                    onDragEnter={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setDragActive(true);
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onDragLeave={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setDragActive(false);
-                    }}
-                    onDrop={handleDrop}
-                  >
-                    <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${theme === 'light' ? 'bg-blue-100' : 'bg-blue-900/20'}`}>
-                      <svg className={`w-10 h-10 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-3">
-                      {drag ? "Drop files to upload" : "Upload Order Files"}
-                    </h3>
-                    <p className={`mb-6 max-w-md mx-auto ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                      Drag and drop your ZIP files here or click the button below. Supported format: .zip only
-                    </p>
-                    <label className={`inline-flex items-center px-8 py-3 font-semibold rounded-lg shadow-sm cursor-pointer transition-colors ${theme === 'light'
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-blue-700 hover:bg-blue-600 text-white'
-                      }`}>
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                      Choose Files
-                      <input
-                        type="file"
-                        accept=".zip"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => handleFiles(e.target.files)}
-                      />
-                    </label>
-                  </div>
+        <div className={`rounded-xl shadow-lg border mt-1 ${getCardClass()}`}>
+          {files.length === 0 && (
+            <div className="flex justify-center items-center p-2 h-[81vh]">
+              <div
+                className={getUploadAreaClass()}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragActive(true);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragActive(false);
+                }}
+                onDrop={handleDrop}
+              >
+                <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${theme === 'light' ? 'bg-blue-100' : 'bg-blue-900/20'}`}>
+                  <svg className={`w-10 h-10 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
                 </div>
-              )}
-
-              {files.length > 0 && (
-                <div className="p-2">
-                  <div className={`rounded-lg border ${getTableContainerClass()}`}>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className={`border-b ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
-                            {[
-                              { name: "ORDER ID", width: "w-25" },
-                              { name: "FILE NAME", width: "w-62" },
-                              { name: "STATUS", width: "w-48" },
-                              { name: "PRODUCT TYPE", width: "w-32" },
-                              { name: "UNIT", width: "w-20" },
-                              { name: "TOOTH", width: "w-30" },
-                              { name: "ACTION", width: "w-20" },
-                              { name: "MESSAGE", width: "w-48" },
-                            ].map((header, index) => (
-                              <th
-                                key={index}
-                                className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${header.width} ${getTableHeaderClass()}`}
-                              >
-                                {header.name}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody className={`divide-y ${theme === 'light' ? 'divide-gray-200' : 'divide-gray-700'}`}>
-                          {files.map((file, idx) => (
-                            <tr key={idx} className={getTableRowClass()}>
-                              <td className="px-4 py-3">
-                                <span className={`text-sm font-medium px-2 py-1 rounded ${theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-gray-700 text-white'}`}>
-                                  {file.orderId}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center space-x-3">
-                                  <div className={`w-2 h-2 rounded-full ${file.uploadStatus === "Success" ? "bg-green-500" :
-                                    file.uploadStatus === "Failed" ? "bg-red-500" :
-                                      file.uploadStatus === "Cancelled" ? "bg-gray-500" :
-                                        file.uploadStatus === "Cancelling..." ? "bg-yellow-500" :
-                                          file.uploadStatus.startsWith("Uploading...") ? "bg-blue-500 animate-pulse" :
-                                            "bg-gray-400"
-                                    }`}></div>
-                                  <span className="text-[13px] font-medium break-all whitespace-normal word-break break-words max-w-[400px]">
-                                    {file.fileName}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <StatusBadge status={file.uploadStatus} message={file.message} progress={file.progress} />
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className="text-[13px]">{file.productType}</span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className="text-sm font-medium">{file.unit}</span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className="text-sm font-medium break-all">{file.tooth}</span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <button
-                                  onClick={() => cancelOrder(file.orderId, file.fileName)}
-                                  disabled={file.uploadStatus === "Cancelled" || file.uploadStatus === "Cancelling..."}
-                                  className={`px-3 py-1.5 text-md font-semibold rounded transition-colors ${file.uploadStatus === "Cancelled" || file.uploadStatus === "Cancelling..."
-                                    ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                                    : "bg-red-600 text-white hover:bg-red-700 cursor-pointer"
-                                    }`}
-                                >
-                                  {file.uploadStatus === "Cancelling..." ? "Cancelling..." : "Cancel"}
-                                </button>
-                              </td>
-                              <td className="px-4 py-3">
-                                <input
-                                  type="text"
-                                  value={file.message}
-                                  onChange={(e) => handleMessageChange(file.fileName, e.target.value)}
-                                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${getInputClass()}`}
-                                  placeholder="Add instructions..."
-                                  disabled={file.uploadStatus === "Cancelled" || file.uploadStatus === "Cancelling..."}
-                                />
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  <div className={`mt-4 rounded-xl border-2 p-2 w-3/4 mx-auto ${getTableContainerClass()}`}>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div className="flex justify-center">
-                        <div className="w-full max-w-4xl">
-                          <h2 className={`text-lg font-bold mb-4 text-left ${theme === "light" ? "text-gray-900" : "text-white"} ml-12`}>Choose Your Delivery Option</h2>
-                          <div className="flex justify-around items-center space-x-2">
-                            <label className={`flex flex-col items-center cursor-pointer group p-2 rounded-md transition-all duration-300 ${theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-800"}`}>
-                              <div className="relative mb-1.5">
-                                <input
-                                  type="radio"
-                                  name="timeduration"
-                                  value="Rush"
-                                  checked={selectedDuration === "Rush"}
-                                  onChange={(e) => setSelectedDuration(e.target.value)}
-                                  className="sr-only"
-                                />
-                                <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Rush"
-                                  ? "border-blue-600 bg-blue-600 shadow-md"
-                                  : theme === "light"
-                                    ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
-                                    : "border-gray-500 bg-gray-700 group-hover:border-blue-500 group-hover:shadow-sm"
-                                  }`}>
-                                  {selectedDuration === "Rush" && (
-                                    <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
-                                  )}
-                                </div>
-                              </div>
-                              <span className={`text-sm font-semibold text-center ${theme === "light" ? "text-gray-900" : "text-white"}`}>Rush</span>
-                              <span className={`text-xs text-center flex items-center mt-0.5 ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}>
-                                <i className="fas fa-bolt mr-1 text-yellow-500 text-xs"></i> 1-2 Hours
-                              </span>
-                            </label>
-
-                            <label className={`flex flex-col items-center cursor-pointer group p-2 rounded-md transition-all duration-300 ${theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-800"}`}>
-                              <div className="relative mb-1.5">
-                                <input
-                                  type="radio"
-                                  name="timeduration"
-                                  value="Same Day"
-                                  checked={selectedDuration === "Same Day"}
-                                  onChange={(e) => setSelectedDuration(e.target.value)}
-                                  className="sr-only"
-                                />
-                                <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Same Day"
-                                  ? "border-blue-600 bg-blue-600 shadow-md"
-                                  : theme === "light"
-                                    ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
-                                    : "border-gray-500 bg-gray-700 group-hover:border-blue-500 group-hover:shadow-sm"
-                                  }`}>
-                                  {selectedDuration === "Same Day" && (
-                                    <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
-                                  )}
-                                </div>
-                              </div>
-                              <span className={`text-sm font-semibold text-center ${theme === "light" ? "text-gray-900" : "text-white"}`}>Same Day</span>
-                              <span className={`text-xs text-center flex items-center mt-0.5 ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}>
-                                <i className="fas fa-clock mr-1 text-blue-500 text-xs"></i> 6 Hours
-                              </span>
-                            </label>
-
-                            <label className={`flex flex-col items-center cursor-pointer group p-2 rounded-md transition-all duration-300 ${theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-800"}`}>
-                              <div className="relative mb-1.5">
-                                <input
-                                  type="radio"
-                                  name="timeduration"
-                                  value="Next Day"
-                                  checked={selectedDuration === "Next Day"}
-                                  onChange={(e) => setSelectedDuration(e.target.value)}
-                                  className="sr-only"
-                                />
-                                <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Next Day"
-                                  ? "border-blue-600 bg-blue-600 shadow-md"
-                                  : theme === "light"
-                                    ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
-                                    : "border-gray-500 bg-gray-700 group-hover:border-blue-500 group-hover:shadow-sm"
-                                  }`}>
-                                  {selectedDuration === "Next Day" && (
-                                    <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
-                                  )}
-                                </div>
-                              </div>
-                              <span className={`text-sm font-semibold text-center ${theme === "light" ? "text-gray-900" : "text-white"}`}>Next Day</span>
-                              <span className={`text-xs text-center flex items-center mt-0.5 ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}>
-                                <i className="fas fa-calendar-alt mr-1 text-green-500 text-xs"></i> 12 Hours
-                              </span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col justify-center items-center">
-                        <div className="w-full max-w-sm">
-                          <h3 className={`text-md font-semibold mb-3 text-left ${theme === "light" ? "text-gray-900" : "text-white"}`}>Submit Your Order</h3>
-                          <div className={`text-xs mb-3 text-center leading-relaxed p-2 rounded-md ${isSubmitting
-                            ? theme === "light" ? "text-blue-700 bg-blue-100" : "text-blue-300 bg-blue-900/30"
-                            : files.some(f => f.uploadStatus.startsWith("Uploading..."))
-                              ? theme === "light" ? "text-yellow-700 bg-yellow-100" : "text-yellow-300 bg-yellow-900/30"
-                              : !files.some(f => f.uploadStatus === "Success")
-                                ? theme === "light" ? "text-red-700 bg-red-100" : "text-red-300 bg-red-900/30"
-                                : canSubmit
-                                  ? theme === "light" ? "text-green-700 bg-green-100" : "text-green-300 bg-green-900/30"
-                                  : theme === "light" ? "text-gray-700 bg-gray-100" : "text-gray-300 bg-gray-900/30"
-                            }`}>
-                            {isSubmitting
-                              ? "🔄 Submitting your order, please wait..."
-                              : files.some(f => f.uploadStatus.startsWith("Uploading..."))
-                                ? "⏳ Please wait for all uploads to complete before proceeding."
-                                : !files.some(f => f.uploadStatus === "Success")
-                                  ? "❌ No files successfully uploaded. Please check and retry failed uploads."
-                                  : !selectedDuration
-                                    ? "📋 Please select a delivery timeframe to continue."
-                                    : files.some(f => f.uploadStatus === "Failed")
-                                      ? "⚠️ Some files failed, but you can submit the successful ones."
-                                      : "✅ All files are ready for processing. You're all set!"
-                            }
-                          </div>
-                          <div className="space-y-2">
-                            <button
-                              onClick={handleSubmit}
-                              disabled={!canSubmit || isSubmitting}
-                              className={`w-full font-bold py-2.5 px-5 rounded-lg text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 ${canSubmit && !isSubmitting
-                                ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transform hover:scale-[1.02] focus:ring-blue-300"
-                                : theme === "light"
-                                  ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                                  : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                                }`}
-                              aria-label="Submit Order for Design"
-                            >
-                              {isSubmitting ? (
-                                <span className="flex items-center justify-center">
-                                  <svg className="animate-spin w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                  Processing...
-                                </span>
-                              ) : canSubmit ? (
-                                <span className="flex items-center justify-center">
-                                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                  </svg>
-                                  Send for Design
-                                </span>
-                              ) : (
-                                "Send for Design"
-                              )}
-                            </button>
-                            {files.some(f => f.uploadStatus === "Failed") && canSubmit && (
-                              <div className={`text-xs text-center py-1 px-2.5 rounded-sm shadow-sm ${theme === "light"
-                                ? "text-yellow-700 bg-yellow-100 border border-yellow-200"
-                                : "text-yellow-300 bg-yellow-900/30 border border-yellow-700"
-                                }`}>
-                                ⚠️ Only successful files will be submitted
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                <h3 className="text-xl font-semibold mb-3">
+                  {drag ? "Drop files to upload" : "Upload Order Files"}
+                </h3>
+                <p className={`mb-6 max-w-md mx-auto ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Drag and drop your ZIP files here or click the button below. Supported format: .zip only
+                </p>
+                <label className={`inline-flex items-center px-8 py-3 font-semibold rounded-lg shadow-sm cursor-pointer transition-colors ${theme === 'light'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-blue-700 hover:bg-blue-600 text-white'
+                  }`}>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Choose Files
+                  <input
+                    type="file"
+                    accept=".zip"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleFiles(e.target.files)}
+                  />
+                </label>
+              </div>
             </div>
-          </div>
-        </section>
+          )}
+
+          {files.length > 0 && (
+            <div className="p-2">
+              <div className={`rounded-lg border ${getTableContainerClass()}`}>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className={`border-b ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
+                        {[
+                          { name: "ORDER ID", width: "w-25" },
+                          { name: "FILE NAME", width: "w-62" },
+                          { name: "STATUS", width: "w-48" },
+                          { name: "PRODUCT TYPE", width: "w-32" },
+                          { name: "UNIT", width: "w-20" },
+                          { name: "TOOTH", width: "w-30" },
+                          { name: "ACTION", width: "w-20" },
+                          { name: "MESSAGE", width: "w-48" },
+                        ].map((header, index) => (
+                          <th
+                            key={index}
+                            className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${header.width} ${getTableHeaderClass()}`}
+                          >
+                            {header.name}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${theme === 'light' ? 'divide-gray-200' : 'divide-gray-700'}`}>
+                      {files.map((file, idx) => (
+                        <tr key={idx} className={getTableRowClass()}>
+                          <td className="px-4 py-3">
+                            <span className={`text-sm font-medium px-2 py-1 rounded ${theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-gray-700 text-white'}`}>
+                              {file.orderId}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-2 h-2 rounded-full ${file.uploadStatus === "Success" ? "bg-green-500" :
+                                file.uploadStatus === "Failed" ? "bg-red-500" :
+                                  file.uploadStatus === "Cancelled" ? "bg-gray-500" :
+                                    file.uploadStatus === "Cancelling..." ? "bg-yellow-500" :
+                                      file.uploadStatus.startsWith("Uploading...") ? "bg-blue-500 animate-pulse" :
+                                        "bg-gray-400"
+                                }`}></div>
+                              <span className="text-[13px] font-medium break-all whitespace-normal word-break break-words max-w-[400px]">
+                                {file.fileName}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <StatusBadge status={file.uploadStatus} message={file.message} progress={file.progress} />
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-[13px]">{file.productType}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-medium">{file.unit}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-medium break-all">{file.tooth}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => cancelOrder(file.orderId, file.fileName)}
+                              disabled={file.uploadStatus === "Cancelled" || file.uploadStatus === "Cancelling..."}
+                              className={`px-3 py-1.5 text-md font-semibold rounded transition-colors ${file.uploadStatus === "Cancelled" || file.uploadStatus === "Cancelling..."
+                                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                                : "bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+                                }`}
+                            >
+                              {file.uploadStatus === "Cancelling..." ? "Cancelling..." : "Cancel"}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              value={file.message}
+                              onChange={(e) => handleMessageChange(file.fileName, e.target.value)}
+                              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${getInputClass()}`}
+                              placeholder="Add instructions..."
+                              disabled={file.uploadStatus === "Cancelled" || file.uploadStatus === "Cancelling..."}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className={`mt-4 rounded-xl border-2 p-2 w-3/4 mx-auto ${getTableContainerClass()}`}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="flex justify-center">
+                    <div className="w-full max-w-4xl">
+                      <h2 className={`text-lg font-bold mb-4 text-left ${theme === "light" ? "text-gray-900" : "text-white"} ml-12`}>Choose Your Delivery Option</h2>
+                      <div className="flex justify-around items-center space-x-2">
+                        <label className={`flex flex-col items-center cursor-pointer group p-2 rounded-md transition-all duration-300 ${theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-800"}`}>
+                          <div className="relative mb-1.5">
+                            <input
+                              type="radio"
+                              name="timeduration"
+                              value="Rush"
+                              checked={selectedDuration === "Rush"}
+                              onChange={(e) => setSelectedDuration(e.target.value)}
+                              className="sr-only"
+                            />
+                            <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Rush"
+                              ? "border-blue-600 bg-blue-600 shadow-md"
+                              : theme === "light"
+                                ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
+                                : "border-gray-500 bg-gray-700 group-hover:border-blue-500 group-hover:shadow-sm"
+                              }`}>
+                              {selectedDuration === "Rush" && (
+                                <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
+                              )}
+                            </div>
+                          </div>
+                          <span className={`text-sm font-semibold text-center ${theme === "light" ? "text-gray-900" : "text-white"}`}>Rush</span>
+                          <span className={`text-xs text-center flex items-center mt-0.5 ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}>
+                            <i className="fas fa-bolt mr-1 text-yellow-500 text-xs"></i> 1-2 Hours
+                          </span>
+                        </label>
+
+                        <label className={`flex flex-col items-center cursor-pointer group p-2 rounded-md transition-all duration-300 ${theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-800"}`}>
+                          <div className="relative mb-1.5">
+                            <input
+                              type="radio"
+                              name="timeduration"
+                              value="Same Day"
+                              checked={selectedDuration === "Same Day"}
+                              onChange={(e) => setSelectedDuration(e.target.value)}
+                              className="sr-only"
+                            />
+                            <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Same Day"
+                              ? "border-blue-600 bg-blue-600 shadow-md"
+                              : theme === "light"
+                                ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
+                                : "border-gray-500 bg-gray-700 group-hover:border-blue-500 group-hover:shadow-sm"
+                              }`}>
+                              {selectedDuration === "Same Day" && (
+                                <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
+                              )}
+                            </div>
+                          </div>
+                          <span className={`text-sm font-semibold text-center ${theme === "light" ? "text-gray-900" : "text-white"}`}>Same Day</span>
+                          <span className={`text-xs text-center flex items-center mt-0.5 ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}>
+                            <i className="fas fa-clock mr-1 text-blue-500 text-xs"></i> 6 Hours
+                          </span>
+                        </label>
+
+                        <label className={`flex flex-col items-center cursor-pointer group p-2 rounded-md transition-all duration-300 ${theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-800"}`}>
+                          <div className="relative mb-1.5">
+                            <input
+                              type="radio"
+                              name="timeduration"
+                              value="Next Day"
+                              checked={selectedDuration === "Next Day"}
+                              onChange={(e) => setSelectedDuration(e.target.value)}
+                              className="sr-only"
+                            />
+                            <div className={`w-6 h-6 rounded-full border-3 flex items-center justify-center transition-all duration-300 ${selectedDuration === "Next Day"
+                              ? "border-blue-600 bg-blue-600 shadow-md"
+                              : theme === "light"
+                                ? "border-gray-400 bg-white group-hover:border-blue-500 group-hover:shadow-sm"
+                                : "border-gray-500 bg-gray-700 group-hover:border-blue-500 group-hover:shadow-sm"
+                              }`}>
+                              {selectedDuration === "Next Day" && (
+                                <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
+                              )}
+                            </div>
+                          </div>
+                          <span className={`text-sm font-semibold text-center ${theme === "light" ? "text-gray-900" : "text-white"}`}>Next Day</span>
+                          <span className={`text-xs text-center flex items-center mt-0.5 ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}>
+                            <i className="fas fa-calendar-alt mr-1 text-green-500 text-xs"></i> 12 Hours
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col justify-center items-center">
+                    <div className="w-full max-w-sm">
+                      <h3 className={`text-md font-semibold mb-3 text-left ${theme === "light" ? "text-gray-900" : "text-white"}`}>Submit Your Order</h3>
+                      <div className={`text-xs mb-3 text-center leading-relaxed p-2 rounded-md ${isSubmitting
+                        ? theme === "light" ? "text-blue-700 bg-blue-100" : "text-blue-300 bg-blue-900/30"
+                        : files.some(f => f.uploadStatus.startsWith("Uploading..."))
+                          ? theme === "light" ? "text-yellow-700 bg-yellow-100" : "text-yellow-300 bg-yellow-900/30"
+                          : !files.some(f => f.uploadStatus === "Success")
+                            ? theme === "light" ? "text-red-700 bg-red-100" : "text-red-300 bg-red-900/30"
+                            : canSubmit
+                              ? theme === "light" ? "text-green-700 bg-green-100" : "text-green-300 bg-green-900/30"
+                              : theme === "light" ? "text-gray-700 bg-gray-100" : "text-gray-300 bg-gray-900/30"
+                        }`}>
+                        {isSubmitting
+                          ? "🔄 Submitting your order, please wait..."
+                          : files.some(f => f.uploadStatus.startsWith("Uploading..."))
+                            ? "⏳ Please wait for all uploads to complete before proceeding."
+                            : !files.some(f => f.uploadStatus === "Success")
+                              ? "❌ No files successfully uploaded. Please check and retry failed uploads."
+                              : !selectedDuration
+                                ? "📋 Please select a delivery timeframe to continue."
+                                : files.some(f => f.uploadStatus === "Failed")
+                                  ? "⚠️ Some files failed, but you can submit the successful ones."
+                                  : "✅ All files are ready for processing. You're all set!"
+                        }
+                      </div>
+                      <div className="space-y-2">
+                        <button
+                          onClick={handleSubmit}
+                          disabled={!canSubmit || isSubmitting}
+                          className={`w-full font-bold py-2.5 px-5 rounded-lg text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 ${canSubmit && !isSubmitting
+                            ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transform hover:scale-[1.02] focus:ring-blue-300"
+                            : theme === "light"
+                              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                              : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                            }`}
+                          aria-label="Submit Order for Design"
+                        >
+                          {isSubmitting ? (
+                            <span className="flex items-center justify-center">
+                              <svg className="animate-spin w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Processing...
+                            </span>
+                          ) : canSubmit ? (
+                            <span className="flex items-center justify-center">
+                              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              Send for Design
+                            </span>
+                          ) : (
+                            "Send for Design"
+                          )}
+                        </button>
+                        {files.some(f => f.uploadStatus === "Failed") && canSubmit && (
+                          <div className={`text-xs text-center py-1 px-2.5 rounded-sm shadow-sm ${theme === "light"
+                            ? "text-yellow-700 bg-yellow-100 border border-yellow-200"
+                            : "text-yellow-300 bg-yellow-900/30 border border-yellow-700"
+                            }`}>
+                            ⚠️ Only successful files will be submitted
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
       <Foot />
     </>
