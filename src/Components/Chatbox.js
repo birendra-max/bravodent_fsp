@@ -13,7 +13,7 @@ export default function Chatbox({ orderid }) {
     const userToken = localStorage.getItem('bravo_user_token');
     const adminToken = localStorage.getItem('bravo_admin_token');
     const designerToken = localStorage.getItem('bravo_designer_token');
-    const token = userToken || adminToken || designerToken || "";
+    const token = userToken || adminToken || designerToken;
 
     const userCtx = useContext(UserContext);
     const designerCtx = useContext(DesignerContext);
@@ -99,7 +99,6 @@ export default function Chatbox({ orderid }) {
         try {
             const response = await fetch(`${config.API_BASE_URL}/chat/get-chat-history/${orderid}`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'X-Tenant': 'bravodent'
                 }
             });
@@ -119,7 +118,7 @@ export default function Chatbox({ orderid }) {
                         timestamp: msg.message_date,
                         user_type: msg.user_type,
                         user_name: msg.user_name || msg.user_type,
-                        alignment: isRight ? 'right' : 'left',
+                        alignment: (msg.user_type === 'Client') ? 'left' : 'right',
                         file_path: msg.file_path || null,
                         filename: msg.attachment || null,
                         hasAttachment: !!msg.file_path,
@@ -408,9 +407,9 @@ export default function Chatbox({ orderid }) {
     };
 
     const getChatHeaderTitle = () => {
-        if (userRole === 'client') return 'Designer Team';
+        if (userRole === 'client') return `Order: ${orderid}`;
         if (userRole === 'designer') return `Order: ${orderid}`;
-        if (userRole === 'admin') return `Admin Chat - Order: ${orderid}`;
+        if (userRole === 'admin') return `Order: ${orderid}`;
         return `Chat - Order: ${orderid}`;
     };
 
@@ -473,18 +472,6 @@ export default function Chatbox({ orderid }) {
                         return (
                             <div key={msg.id} className={`flex flex-col ${isRight ? 'items-end' : 'items-start'}`}>
                                 <div className={`max-w-[85%] p-2 rounded-lg shadow-md ${getMessageColor(msg.user_type, isRight)}`}>
-                                    <div className="flex items-center gap-1 mb-1">
-                                        <FontAwesomeIcon
-                                            icon={getUserIcon(msg.user_type)}
-                                            className={`w-3 h-3 ${isAdmin ? 'text-yellow-300' :
-                                                isDesigner ? 'text-green-300' :
-                                                    'text-blue-300'
-                                                }`}
-                                        />
-                                        <span className="text-[10px] font-semibold opacity-90">
-                                            {msg.user_name || msg.user_type}
-                                        </span>
-                                    </div>
                                     {msg.hasAttachment && msg.file_path ? (
                                         <div className="flex items-center gap-2 p-1">
                                             <FontAwesomeIcon icon={faFile} className="text-white/70" />

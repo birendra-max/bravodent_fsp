@@ -169,7 +169,6 @@ export default function Hd() {
                         </div>
 
                         {/* Right Side - Search & Profile */}
-                        {/* Right Side - Search & Profile */}
                         <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
                             {/* Search Form - Desktop */}
                             <div className="hidden lg:block search-container">
@@ -315,7 +314,7 @@ export default function Hd() {
 
                                             <div className="py-2">
                                                 <Link
-                                                    to="/user/profile"
+                                                    to="/designer/profile"
                                                     className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
                                                     onClick={() => setDropdownOpen(false)}
                                                 >
