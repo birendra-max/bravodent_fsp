@@ -91,8 +91,8 @@ export default function Hd() {
     const navItems = [
         { href: "/designer/home", label: "Home", key: "index", icon: faHome },
         { href: "/designer/new_request", label: "File Upload", key: "new_request", icon: faUpload },
-        { href: "/designer/multisearch", label: "Advance Search", key: "multisearch", icon: faSearch },
-        { href: "/designer/reports", label: "Reports", key: "reports", icon: faChartBar }
+        // { href: "/designer/multisearch", label: "Advance Search", key: "multisearch", icon: faSearch },
+        // { href: "/designer/reports", label: "Reports", key: "reports", icon: faChartBar }
     ];
 
     const applyTheme = (newTheme) => {

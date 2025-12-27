@@ -16,41 +16,52 @@ export default function NewRequest() {
 
   const handleFiles = async (selectedFiles) => {
     const fileArray = Array.from(selectedFiles);
+
+    // 1. Separate valid and invalid files upfront
     const validFiles = fileArray.filter((file) =>
       file.name.endsWith(".zip") || file.name.endsWith(".stl")
     );
 
-    if (validFiles.length !== fileArray.length) {
+    const invalidFiles = fileArray.filter((file) =>
+      !(file.name.endsWith(".zip") || file.name.endsWith(".stl"))
+    );
+
+    // 2. Process valid files first (if any exist)
+    if (validFiles.length > 0) {
+      validFiles.forEach((file) => {
+        setFiles((prev) => [
+          ...prev,
+          {
+            fileName: file.name,
+            progress: 0,
+            uploadStatus: "Waiting...",
+            message: "",
+            file: file,
+            matchingOrders: null,
+            showOrderSelection: false,
+            fileSize: file.size,
+          },
+        ]);
+        uploadFile(file);
+      });
+    }
+
+    // 3. Show error for invalid files (if any exist)
+    if (invalidFiles.length > 0) {
+      // Show temporary error message
       setFiles(prev => [...prev, {
-        fileName: "Invalid files detected",
+        fileName: `Invalid files detected (${invalidFiles.length})`,
         progress: 0,
         uploadStatus: "Error",
-        message: "Only .zip or .stl files are allowed!",
+        message: `Only .zip or .stl files are allowed! Skipped: ${invalidFiles.map(f => f.name).join(', ')}`,
         isError: true
       }]);
 
+      // Auto-remove the error message after 5 seconds
       setTimeout(() => {
         setFiles(prev => prev.filter(f => !f.isError));
-      }, 3000);
-      return;
+      }, 5000);
     }
-
-    validFiles.forEach((file) => {
-      setFiles((prev) => [
-        ...prev,
-        {
-          fileName: file.name,
-          progress: 0,
-          uploadStatus: "Waiting...",
-          message: "",
-          file: file,
-          matchingOrders: null,
-          showOrderSelection: false,
-          fileSize: file.size,
-        },
-      ]);
-      uploadFile(file);
-    });
   };
 
   const simulateProgress = (fileName) => {
@@ -196,7 +207,7 @@ export default function NewRequest() {
         formData.append("file", file);
         formData.append("orderid", orderId);
         formData.append('desiid', designer.desiid);
-        
+
         const fileType = file.name.endsWith('.stl') ? 'stl' : 'finished';
         formData.append("type", fileType);
 
@@ -362,7 +373,7 @@ export default function NewRequest() {
   };
 
   const getUploadAreaClass = () => {
-    const baseClass = "border-3 min-h-[75vh] flex justify-center items-center flex-col border-dashed rounded-2xl p-12 text-center transition-all duration-200";
+    const baseClass = "border-3 flex w-full h-full justify-center items-center flex-col border-dashed rounded-2xl p-12 text-center transition-all duration-200";
 
     if (theme === 'light') {
       return drag
@@ -593,174 +604,170 @@ export default function NewRequest() {
   return (
     <>
       <Hd />
-      <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18`}>
-        <section className={theme === 'light' ? 'bg-gray-50' : 'bg-black'}>
-          <div className="max-w-full mx-auto mt-4">
-            <div className={`rounded-xl shadow-sm border ${getCardClass()}`}>
-              {/* Upload Area */}
-              {files.length === 0 && (
-                <div className="p-6">
-                  <div
-                    className={getUploadAreaClass()}
-                    onDragEnter={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setDragActive(true);
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onDragLeave={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setDragActive(false);
-                    }}
-                    onDrop={handleDrop}
-                  >
-                    <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${theme === 'light' ? 'bg-blue-100' : 'bg-blue-900/20'
-                      }`}>
-                      <svg className={`w-10 h-10 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-3">
-                      {drag ? "Drop files to upload" : "Upload Order Files"}
-                    </h3>
-                    <p className={`mb-6 max-w-md mx-auto ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
-                      }`}>
-                      Drag and drop your files here or click the button below. Supported formats: .zip or .stl
-                    </p>
-                    <label className={`inline-flex items-center px-8 py-3 font-semibold rounded-lg shadow-sm cursor-pointer transition-colors ${theme === 'light'
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-blue-700 hover:bg-blue-600 text-white'
-                      }`}>
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                      Choose Files
-                      <input
-                        type="file"
-                        accept=".zip,.stl"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => handleFiles(e.target.files)}
-                      />
-                    </label>
-                  </div>
+      <main id="main" className={`flex-grow h transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18 mt-2`}>
+        <div className={`rounded-xl shadow-sm border ${getCardClass()}`}>
+          {/* Upload Area */}
+          {files.length === 0 && (
+            <div className="flex justify-center items-center p-2 h-[81vh]">
+              <div
+                className={getUploadAreaClass()}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragActive(true);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragActive(false);
+                }}
+                onDrop={handleDrop}
+              >
+                <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${theme === 'light' ? 'bg-blue-100' : 'bg-blue-900/20'
+                  }`}>
+                  <svg className={`w-10 h-10 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
                 </div>
-              )}
+                <h3 className="text-xl font-semibold mb-3">
+                  {drag ? "Drop files to upload" : "Upload Order Files"}
+                </h3>
+                <p className={`mb-6 max-w-md mx-auto ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'
+                  }`}>
+                  Drag and drop your files here or click the button below. Supported formats: .zip or .stl
+                </p>
+                <label className={`inline-flex items-center px-8 py-3 font-semibold rounded-lg shadow-sm cursor-pointer transition-colors ${theme === 'light'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-blue-700 hover:bg-blue-600 text-white'
+                  }`}>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Choose Files
+                  <input
+                    type="file"
+                    accept=".zip,.stl"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleFiles(e.target.files)}
+                  />
+                </label>
+              </div>
+            </div>
+          )}
 
-              {/* Files Table */}
-              {files.length > 0 && (
-                <div className="p-6">
-                  {/* Header with reset button */}
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold">Uploaded Files</h2>
-                    <button
-                      onClick={resetPage}
-                      className={`
+          {/* Files Table */}
+          {files.length > 0 && (
+            <div className="p-6">
+              {/* Header with reset button */}
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Uploaded Files</h2>
+                <button
+                  onClick={resetPage}
+                  className={`
       inline-flex items-center gap-2 px-5 py-2.5
       rounded-xl font-semibold text-sm
       transition-all duration-300
       shadow-md hover:shadow-lg active:scale-95
       ${theme === "light"
-                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600"
-                          : "bg-gradient-to-r from-blue-700 to-blue-600 text-white hover:from-blue-600 hover:to-blue-500"
-                        }
+                      ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600"
+                      : "bg-gradient-to-r from-blue-700 to-blue-600 text-white hover:from-blue-600 hover:to-blue-500"
+                    }
     `}
-                    >
-                      {/* Icon */}
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                      </svg>
+                >
+                  {/* Icon */}
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
 
-                      Upload New Files
-                    </button>
-                  </div>
+                  Upload New Files
+                </button>
+              </div>
 
-                  {/* Summary Cards - Updated to include "Multiple Orders Found" in Pending */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    {[
-                      { count: files.length, label: "Total Files", gradient: "from-blue-500 to-blue-600" },
-                      { count: files.filter(f => f.uploadStatus === "Success").length, label: "Completed", gradient: "from-green-500 to-green-600" },
-                      { count: files.filter(f => f.uploadStatus === "Uploading...").length, label: "In Progress", gradient: "from-yellow-500 to-yellow-600" },
-                      // ✅ UPDATED: Include "Multiple Orders Found" in pending count
-                      { count: files.filter(f => f.uploadStatus === "Waiting..." || f.uploadStatus === "Multiple Orders Found").length, label: "Pending", gradient: "from-gray-500 to-gray-600" },
-                    ].map((card, index) => (
-                      <div key={index} className={`bg-gradient-to-r ${card.gradient} text-white rounded-lg p-4 shadow-sm`}>
-                        <div className="text-2xl font-bold">{card.count}</div>
-                        <div className="text-opacity-90 text-sm">{card.label}</div>
-                      </div>
-                    ))}
+              {/* Summary Cards - Updated to include "Multiple Orders Found" in Pending */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                {[
+                  { count: files.length, label: "Total Files", gradient: "from-blue-500 to-blue-600" },
+                  { count: files.filter(f => f.uploadStatus === "Success").length, label: "Completed", gradient: "from-green-500 to-green-600" },
+                  { count: files.filter(f => f.uploadStatus === "Uploading...").length, label: "In Progress", gradient: "from-yellow-500 to-yellow-600" },
+                  // ✅ UPDATED: Include "Multiple Orders Found" in pending count
+                  { count: files.filter(f => f.uploadStatus === "Waiting..." || f.uploadStatus === "Multiple Orders Found").length, label: "Pending", gradient: "from-gray-500 to-gray-600" },
+                ].map((card, index) => (
+                  <div key={index} className={`bg-gradient-to-r ${card.gradient} text-white rounded-lg p-4 shadow-sm`}>
+                    <div className="text-2xl font-bold">{card.count}</div>
+                    <div className="text-opacity-90 text-sm">{card.label}</div>
                   </div>
+                ))}
+              </div>
 
-                  {/* Table Container - Now with 3 columns: FILE NAME, PROGRESS, STATUS */}
-                  <div className={`rounded-lg border ${getTableContainerClass()}`}>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className={`border-b ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
-                            <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
-                              FILE NAME
-                            </th>
-                            <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
-                              PROGRESS
-                            </th>
-                            <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
-                              STATUS
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className={`divide-y ${theme === 'light' ? 'divide-gray-200' : 'divide-gray-700'}`}>
-                          {files.map((file, idx) => (
-                            <tr key={idx} className={getTableRowClass()}>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center space-x-3">
-                                  {/* ✅ UPDATED: Added color for "Multiple Orders Found" */}
-                                  <div className={`w-2 h-2 rounded-full ${file.uploadStatus === "Success" ? "bg-green-500" :
-                                    file.uploadStatus === "Failed" ? "bg-red-500" :
-                                      file.uploadStatus === "Uploading..." ? "bg-blue-500" :
-                                        file.uploadStatus === "Error" ? "bg-red-500" :
-                                          // ✅ ADDED: Color for multiple orders
-                                          file.uploadStatus === "Multiple Orders Found" ? "bg-yellow-500" :
-                                            "bg-gray-400"
-                                    }`}></div>
-                                  <span className="text-sm font-medium truncate max-w-xs">
-                                    {file.fileName}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <ProgressBar file={file} />
-                              </td>
-                              <td className="px-6 py-4">
-                                {/* ✅ UPDATED: Pass file and showOrderSelection props */}
-                                <StatusBadge
-                                  status={file.uploadStatus}
-                                  message={file.message}
-                                  fileLink={file.fileLink}
-                                  file={file}
-                                  showOrderSelection={file.showOrderSelection}
-                                />
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+              {/* Table Container - Now with 3 columns: FILE NAME, PROGRESS, STATUS */}
+              <div className={`rounded-lg border ${getTableContainerClass()}`}>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className={`border-b ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
+                        <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
+                          FILE NAME
+                        </th>
+                        <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
+                          PROGRESS
+                        </th>
+                        <th className={`px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider ${getTableHeaderClass()}`}>
+                          STATUS
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${theme === 'light' ? 'divide-gray-200' : 'divide-gray-700'}`}>
+                      {files.map((file, idx) => (
+                        <tr key={idx} className={getTableRowClass()}>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-3">
+                              {/* ✅ UPDATED: Added color for "Multiple Orders Found" */}
+                              <div className={`w-2 h-2 rounded-full ${file.uploadStatus === "Success" ? "bg-green-500" :
+                                file.uploadStatus === "Failed" ? "bg-red-500" :
+                                  file.uploadStatus === "Uploading..." ? "bg-blue-500" :
+                                    file.uploadStatus === "Error" ? "bg-red-500" :
+                                      // ✅ ADDED: Color for multiple orders
+                                      file.uploadStatus === "Multiple Orders Found" ? "bg-yellow-500" :
+                                        "bg-gray-400"
+                                }`}></div>
+                              <span className="text-sm font-medium truncate max-w-xs">
+                                {file.fileName}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <ProgressBar file={file} />
+                          </td>
+                          <td className="px-6 py-4">
+                            {/* ✅ UPDATED: Pass file and showOrderSelection props */}
+                            <StatusBadge
+                              status={file.uploadStatus}
+                              message={file.message}
+                              fileLink={file.fileLink}
+                              file={file}
+                              showOrderSelection={file.showOrderSelection}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
-        </section>
+          )}
+        </div>
       </main>
       <Foot />
     </>

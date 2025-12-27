@@ -18,46 +18,55 @@ export default function NewRequest() {
   const [uploadRequests, setUploadRequests] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false); // Added missing state
 
+
   const handleFiles = (selectedFiles) => {
     const fileArray = Array.from(selectedFiles);
-    const zipFiles = fileArray.filter((file) => file.name.endsWith(".zip"));
 
-    if (zipFiles.length !== fileArray.length) {
+    // 1. Separate valid and invalid files upfront
+    const zipFiles = fileArray.filter((file) => file.name.endsWith(".zip"));
+    const invalidFiles = fileArray.filter((file) => !file.name.endsWith(".zip"));
+
+    // 2. Process valid .zip files first (if any exist)
+    if (zipFiles.length > 0) {
+      zipFiles.forEach((file) => {
+        setFiles((prev) => [
+          ...prev,
+          {
+            fileName: file.name,
+            progress: 0,
+            uploadStatus: "Waiting...",
+            orderId: "-",
+            productType: "-",
+            unit: "-",
+            tooth: "-",
+            message: "",
+            file: file,
+          },
+        ]);
+        uploadFile(file);
+      });
+    }
+
+    // 3. Show error for invalid files (if any exist)
+    if (invalidFiles.length > 0) {
+      // Show temporary error message
       setFiles(prev => [...prev, {
-        fileName: "Invalid files detected",
+        fileName: `Invalid files detected (${invalidFiles.length})`,
         progress: 0,
         uploadStatus: "Error",
         orderId: "-",
         productType: "-",
         unit: "-",
         tooth: "-",
-        message: "Only .zip files are allowed!",
+        message: `Only .zip files are allowed! Skipped: ${invalidFiles.map(f => f.name).join(', ')}`,
         isError: true
       }]);
 
+      // Auto-remove the error message after 5 seconds
       setTimeout(() => {
         setFiles(prev => prev.filter(f => !f.isError));
-      }, 3000);
-      return;
+      }, 5000);
     }
-
-    zipFiles.forEach((file) => {
-      setFiles((prev) => [
-        ...prev,
-        {
-          fileName: file.name,
-          progress: 0,
-          uploadStatus: "Waiting...",
-          orderId: "-",
-          productType: "-",
-          unit: "-",
-          tooth: "-",
-          message: "",
-          file: file,
-        },
-      ]);
-      uploadFile(file);
-    });
   };
 
   const token = localStorage.getItem('bravo_user_token');
@@ -543,7 +552,7 @@ export default function NewRequest() {
   return (
     <>
       <Hd />
-      <main id="main" className={`flex-grow transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18`}>
+      <main id="main" className={`flex-grow transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18 mt-2`}>
         {showSuccessPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className={`rounded-xl p-8 max-w-md mx-4 shadow-2xl ${theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-white'}`}>
@@ -568,7 +577,7 @@ export default function NewRequest() {
           </div>
         )}
 
-        <div className={`rounded-xl shadow-lg border mt-1 ${getCardClass()}`}>
+        <div className={`rounded-xl shadow-lg border ${getCardClass()}`}>
           {files.length === 0 && (
             <div className="flex justify-center items-center p-2 h-[81vh]">
               <div
