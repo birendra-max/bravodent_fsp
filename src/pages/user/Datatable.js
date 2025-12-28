@@ -10,6 +10,47 @@ import {
     faTimes
 } from '@fortawesome/free-solid-svg-icons';
 
+const parseDateForFilter = (value) => {
+    if (!value) return null;
+
+    // Input[type=date] → YYYY-MM-DD
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [y, m, d] = value.split("-").map(Number);
+        return new Date(y, m - 1, d).getTime();
+    }
+
+    if (typeof value !== "string") return null;
+
+    const str = value.trim();
+
+    // 27-Dec-2025 10:33:59am OR 27-Dec-2025
+    const match = str.match(
+        /^(\d{1,2})-([A-Za-z]{3})-(\d{4})(?:\s+\d{1,2}:\d{2}:\d{2}(?:am|pm))?$/
+    );
+
+    if (!match) return null;
+
+    const [, day, mon, year] = match;
+
+    const months = {
+        jan: 0, feb: 1, mar: 2, apr: 3,
+        may: 4, jun: 5, jul: 6, aug: 7,
+        sep: 8, oct: 9, nov: 10, dec: 11
+    };
+
+    const monthIndex = months[mon.toLowerCase()];
+    if (monthIndex === undefined) return null;
+
+    // 🔥 DATE ONLY (time removed)
+    return new Date(
+        Number(year),
+        monthIndex,
+        Number(day)
+    ).getTime();
+};
+
+
+
 // ✅ Create a separate component for the popup
 const RedesignPopup = ({
     theme,
@@ -249,6 +290,10 @@ export default function Datatable({
     const [pendingRedesignOrders, setPendingRedesignOrders] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // ✅ NEW STATES for date filtering
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+
     // ✅ Control loader based on parent's loading prop
     useEffect(() => {
         if (!loading) {
@@ -258,10 +303,30 @@ export default function Datatable({
         }
     }, [loading]);
 
-    // Filter & Sort
+    // Filter & Sort with Date Filtering
     const filteredData = useMemo(() => {
         let filtered = data || [];
 
+        if (dateFrom || dateTo) {
+            filtered = filtered.filter((row) => {
+                const rawDate =
+                    row.order_date;
+
+                const rowTime = parseDateForFilter(rawDate);
+                if (!rowTime) return false;
+
+                const fromTime = dateFrom ? parseDateForFilter(dateFrom) : null;
+                const toTime = dateTo ? parseDateForFilter(dateTo) : null;
+
+                if (fromTime && rowTime < fromTime) return false;
+                if (toTime && rowTime > toTime) return false;
+
+                return true;
+            });
+        }
+
+
+        // Apply search filter
         if (search) {
             filtered = filtered.filter((row) =>
                 columns.some((col) =>
@@ -272,6 +337,7 @@ export default function Datatable({
             );
         }
 
+        // Apply sorting
         if (sortConfig.key) {
             filtered = [...filtered].sort((a, b) => {
                 const aVal = a[sortConfig.key];
@@ -295,7 +361,7 @@ export default function Datatable({
         }
 
         return filtered;
-    }, [search, data, columns, sortConfig]);
+    }, [search, data, columns, sortConfig, dateFrom, dateTo]);
 
     const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
 
@@ -584,6 +650,11 @@ export default function Datatable({
         }
     };
 
+    // Clear date filters
+    const clearDateFilters = () => {
+        setDateFrom("");
+        setDateTo("");
+    };
 
     // Theme-based styling functions
     const getBackgroundClass = () => {
@@ -689,28 +760,26 @@ export default function Datatable({
                         <>
                             {/* Search + Rows per page */}
                             <div className="mb-4">
-                                <div className="flex flex-col lg:flex-row items-stretch gap-8">
+                                <div className="flex flex-col lg:flex-row items-stretch gap-2">
                                     {/* Left panel - Clean minimal with colorful buttons */}
                                     <div className={`flex-1 rounded-lg border ${theme === 'light' ? 'bg-white border-gray-100' : 'bg-gray-900 border-gray-800'}`}>
                                         <div className="flex flex-col md:flex-row items-center p-4 gap-4">
-                                            {/* File type selector - Clean */}
-                                            <div className="flex-1 w-full">
-                                                <div className="flex items-center gap-4">
+                                            {/* File type selector - Clean with reduced width */}
+                                            <div className="w-full md:w-auto">
+                                                <div className="flex items-center gap-2">
                                                     <span className={`text-sm font-medium whitespace-nowrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
                                                         File Type:
                                                     </span>
-                                                    <div className="flex-1">
-                                                        <select
-                                                            value={fileType}
-                                                            onChange={(e) => setFileType(e.target.value)}
-                                                            className={`w-full px-3 py-2 text-sm border-b focus:outline-none ${theme === 'light'
-                                                                ? 'bg-transparent text-black border-gray-300 focus:border-blue-500'
-                                                                : 'bg-gray-800 text-white border-gray-600 focus:border-blue-500'}`}
-                                                        >
-                                                            <option value="stl">STL Files</option>
-                                                            <option value="finish">Finished Files</option>
-                                                        </select>
-                                                    </div>
+                                                    <select
+                                                        value={fileType}
+                                                        onChange={(e) => setFileType(e.target.value)}
+                                                        className={`px-3 py-2 text-sm border-b focus:outline-none w-48 ${theme === 'light'
+                                                            ? 'bg-transparent text-black border-gray-300 focus:border-blue-500'
+                                                            : 'bg-gray-800 text-white border-gray-600 focus:border-blue-500'}`}
+                                                    >
+                                                        <option value="stl">STL Files</option>
+                                                        <option value="finish">Finished Files</option>
+                                                    </select>
                                                 </div>
                                             </div>
 
@@ -718,10 +787,9 @@ export default function Datatable({
                                             <div className="flex gap-3 w-full md:w-auto">
                                                 <button
                                                     onClick={handleBulkDownload}
-                                                    className={`group flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium text-sm transition-all duration-200 
-              ${theme === 'light'
-                                                            ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-sm hover:shadow-md'
-                                                            : 'bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white shadow-sm hover:shadow-md'}`}
+                                                    className={`group flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium text-sm transition-all duration-200 ${theme === 'light'
+                                                        ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-sm hover:shadow-md'
+                                                        : 'bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white shadow-sm hover:shadow-md'}`}
                                                 >
                                                     <svg className="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -731,10 +799,9 @@ export default function Datatable({
 
                                                 <button
                                                     onClick={openRedesignPopup}
-                                                    className={`group flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium text-sm transition-all duration-200 
-              ${theme === 'light'
-                                                            ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-sm hover:shadow-md'
-                                                            : 'bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white shadow-sm hover:shadow-md'}`}
+                                                    className={`group flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium text-sm transition-all duration-200 ${theme === 'light'
+                                                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-sm hover:shadow-md'
+                                                        : 'bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 text-white shadow-sm hover:shadow-md'}`}
                                                 >
                                                     <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -742,6 +809,61 @@ export default function Datatable({
                                                     Send for Redesign
                                                 </button>
                                             </div>
+
+                                            {/* Date filters */}
+                                            {/* Date filters */}
+                                            <div className="flex-1 flex flex-wrap items-center gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <label className={`text-sm font-medium whitespace-nowrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                                                        From:
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        value={dateFrom}
+                                                        onChange={(e) => setDateFrom(e.target.value)}
+                                                        className={`px-3 py-2 text-sm border rounded focus:outline-none w-36 ${theme === 'light'
+                                                            ? 'bg-white text-black border-gray-300 focus:border-blue-500'
+                                                            : 'bg-gray-800 text-white border-gray-600 focus:border-blue-500'}`}
+                                                    />
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <label className={`text-sm font-medium whitespace-nowrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                                                        To:
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        value={dateTo}
+                                                        onChange={(e) => setDateTo(e.target.value)}
+                                                        className={`px-3 py-2 text-sm border rounded focus:outline-none w-36 ${theme === 'light'
+                                                            ? 'bg-white text-black border-gray-300 focus:border-blue-500'
+                                                            : 'bg-gray-800 text-white border-gray-600 focus:border-blue-500'}`}
+                                                    />
+                                                </div>
+
+                                                {(dateFrom || dateTo) && (
+                                                    <button
+                                                        onClick={clearDateFilters}
+                                                        title="Clear filters"
+                                                        className={`flex items-center gap-2 px-1 py-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-sm font-medium rounded-lg border border-red-600 transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer`}
+                                                    >
+                                                        <svg
+                                                            className="w-6 h-6"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M6 18L18 6M6 6l12 12"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+
                                         </div>
                                     </div>
 
@@ -925,7 +1047,7 @@ export default function Datatable({
                                                 className={`pl-50 p-5 text-center`}
                                             >
                                                 <FontAwesomeIcon icon={faFolderOpen} size="lg" className="me-2 text-blue-500" />
-                                                No records found.
+                                                {dateFrom || dateTo ? "No records found for the selected date range." : "No records found."}
                                             </td>
                                         </tr>
                                     )}
@@ -952,6 +1074,7 @@ export default function Datatable({
 
                                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600 pl-4 '}>
                                             Showing {paginatedData.length} of {filteredData.length} entries
+                                            {(dateFrom || dateTo) && " (filtered by date)"}
                                         </span>
                                     </label>
 

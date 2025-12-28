@@ -369,8 +369,8 @@ export default function Reports() {
     return (
         <>
             <Hd />
-            <main id="main" className={`flex-grow px-4 transition-colors duration-300 ${themeClasses.main} pt-16 sm:pt-18`}>
-                <div className="min-h-screen px-2 sm:px-6 lg:px-2">
+            <main id="main" className={`flex-grow px-2 transition-colors duration-300 ${themeClasses.main} pt-16 sm:pt-18`}>
+                <div className="min-h-screen">
                     <div className="w-full max-w-full">
 
                         {/* Enhanced Header Section */}
@@ -409,10 +409,10 @@ export default function Reports() {
                         </header>
 
                         {/* Main Card Container */}
-                        <div className={`rounded-xl ${themeClasses.card} p-6 mb-8`}>
+                        <div className={`rounded-xl ${themeClasses.card} p-2 mb-8`}>
 
                             {/* Search Section */}
-                            <div className="mb-8">
+                            <div className="mb-8 p-4">
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className={`text-xl font-semibold ${themeClasses.text.primary} flex items-center`}>
                                         <FontAwesomeIcon icon={faSearch} className="w-5 h-5 mr-3 text-blue-500" />
@@ -546,7 +546,7 @@ export default function Reports() {
 
 
                             {/* Enhanced Filter Section */}
-                            <div className="mb-8">
+                            <div className="mb-8 p-4">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className={`text-lg font-semibold ${themeClasses.text.primary} flex items-center`}>
                                         <FontAwesomeIcon icon={faFilter} className="w-4 h-4 mr-2 text-blue-500" />
