@@ -694,22 +694,6 @@ export default function NewRequest() {
                 </button>
               </div>
 
-              {/* Summary Cards - Updated to include "Multiple Orders Found" in Pending */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                {[
-                  { count: files.length, label: "Total Files", gradient: "from-blue-500 to-blue-600" },
-                  { count: files.filter(f => f.uploadStatus === "Success").length, label: "Completed", gradient: "from-green-500 to-green-600" },
-                  { count: files.filter(f => f.uploadStatus === "Uploading...").length, label: "In Progress", gradient: "from-yellow-500 to-yellow-600" },
-                  // ✅ UPDATED: Include "Multiple Orders Found" in pending count
-                  { count: files.filter(f => f.uploadStatus === "Waiting..." || f.uploadStatus === "Multiple Orders Found").length, label: "Pending", gradient: "from-gray-500 to-gray-600" },
-                ].map((card, index) => (
-                  <div key={index} className={`bg-gradient-to-r ${card.gradient} text-white rounded-lg p-4 shadow-sm`}>
-                    <div className="text-2xl font-bold">{card.count}</div>
-                    <div className="text-opacity-90 text-sm">{card.label}</div>
-                  </div>
-                ))}
-              </div>
-
               {/* Table Container - Now with 3 columns: FILE NAME, PROGRESS, STATUS */}
               <div className={`rounded-lg border ${getTableContainerClass()}`}>
                 <div className="overflow-x-auto">
