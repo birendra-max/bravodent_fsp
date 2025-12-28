@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faUser, faTimes, faFile, faPaperclip, faPaperPlane, faDownload,
-    faCrown, faShieldAlt, faUserTie
+    faCrown, faUserTie, faCamera, faMicrophone
 } from "@fortawesome/free-solid-svg-icons";
 import { UserContext } from '../Context/UserContext';
 import { DesignerContext } from '../Context/DesignerContext';
@@ -390,57 +390,35 @@ export default function Chatbox({ orderid }) {
         }
     };
 
-    const getMessageColor = (userType, isRight) => {
-        if (userType === 'Admin') {
-            return isRight
-                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none'
-                : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-bl-none';
-        } else if (userType === 'Designer') {
-            return isRight
-                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none'
-                : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-bl-none';
-        } else {
-            return isRight
-                ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-br-none'
-                : 'bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-bl-none';
-        }
-    };
-
-    const getChatHeaderTitle = () => {
-        if (userRole === 'client') return `Order: ${orderid}`;
-        if (userRole === 'designer') return `Order: ${orderid}`;
-        if (userRole === 'admin') return `Order: ${orderid}`;
-        return `Chat - Order: ${orderid}`;
-    };
-
     return (
         <section
             id="chatbox"
             ref={chatboxRef}
             style={{ position: "fixed", top: "80px", right: "24px" }}
-            className="md:w-[400px] w-[300px] h-[520px] rounded-xl shadow-xl border border-blue-400/30 bg-gradient-to-br from-gray-900 to-gray-800 z-[999] hidden overflow-hidden backdrop-blur-sm"
+            className="md:w-[400px] w-[300px] h-[540px] rounded-xl shadow-xl bg-white z-[999] hidden overflow-hidden"
         >
-            <div id="chatHeader" className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-800/60 to-purple-800/60 rounded-t-xl border-b border-blue-400/30 cursor-move select-none">
-                <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md ring-1 ring-blue-400/50 ${userRole === 'admin' ? 'bg-gradient-to-br from-purple-500 to-pink-500' :
-                        userRole === 'designer' ? 'bg-gradient-to-br from-green-500 to-emerald-500' :
-                            'bg-gradient-to-br from-blue-400 to-purple-500'
+            {/* Header */}
+            <div
+                id="chatHeader"
+                className="flex items-center justify-between px-3 py-2 bg-[#00a884] rounded-t-xl border-b border-gray-300 cursor-move select-none"
+            >
+                <div className="flex items-center gap-2 py-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${userRole === 'admin' ? 'bg-purple-600' :
+                        userRole === 'designer' ? 'bg-green-600' :
+                            'bg-blue-600'
                         }`}>
                         <FontAwesomeIcon icon={getUserIcon(userRole === 'admin' ? 'Admin' : userRole === 'designer' ? 'Designer' : 'Client')} className="text-xs" />
                     </div>
                     <div>
-                        <h4 className="text-white font-semibold text-sm bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
-                            {getChatHeaderTitle()}
+                        <h4 className="text-white font-semibold text-sm">
+                            Order #{orderid}
                         </h4>
                         <div className="flex items-center gap-1">
                             <div className={`w-2 h-2 rounded-full bg-green-400`}></div>
-                            <span className="text-xs text-gray-300">
-                                Connected
+                            <span className="text-xs text-white/90">
+                                Online
                             </span>
-                            <span className={`text-xs ${userRole === 'admin' ? 'text-purple-300' :
-                                userRole === 'designer' ? 'text-green-300' :
-                                    'text-blue-300'
-                                } ml-1`}>
+                            <span className="text-xs text-white/80 ml-1">
                                 ({userName})
                             </span>
                         </div>
@@ -449,18 +427,26 @@ export default function Chatbox({ orderid }) {
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => document.getElementById('chatbox').style.display = "none"}
-                        className="w-6 h-6 flex items-center justify-center text-white/60 hover:text-red-300 hover:bg-red-500/20 rounded"
+                        className="w-6 h-6 flex items-center justify-center text-white/80 hover:text-white hover:bg-red-500/20 rounded"
                     >
                         <FontAwesomeIcon icon={faTimes} />
                     </button>
                 </div>
             </div>
 
-            <div ref={chatBodyRef} className="p-3 h-[78%] overflow-y-auto space-y-3 bg-slate-950">
+            {/* Chat Body - Scrollable area */}
+            <div
+                ref={chatBodyRef}
+                className="p-3 h-[calc(520px-120px)] overflow-y-auto"
+                style={{
+                    backgroundColor: '#efeae2',
+                    backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23d1f7c4\' fill-opacity=\'0.4\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")'
+                }}
+            >
                 {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
-                        <p className="text-gray-400 text-sm">No messages yet. Start chatting!</p>
-                        {!token && <p className="text-red-400 text-xs mt-2">No authentication token found</p>}
+                        <p className="text-gray-600 text-sm">No messages yet. Start chatting!</p>
+                        {!token && <p className="text-red-500 text-xs mt-2">No authentication token found</p>}
                     </div>
                 ) : (
                     messages.map(msg => {
@@ -470,27 +456,27 @@ export default function Chatbox({ orderid }) {
                         const isClient = msg.user_type === 'Client';
 
                         return (
-                            <div key={msg.id} className={`flex flex-col ${isRight ? 'items-end' : 'items-start'}`}>
-                                <div className={`max-w-[85%] p-2 rounded-lg shadow-md ${getMessageColor(msg.user_type, isRight)}`}>
+                            <div key={msg.id} className={`flex flex-col ${isRight ? 'items-end' : 'items-start'} mb-3`}>
+                                <div className={`max-w-[85%] p-2 rounded-lg ${isRight ? 'bg-[#d9fdd3] text-gray-800 rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none shadow-sm'}`}>
                                     {msg.hasAttachment && msg.file_path ? (
                                         <div className="flex items-center gap-2 p-1">
-                                            <FontAwesomeIcon icon={faFile} className="text-white/70" />
-                                            <span className="text-[10px] text-white/90">{msg.filename}</span>
+                                            <FontAwesomeIcon icon={faFile} className="text-gray-600" />
+                                            <span className="text-[10px] text-gray-700">{msg.filename}</span>
                                             <button
                                                 onClick={() => downloadFile(msg.file_path, msg.filename)}
-                                                className="text-white/80 hover:text-white ml-2"
+                                                className="text-gray-600 hover:text-gray-800 ml-2"
                                                 title="Download file"
                                             >
-                                                <FontAwesomeIcon icon={faDownload} className="text-xl hover:text-white cursor-pointer" />
+                                                <FontAwesomeIcon icon={faDownload} className="text-xl hover:text-gray-800 cursor-pointer" />
                                             </button>
                                         </div>
                                     ) : (
                                         <p className="text-xs whitespace-pre-wrap">{msg.text}</p>
                                     )}
                                 </div>
-                                <span className={`text-[10px] mt-1 px-1 ${isAdmin ? 'text-purple-200' :
-                                    isDesigner ? 'text-green-200' :
-                                        'text-blue-200'
+                                <span className={`text-[10px] mt-1 px-1 ${isAdmin ? 'text-purple-600' :
+                                    isDesigner ? 'text-green-600' :
+                                        'text-blue-600'
                                     }`}>
                                     {msg.timestamp}
                                 </span>
@@ -500,44 +486,77 @@ export default function Chatbox({ orderid }) {
                 )}
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 border-t border-blue-400/20 px-3 py-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-b-xl">
-                <div className="flex items-start gap-1.5">
-                    <input ref={fileInputRef} type="file" onChange={handleFileUpload} multiple className="hidden" />
-                    <button
-                        onClick={triggerFileInput}
-                        disabled={!orderid || !token}
-                        className="w-10 h-10 flex items-center justify-center text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded disabled:opacity-50"
-                        title="Attach file"
-                    >
-                        <FontAwesomeIcon icon={faPaperclip} className='text-[20px]' />
-                    </button>
-                    <textarea
-                        ref={textareaRef}
-                        value={newMessage}
-                        onChange={e => setNewMessage(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder={!token ? "Not authenticated" : !orderid ? "Select an order to chat" : "Type a message..."}
-                        className="flex-1 bg-gray-700/80 text-white px-3 py-2 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 border border-gray-600 disabled:opacity-50 resize-none"
-                        disabled={!orderid || !token}
-                        rows="1"
-                        style={{
-                            minHeight: '40px',
-                            maxHeight: '120px',
-                            overflowY: 'auto'
-                        }}
-                    />
-                    <button
-                        onClick={sendMessage}
-                        disabled={!newMessage.trim() || !orderid || !token}
-                        className={`w-10 h-10 flex items-center justify-center text-white rounded-lg transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg text-xs disabled:opacity-50 disabled:cursor-not-allowed ${userRole === 'admin' ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-purple-500/20' :
-                            userRole === 'designer' ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 hover:shadow-green-500/20' :
-                                'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 hover:shadow-blue-500/20'
-                            }`}
-                        title="Send message"
-                    >
-                        <FontAwesomeIcon icon={faPaperPlane} className='text-lg' />
-                    </button>
+            {/* Input Area - Fixed at bottom */}
+            <div className="flex-shrink-0 bg-gray-100 border-t border-gray-300">
+                <div className="px-4 py-3">
+                    <div className="flex items-end gap-2">
+                        {/* Attachment Button */}
+                        <button
+                            onClick={triggerFileInput}
+                            disabled={!orderid || !token}
+                            className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50 flex-shrink-0"
+                            title="Attach"
+                        >
+                            <FontAwesomeIcon icon={faPaperclip} className="text-xl" />
+                        </button>
+
+                        {/* Camera Button */}
+                        <button
+                            onClick={triggerFileInput}
+                            disabled={!orderid || !token}
+                            className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50 flex-shrink-0"
+                            title="Camera"
+                        >
+                            <FontAwesomeIcon icon={faCamera} className="text-xl" />
+                        </button>
+
+                        {/* Text Input Area */}
+                        <div className="flex-1 min-w-0 relative bg-white rounded-full border border-gray-300 overflow-hidden">
+                            <textarea
+                                ref={textareaRef}
+                                value={newMessage}
+                                onChange={(e) => {
+                                    setNewMessage(e.target.value);
+                                    // Auto-resize
+                                    const textarea = e.target;
+                                    textarea.style.height = 'auto';
+                                    textarea.style.height = Math.min(textarea.scrollHeight, 80) + 'px';
+                                }}
+                                onKeyDown={handleKeyDown}
+                                placeholder={!token ? "Authentication required" : !orderid ? "Select an order" : "Type a message"}
+                                className="w-full bg-transparent text-gray-800 px-4 py-3 text-sm focus:outline-none resize-none"
+                                disabled={!orderid || !token}
+                                rows="1"
+                                style={{
+                                    minHeight: '44px',
+                                    maxHeight: '80px',
+                                    overflowY: 'auto',
+                                    scrollbarWidth: 'thin',
+                                    scrollbarColor: '#CBD5E0 transparent'
+                                }}
+                            />
+                        </div>
+
+                        <button
+                            onClick={sendMessage}
+                            disabled={!orderid || !token}
+                            className="w-10 h-10 flex items-center justify-center text-white bg-whatsapp-green rounded-full transition-colors disabled:opacity-50 flex-shrink-0"
+                            style={{ backgroundColor: '#00a884' }}
+                            title="Send"
+                        >
+                            <FontAwesomeIcon icon={faPaperPlane} className="text-lg" />
+                        </button>
+                    </div>
                 </div>
+
+                {/* Hidden File Input */}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileUpload}
+                    multiple
+                    className="hidden"
+                />
             </div>
         </section>
     );
