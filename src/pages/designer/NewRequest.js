@@ -14,7 +14,6 @@ export default function NewRequest() {
   let base_url = localStorage.getItem('bravo_designer_base_url');
   const uploadControllers = useRef({});
 
-  // ✅ ADDED: Cleanup effect for error files
   useEffect(() => {
     const errorFiles = files.filter(f => f.isError);
     if (errorFiles.length > 0) {
@@ -25,7 +24,6 @@ export default function NewRequest() {
     }
   }, [files]);
 
-  // ✅ ADDED: Function to check if there are real files
   const hasRealFiles = () => {
     return files.some(file => !file.isError);
   };
@@ -33,7 +31,6 @@ export default function NewRequest() {
   const handleFiles = async (selectedFiles) => {
     const fileArray = Array.from(selectedFiles);
 
-    // 1. Separate valid and invalid files upfront
     const validFiles = fileArray.filter((file) =>
       file.name.endsWith(".zip") || file.name.endsWith(".stl")
     );
@@ -42,7 +39,6 @@ export default function NewRequest() {
       !(file.name.endsWith(".zip") || file.name.endsWith(".stl"))
     );
 
-    // 2. Process valid files first (if any exist)
     if (validFiles.length > 0) {
       validFiles.forEach((file) => {
         const fileId = `${file.name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -65,7 +61,6 @@ export default function NewRequest() {
       });
     }
 
-    // 3. Show error for invalid files (if any exist)
     if (invalidFiles.length > 0) {
       const errorId = `error-${Date.now()}`;
       setFiles(prev => [
@@ -84,7 +79,6 @@ export default function NewRequest() {
   };
 
   const uploadFile = async (file, fileId, selectedOrderIds = null) => {
-    // Create AbortController for this upload
     const controller = new AbortController();
     uploadControllers.current[fileId] = controller;
 
@@ -110,7 +104,6 @@ export default function NewRequest() {
     }
   };
 
-  // ✅ FIXED: Real progress tracking that reaches 100%
   const uploadToNewOrdersEndpoint = async (file, fileId, controller) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -118,21 +111,21 @@ export default function NewRequest() {
 
     try {
       const xhr = new XMLHttpRequest();
-      
-      // Track upload progress
+      xhr.timeout = 0;
+
       xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
-          // Calculate progress percentage
           const progress = Math.round((event.loaded / event.total) * 100);
-          
-          // ✅ FIXED: Set actual progress, not capped at 99%
+          const uploadedMB = (event.loaded / (1024 * 1024)).toFixed(2);
+          const totalMB = (event.total / (1024 * 1024)).toFixed(2);
+
           setFiles((prev) =>
             prev.map((f) =>
               f.id === fileId
                 ? {
                   ...f,
                   progress: progress,
-                  message: `Uploading... ${progress}%`,
+                  message: `Uploading: ${uploadedMB}MB / ${totalMB}MB (${progress}%)`,
                   uploadStatus: "Uploading..."
                 }
                 : f
@@ -141,12 +134,10 @@ export default function NewRequest() {
         }
       });
 
-      // Handle completion
       xhr.addEventListener('load', () => {
         try {
           const result = JSON.parse(xhr.responseText);
 
-          // ✅ FIXED: Always set progress to 100% on completion
           if (result.status === "success") {
             setFiles((prev) =>
               prev.map((f) =>
@@ -198,24 +189,6 @@ export default function NewRequest() {
         }
       });
 
-      // Handle errors
-      xhr.addEventListener('error', () => {
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileId
-              ? {
-                ...f,
-                uploadStatus: "Failed",
-                progress: 100,
-                message: "Network error during upload",
-                isUploading: false
-              }
-              : f
-          )
-        );
-      });
-
-      // Handle timeout
       xhr.addEventListener('timeout', () => {
         setFiles((prev) =>
           prev.map((f) =>
@@ -224,7 +197,7 @@ export default function NewRequest() {
                 ...f,
                 uploadStatus: "Failed",
                 progress: 100,
-                message: "Upload timeout (60s)",
+                message: "Upload timeout - connection too slow or file too large",
                 isUploading: false
               }
               : f
@@ -232,7 +205,22 @@ export default function NewRequest() {
         );
       });
 
-      // Handle abort
+      xhr.addEventListener('error', () => {
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileId
+              ? {
+                ...f,
+                uploadStatus: "Failed",
+                progress: 100,
+                message: "Network error. Please check your connection.",
+                isUploading: false
+              }
+              : f
+          )
+        );
+      });
+
       xhr.addEventListener('abort', () => {
         setFiles((prev) =>
           prev.map((f) =>
@@ -249,14 +237,11 @@ export default function NewRequest() {
         );
       });
 
-      // Send request
       xhr.open('POST', `${base_url}/new-orders`);
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       xhr.setRequestHeader('X-Tenant', 'bravodent');
-      xhr.timeout = 60000; // 60 seconds timeout
       xhr.send(formData);
 
-      // Store for potential cancellation
       controller.xhr = xhr;
 
     } catch (error) {
@@ -266,25 +251,23 @@ export default function NewRequest() {
             ? {
               ...f,
               uploadStatus: "Failed",
-              progress: 100,
-              message: error.message || "Error uploading file",
+              progress: 0,
+              message: error.message || "Error starting upload",
               isUploading: false
             }
             : f
         )
       );
     } finally {
-      // Clean up controller
       delete uploadControllers.current[fileId];
     }
   };
 
-  // ✅ FIXED: Multi-order upload progress
   const uploadToOrderFileEndpoint = async (file, fileId, selectedOrderIds, controller) => {
     try {
       let completedCount = 0;
       const totalOrders = selectedOrderIds.length;
-      
+
       setFiles((prev) =>
         prev.map((f) =>
           f.id === fileId
@@ -308,24 +291,24 @@ export default function NewRequest() {
           formData.append("type", fileType);
 
           const xhr = new XMLHttpRequest();
-          
+
           xhr.upload.addEventListener('progress', (event) => {
             if (event.lengthComputable) {
-              // Calculate overall progress across all orders
               const fileProgress = Math.round((event.loaded / event.total) * 100);
+              const uploadedMB = (event.loaded / (1024 * 1024)).toFixed(2);
+              const totalMB = (event.total / (1024 * 1024)).toFixed(2);
               const orderWeight = 100 / totalOrders;
               const baseProgress = (completedCount * orderWeight);
               const currentOrderProgress = (fileProgress / 100) * orderWeight;
-              const totalProgress = Math.round(baseProgress + currentOrderProgress);
-              
-              // ✅ FIXED: Use actual progress calculation
+              const totalProgress = baseProgress + currentOrderProgress;
+
               setFiles((prev) =>
                 prev.map((f) =>
                   f.id === fileId
                     ? {
                       ...f,
                       progress: totalProgress,
-                      message: `Uploading to order ${index + 1}/${totalOrders}... ${fileProgress}%`
+                      message: `Order ${index + 1}/${totalOrders}: ${uploadedMB}MB / ${totalMB}MB (${fileProgress}%)`
                     }
                     : f
                 )
@@ -350,7 +333,7 @@ export default function NewRequest() {
           xhr.open('POST', `${base_url}/upload-order-file`);
           xhr.setRequestHeader('Authorization', `Bearer ${token}`);
           xhr.setRequestHeader('X-Tenant', 'bravodent');
-          xhr.timeout = 60000;
+          xhr.timeout = 0;
           xhr.send(formData);
         });
       });
@@ -400,7 +383,6 @@ export default function NewRequest() {
     }
   };
 
-  // Cancel upload function
   const cancelUpload = (fileId) => {
     const controller = uploadControllers.current[fileId];
     if (controller) {
@@ -424,7 +406,6 @@ export default function NewRequest() {
     );
   };
 
-  // Handle order selection
   const handleOrderSelection = (fileId, orderId, isChecked) => {
     setOrderSelection(prev => {
       const currentSelection = prev[fileId] || { selectedOrders: [] };
@@ -446,7 +427,6 @@ export default function NewRequest() {
     });
   };
 
-  // Confirm order selection
   const confirmOrderSelection = (file) => {
     const selection = orderSelection[file.id];
     if (!selection || selection.selectedOrders.length === 0) {
@@ -488,9 +468,7 @@ export default function NewRequest() {
     }
   };
 
-  // Reset page with cancellation
   const resetPage = () => {
-    // Cancel all ongoing uploads
     Object.values(uploadControllers.current).forEach(controller => {
       if (controller.abort) controller.abort();
       if (controller.xhr) controller.xhr.abort();
@@ -539,7 +517,6 @@ export default function NewRequest() {
       : 'hover:bg-gray-700 text-white';
   };
 
-  // ✅ IMPROVED: Progress Bar with smooth animation
   const ProgressBar = ({ file }) => {
     const getBarStyle = () => {
       switch (file.uploadStatus) {
@@ -561,12 +538,10 @@ export default function NewRequest() {
     return (
       <div className="w-full max-w-xs">
         <div className="flex items-center gap-4">
-          {/* Progress Container */}
           <div
             className={`relative flex-1 h-3 rounded-full overflow-hidden ${theme === "light" ? "bg-gray-200" : "bg-gray-700"
               }`}
           >
-            {/* Progress Fill */}
             <div
               className={`
               h-full rounded-full
@@ -581,7 +556,6 @@ export default function NewRequest() {
             />
           </div>
 
-          {/* Percentage and Cancel Button */}
           <div className="flex items-center gap-2">
             <span
               className={`text-sm font-semibold min-w-[50px] text-right ${theme === "light" ? "text-gray-800" : "text-gray-200"
@@ -589,8 +563,7 @@ export default function NewRequest() {
             >
               {Math.round(file.progress)}%
             </span>
-            
-            {/* Cancel button for active uploads */}
+
             {file.isUploading && (
               <button
                 onClick={() => cancelUpload(file.id)}
@@ -606,7 +579,6 @@ export default function NewRequest() {
           </div>
         </div>
 
-        {/* Status Text */}
         {file.message && (
           <div
             className={`mt-1 text-xs ${theme === "light" ? "text-gray-600" : "text-gray-400"
@@ -619,7 +591,6 @@ export default function NewRequest() {
     );
   };
 
-  // Order Selection Component
   const OrderSelection = ({ file }) => {
     const selection = orderSelection[file.id] || { selectedOrders: [] };
 
@@ -682,7 +653,6 @@ export default function NewRequest() {
     );
   };
 
-  // Status badge component
   const StatusBadge = ({ status, message, fileLink, file, showOrderSelection }) => {
     const getStatusColor = () => {
       if (status === "Success") {
@@ -728,7 +698,6 @@ export default function NewRequest() {
           </div>
         )}
 
-        {/* Show order selection UI when multiple orders found */}
         {status === "Multiple Orders Found" && showOrderSelection && file.matchingOrders && (
           <OrderSelection file={file} />
         )}
@@ -758,7 +727,6 @@ export default function NewRequest() {
       <Hd />
       <main id="main" className={`flex-grow h transition-colors duration-300 ${theme === 'light' ? 'bg-white text-black' : 'bg-black text-white'} pt-16 sm:pt-18 mt-2`}>
         <div className={`rounded-xl shadow-sm border ${getCardClass()}`}>
-          {/* ✅ FIXED: Show upload area when no real files exist */}
           {!hasRealFiles() && (
             <div className="flex justify-center items-center p-2 h-[81vh]">
               <div
@@ -812,10 +780,8 @@ export default function NewRequest() {
             </div>
           )}
 
-          {/* ✅ FIXED: Files Table - Only show when there are real files */}
           {hasRealFiles() && (
             <div className="p-6">
-              {/* Header with reset button */}
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">Uploaded Files</h2>
                 <button
@@ -844,7 +810,6 @@ export default function NewRequest() {
                 </button>
               </div>
 
-              {/* Table Container */}
               <div className={`rounded-lg border ${getTableContainerClass()}`}>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -862,7 +827,6 @@ export default function NewRequest() {
                       </tr>
                     </thead>
                     <tbody className={`divide-y ${theme === 'light' ? 'divide-gray-200' : 'divide-gray-700'}`}>
-                      {/* ✅ FIXED: Filter out error files from display */}
                       {files
                         .filter(file => !file.isError)
                         .map((file) => (
