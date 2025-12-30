@@ -90,9 +90,7 @@ export default function Hd() {
 
     const navItems = [
         { href: "/designer/home", label: "Home", key: "index", icon: faHome },
-        { href: "/designer/new_request", label: "File Upload", key: "new_request", icon: faUpload },
-        // { href: "/designer/multisearch", label: "Advance Search", key: "multisearch", icon: faSearch },
-        // { href: "/designer/reports", label: "Reports", key: "reports", icon: faChartBar }
+        { href: "/designer/new_request", label: "Upload Finish & Stl Files", key: "new_request", icon: faUpload },
     ];
 
     const applyTheme = (newTheme) => {
@@ -148,7 +146,7 @@ export default function Hd() {
 
                         {/* Center Menu - Desktop */}
                         <div className="hidden xl:flex xl:items-center xl:flex-1 xl:justify-center">
-                            <div className="flex items-center space-x-1 bg-gray-800/70 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700">
+                            <div className="flex items-center space-x-18 bg-gray-800/70 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700">
                                 {navItems.map((item) => (
                                     <Link
                                         to={item.href}
@@ -169,7 +167,7 @@ export default function Hd() {
                         </div>
 
                         {/* Right Side - Search & Profile */}
-                        <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
+                        <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-8">
                             {/* Search Form - Desktop */}
                             <div className="hidden lg:block search-container">
                                 <form className="flex items-center" onSubmit={handleSearchSubmit}>
@@ -183,7 +181,7 @@ export default function Hd() {
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                     placeholder="Search by Orders..."
                                                     aria-label="Search orders by ID"
-                                                    className="w-full pl-4 pr-12 py-3 bg-gray-900 text-white placeholder-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-gray-800 transition-all duration-200 text-sm font-medium tracking-wide"
+                                                    className="w-82 pl-4 pr-12 py-3 bg-gray-900 text-white placeholder-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-gray-800 transition-all duration-200 text-sm font-medium tracking-wide"
                                                 />
                                                 {searchQuery && (
                                                     <button
