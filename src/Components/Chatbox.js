@@ -377,7 +377,7 @@ export default function Chatbox({ orderid }) {
         }
 
         try {
-            const base_url = localStorage.getItem("bravo_user_base_url") || config.API_BASE_URL;
+            const base_url = localStorage.getItem("skydent_user_base_url") || localStorage.getItem("skydent_designer_base_url") || localStorage.getItem("skydent_admin_base_url");
             const encodedPath = encodeURIComponent(url);
             const finalUrl = `${base_url}/download?path=${encodedPath}`;
 
