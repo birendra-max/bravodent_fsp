@@ -1,19 +1,14 @@
-import { useState, useMemo, useEffect, useContext, useRef, useCallback } from "react";
+import React ,{ useState, useMemo, useEffect, useContext, useRef, useCallback } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fetchWithAuth } from '../../utils/userapi';
-import {
-    faRepeat,
-    faFolderOpen,
-    faTimes
-} from '@fortawesome/free-solid-svg-icons';
+import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 
 const parseDateForFilter = (value) => {
     if (!value) return null;
 
-    // Input[type=date] → YYYY-MM-DD
     if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
         const [y, m, d] = value.split("-").map(Number);
         return new Date(y, m - 1, d).getTime();
@@ -23,7 +18,6 @@ const parseDateForFilter = (value) => {
 
     const str = value.trim();
 
-    // 27-Dec-2025 10:33:59am OR 27-Dec-2025
     const match = str.match(
         /^(\d{1,2})-([A-Za-z]{3})-(\d{4})(?:\s+\d{1,2}:\d{2}:\d{2}(?:am|pm))?$/
     );
@@ -41,7 +35,6 @@ const parseDateForFilter = (value) => {
     const monthIndex = months[mon.toLowerCase()];
     if (monthIndex === undefined) return null;
 
-    // 🔥 DATE ONLY (time removed)
     return new Date(
         Number(year),
         monthIndex,
@@ -49,10 +42,8 @@ const parseDateForFilter = (value) => {
     ).getTime();
 };
 
-
-
-// ✅ Create a separate component for the popup
-const RedesignPopup = ({
+// Use React.memo to prevent unnecessary re-renders
+const RedesignPopup = React.memo(({
     theme,
     showRedesignPopup,
     pendingRedesignOrders,
@@ -63,25 +54,50 @@ const RedesignPopup = ({
     setShowRedesignPopup
 }) => {
     const textareaRef = useRef(null);
+    
+    // Use local state only, no duplication with parent state
+    const [localMessage, setLocalMessage] = useState(redesignMessage || "");
+    
+    // Update local state only when redesignMessage prop changes and popup opens
+    useEffect(() => {
+        if (showRedesignPopup) {
+            setLocalMessage(redesignMessage || "");
+        }
+    }, [showRedesignPopup, redesignMessage]);
 
-    // Auto-focus when popup opens
     useEffect(() => {
         if (showRedesignPopup && textareaRef.current) {
             const timer = setTimeout(() => {
                 if (textareaRef.current) {
                     textareaRef.current.focus();
+                    // Move cursor to end
+                    textareaRef.current.selectionStart = textareaRef.current.selectionEnd = textareaRef.current.value.length;
                 }
             }, 10);
             return () => clearTimeout(timer);
         }
     }, [showRedesignPopup]);
 
+    // Debounced update to parent state to prevent frequent re-renders
+    const updateParentMessage = useCallback(
+        debounce((message) => {
+            setRedesignMessage(message);
+        }, 300),
+        [setRedesignMessage]
+    );
+
+    const handleMessageChange = useCallback((e) => {
+        const value = e.target.value;
+        setLocalMessage(value);
+        updateParentMessage(value);
+    }, [updateParentMessage]);
+
     const handleClosePopup = useCallback(() => {
         if (!isSubmitting) {
             setShowRedesignPopup(false);
-            setRedesignMessage("");
+            // Don't clear parent state here, let parent handle it
         }
-    }, [isSubmitting, setShowRedesignPopup, setRedesignMessage]);
+    }, [isSubmitting, setShowRedesignPopup]);
 
     if (!showRedesignPopup) return null;
 
@@ -92,7 +108,6 @@ const RedesignPopup = ({
                     ? 'bg-gradient-to-br from-gray-900 to-gray-800 text-white border border-gray-700/50'
                     : 'bg-gradient-to-br from-white to-gray-50 text-gray-800 border border-gray-200/50'}`}
             >
-                {/* Header with gradient */}
                 <div className={`rounded-t-2xl p-5 ${theme === 'dark'
                     ? 'bg-gradient-to-r from-orange-900/20 to-red-900/20 border-b border-orange-800/30'
                     : 'bg-gradient-to-r from-orange-50 to-red-50 border-b border-orange-200'}`}>
@@ -126,9 +141,7 @@ const RedesignPopup = ({
                     </div>
                 </div>
 
-                {/* Body */}
                 <div className="p-6">
-                    {/* Selected Orders */}
                     <div className={`mb-6 p-4 rounded-xl ${theme === 'dark'
                         ? 'bg-gradient-to-r from-gray-800 to-gray-900/80 border border-gray-700/50'
                         : 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200'}`}>
@@ -158,7 +171,6 @@ const RedesignPopup = ({
                         </div>
                     </div>
 
-                    {/* Message Input */}
                     <div className="mb-6">
                         <div className="flex items-center mb-3">
                             <label className={`font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
@@ -175,9 +187,9 @@ const RedesignPopup = ({
                         <div className="relative">
                             <textarea
                                 ref={textareaRef}
-                                value={redesignMessage}
-                                onChange={(e) => setRedesignMessage(e.target.value)}
-                                placeholder="Describe what needs to be changed or improved... ✍️"
+                                value={localMessage}
+                                onChange={handleMessageChange}
+                                placeholder="Describe what needs to be changed or improved..."
                                 className={`w-full p-4 rounded-xl border-2 focus:outline-none focus:ring-2 resize-none
               ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}
               ${theme === 'dark'
@@ -197,7 +209,6 @@ const RedesignPopup = ({
                     </div>
                 </div>
 
-                {/* Footer with gradient */}
                 <div className={`rounded-b-2xl p-5 ${theme === 'dark'
                     ? 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border-t border-gray-700/50'
                     : 'bg-gradient-to-r from-gray-50 to-gray-100/80 border-t border-gray-200'}`}>
@@ -218,8 +229,8 @@ const RedesignPopup = ({
                         </button>
                         <button
                             onClick={handleRedesignSubmit}
-                            disabled={isSubmitting || !redesignMessage.trim()}
-                            className={`px-5 py-3 rounded-xl font-medium flex-1 flex items-center justify-center gap-2 ${isSubmitting || !redesignMessage.trim()
+                            disabled={isSubmitting || !localMessage.trim()}
+                            className={`px-5 py-3 rounded-xl font-medium flex-1 flex items-center justify-center gap-2 ${isSubmitting || !localMessage.trim()
                                 ? theme === 'dark'
                                     ? 'bg-gradient-to-r from-gray-700 to-gray-800 text-gray-400 cursor-not-allowed'
                                     : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed'
@@ -247,7 +258,6 @@ const RedesignPopup = ({
                         </button>
                     </div>
 
-                    {/* Progress indicator (shown only when submitting) */}
                     {isSubmitting && (
                         <div className="mt-4">
                             <div className={`h-1 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
@@ -262,6 +272,19 @@ const RedesignPopup = ({
             </div>
         </div>
     );
+});
+
+// Simple debounce utility function
+const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 };
 
 export default function Datatable({
@@ -278,23 +301,18 @@ export default function Datatable({
     const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [orderid, setOrderid] = useState(null);
-    const [deliveryType, setDeliveryType] = useState("Rush");
-
-    // ✅ NEW STATES for multi-select & dropdown
     const [selectedRows, setSelectedRows] = useState([]);
     const [fileType, setFileType] = useState("stl");
-
-    // ✅ NEW STATES for redesign popup
     const [showRedesignPopup, setShowRedesignPopup] = useState(false);
     const [redesignMessage, setRedesignMessage] = useState("");
     const [pendingRedesignOrders, setPendingRedesignOrders] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // ✅ NEW STATES for date filtering
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
 
-    // ✅ Control loader based on parent's loading prop
+    // Memoize the data to prevent unnecessary re-renders
+    const memoizedData = useMemo(() => data || [], [data]);
+
     useEffect(() => {
         if (!loading) {
             setStatus("hide");
@@ -303,15 +321,13 @@ export default function Datatable({
         }
     }, [loading]);
 
-    // Filter & Sort with Date Filtering
+    // Optimize filteredData calculation with useMemo
     const filteredData = useMemo(() => {
-        let filtered = data || [];
+        let filtered = memoizedData;
 
         if (dateFrom || dateTo) {
             filtered = filtered.filter((row) => {
-                const rawDate =
-                    row.order_date;
-
+                const rawDate = row.order_date;
                 const rowTime = parseDateForFilter(rawDate);
                 if (!rowTime) return false;
 
@@ -325,26 +341,24 @@ export default function Datatable({
             });
         }
 
-
-        // Apply search filter
         if (search) {
+            const searchLower = search.toLowerCase();
             filtered = filtered.filter((row) =>
-                columns.some((col) =>
-                    String(row[col.accessor] ?? "")
-                        .toLowerCase()
-                        .includes(search.toLowerCase())
-                )
+                columns.some((col) => {
+                    const value = row[col.accessor];
+                    return value != null && 
+                           String(value).toLowerCase().includes(searchLower);
+                })
             );
         }
 
-        // Apply sorting
         if (sortConfig.key) {
             filtered = [...filtered].sort((a, b) => {
                 const aVal = a[sortConfig.key];
                 const bVal = b[sortConfig.key];
 
-                if (aVal === null || aVal === undefined) return 1;
-                if (bVal === null || bVal === undefined) return -1;
+                if (aVal == null) return 1;
+                if (bVal == null) return -1;
 
                 const isNumeric = !isNaN(aVal) && !isNaN(bVal);
 
@@ -361,7 +375,7 @@ export default function Datatable({
         }
 
         return filtered;
-    }, [search, data, columns, sortConfig, dateFrom, dateTo]);
+    }, [search, memoizedData, columns, sortConfig, dateFrom, dateTo]);
 
     const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
 
@@ -370,33 +384,34 @@ export default function Datatable({
         return filteredData.slice(start, start + rowsPerPage);
     }, [currentPage, filteredData, rowsPerPage]);
 
-    const handleSearch = (e) => {
+    // Memoize all callbacks
+    const handleSearch = useCallback((e) => {
         setSearch(e.target.value);
         setCurrentPage(1);
-    };
+    }, []);
 
-    const handlePageChange = (page) => {
+    const handlePageChange = useCallback((page) => {
         if (page < 1 || page > totalPages) return;
         setCurrentPage(page);
-    };
+    }, [totalPages]);
 
-    const handleSort = (key) => {
-        let direction = "asc";
-        if (sortConfig.key === key && sortConfig.direction === "asc") {
-            direction = "desc";
-        } else if (sortConfig.key === key && sortConfig.direction === "desc") {
-            setSortConfig({ key: null, direction: "asc" });
-            return;
-        }
-        setSortConfig({ key, direction });
-    };
+    const handleSort = useCallback((key) => {
+        setSortConfig(prev => {
+            if (prev.key === key && prev.direction === "asc") {
+                return { key, direction: "desc" };
+            } else if (prev.key === key && prev.direction === "desc") {
+                return { key: null, direction: "asc" };
+            }
+            return { key, direction: "asc" };
+        });
+    }, []);
 
-    const handleRowsPerPageChange = (e) => {
+    const handleRowsPerPageChange = useCallback((e) => {
         setRowsPerPage(parseInt(e.target.value));
         setCurrentPage(1);
-    };
+    }, []);
 
-    const getPageNumbers = (totalPages, currentPage) => {
+    const getPageNumbers = useCallback((totalPages, currentPage) => {
         const maxButtons = 5;
         const pages = [];
 
@@ -412,61 +427,59 @@ export default function Datatable({
         if (endPage < totalPages) pages.push("...", totalPages);
 
         return pages;
-    };
+    }, []);
 
-    function openPopup(id) {
+    const openPopup = useCallback((id) => {
         setOrderid(id);
         document.getElementById('chatbox').style.display = "block"
-    }
+    }, []);
 
-    const sendRedesign = async (orderId, message = "") => {
+    const sendRedesign = useCallback(async (orderIds, message) => {
         try {
-            const res = await fetchWithAuth(`send-for-redesign/${orderId}`, {
+            const response = await fetchWithAuth("send-for-redesign", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify({
+                    orders: orderIds,
+                    message: message
+                }),
             });
 
-            // Backend returns JSON → res contains {status, message}
-            return res;
-
+            return response;
         } catch (error) {
             return {
                 status: "error",
                 message: "Server error. Please try again later."
             };
         }
-    };
+    }, []);
 
-    // ✅ Multi-select logic
-    const toggleSelectRow = (id) =>
+    const toggleSelectRow = useCallback((id) =>
         setSelectedRows((prev) =>
             prev.includes(id)
                 ? prev.filter((x) => x !== id)
                 : [...prev, id]
-        );
+        ), []);
 
-    const toggleSelectAll = () => {
+    const toggleSelectAll = useCallback(() => {
         const visibleIds = paginatedData.map((r) => r.orderid);
         if (paginatedData.every((r) => selectedRows.includes(r.orderid))) {
             setSelectedRows(selectedRows.filter((id) => !visibleIds.includes(id)));
         } else {
             setSelectedRows([...new Set([...selectedRows, ...visibleIds])]);
         }
-    };
+    }, [paginatedData, selectedRows]);
 
-    // ✅ Open redesign popup
-    const openRedesignPopup = () => {
+    const openRedesignPopup = useCallback(() => {
         if (!selectedRows.length) {
             alert("Please select at least one case to proceed with the redesign request.");
             return;
         }
 
-        // Filter valid orders
         const validOrders = selectedRows.filter(id => {
-            const row = data.find((x) => x.orderid === id);
+            const row = memoizedData.find((x) => x.orderid === id);
             return row && row.status !== "New" && row.status !== "Redesign";
         });
 
@@ -478,10 +491,9 @@ export default function Datatable({
         setPendingRedesignOrders(validOrders);
         setRedesignMessage("");
         setShowRedesignPopup(true);
-    };
+    }, [selectedRows, memoizedData]);
 
-    // ✅ Submit redesign with message
-    const handleRedesignSubmit = async () => {
+    const handleRedesignSubmit = useCallback(async () => {
         if (!redesignMessage.trim()) {
             alert("Please enter a message for the redesign request.");
             return;
@@ -489,18 +501,14 @@ export default function Datatable({
 
         setIsSubmitting(true);
 
-        let redesignIds = [];
-        let newOrderIds = [];
-        let successIds = [];
-        let failMessages = [];
+        const newOrderIds = [];
+        const redesignIds = [];
+        const validOrders = [];
 
         for (let id of pendingRedesignOrders) {
-            const r = data.find((x) => x.orderid === id);
+            const r = memoizedData.find((x) => x.orderid === id);
 
-            if (!r) {
-                failMessages.push(`Order ${id}: Record not found`);
-                continue;
-            }
+            if (!r) continue;
 
             if (r.status === "New") {
                 newOrderIds.push(id);
@@ -512,69 +520,59 @@ export default function Datatable({
                 continue;
             }
 
-            // 🚀 Call backend
-            const res = await sendRedesign(id, redesignMessage);
-
-            if (res.status === "success") {
-                successIds.push(id);
-            } else {
-                failMessages.push(`Order ${id}: ${res.message}`);
-            }
+            validOrders.push(id);
         }
+
+        if (newOrderIds.length === pendingRedesignOrders.length) {
+            setIsSubmitting(false);
+            const msg = newOrderIds.length === 1
+                ? `Order ${newOrderIds[0]} cannot be sent for redesign because it is a new order.`
+                : `All selected orders cannot be sent for redesign because they are new orders.`;
+            alert(msg);
+            return;
+        }
+
+        if (validOrders.length === 0) {
+            setIsSubmitting(false);
+            const msg = redesignIds.length === 1
+                ? `Order ${redesignIds[0]} is already in redesign process.`
+                : `All selected orders are already in redesign process.`;
+            alert(msg);
+            return;
+        }
+
+        const res = await sendRedesign(validOrders, redesignMessage);
 
         setIsSubmitting(false);
         setShowRedesignPopup(false);
         setRedesignMessage("");
         setSelectedRows([]);
 
-        let finalMsg = "";
-
-        if (newOrderIds.length === pendingRedesignOrders.length) {
-            finalMsg = newOrderIds.length === 1
-                ? `Order ${newOrderIds[0]} cannot be sent for redesign because it is a new order.`
-                : `All selected orders cannot be sent for redesign because they are new orders.`;
-            alert(finalMsg);
-            return;
+        if (res.status === "success") {
+            let successMsg = res.message || "Orders sent for redesign successfully.";
+            
+            if (newOrderIds.length > 0) {
+                successMsg += "\n\nNote: " + (newOrderIds.length === 1
+                    ? `Order ${newOrderIds[0]} was skipped as it's a new order.`
+                    : `Orders ${newOrderIds.join(', ')} were skipped as they are new orders.`);
+            }
+            
+            if (redesignIds.length > 0) {
+                successMsg += "\n\nNote: " + (redesignIds.length === 1
+                    ? `Order ${redesignIds[0]} was skipped as it's already in redesign.`
+                    : `Orders ${redesignIds.join(', ')} were skipped as they are already in redesign.`);
+            }
+            
+            alert(successMsg);
+            window.location.reload();
+        } else {
+            alert(res.message || "Failed to send orders for redesign.");
         }
-
-        if (newOrderIds.length) {
-            finalMsg += newOrderIds.map(id =>
-                `Order ${id} cannot be sent for redesign because it is a new order.`
-            ).join("\n") + "\n\n";
-        }
-
-        if (redesignIds.length === pendingRedesignOrders.length - newOrderIds.length) {
-            finalMsg += redesignIds.length === 1
-                ? `Order ${redesignIds[0]} is already in redesign process.`
-                : `All selected orders are already in redesign process.`;
-            alert(finalMsg);
-            return;
-        }
-
-        if (redesignIds.length) {
-            finalMsg += redesignIds.map(id =>
-                `Order ${id} is already in redesign process.`
-            ).join("\n") + "\n\n";
-        }
-
-        if (successIds.length) {
-            finalMsg += successIds.length === 1
-                ? `Order ${successIds[0]} has been forwarded to the design team for redesign.\n\n`
-                : `All selected orders have been forwarded to the design team for redesign.\n\n`;
-        }
-
-        if (failMessages.length) {
-            finalMsg += "Failed Requests:\n" + failMessages.join("\n");
-        }
-
-        alert(finalMsg.trim());
-        window.location.reload();
-    };
-
+    }, [redesignMessage, pendingRedesignOrders, memoizedData, sendRedesign]);
 
     const base_url = localStorage.getItem('bravo_user_base_url');
 
-    const handleBulkDownload = async () => {
+    const handleBulkDownload = useCallback(async () => {
         if (!selectedRows.length) {
             alert("Please select at least one record to proceed with the download.");
             return;
@@ -583,12 +581,11 @@ export default function Datatable({
         let missingFiles = [];
 
         for (const id of selectedRows) {
-            const row = data.find((r) => r.orderid === id);
+            const row = memoizedData.find((r) => r.orderid === id);
             if (!row) continue;
 
             try {
                 if (fileType === "stl") {
-                    // Step 1: get all STL file paths from backend
                     const res = await fetch(`${base_url}/download-all?orderid=${id}`, {
                         headers: { 'X-Tenant': 'bravodent' }
                     });
@@ -599,7 +596,6 @@ export default function Datatable({
                         continue;
                     }
 
-                    // Step 2: download each STL file via backend
                     for (const filePath of files) {
                         if (!filePath) continue;
 
@@ -615,11 +611,10 @@ export default function Datatable({
                         link.click();
                         document.body.removeChild(link);
 
-                        await new Promise(r => setTimeout(r, 500)); // optional delay
+                        await new Promise(r => setTimeout(r, 500));
                     }
 
                 } else if (fileType === "initial" || fileType === "finish") {
-                    // Get the correct file path
                     let path = fileType === "initial" ? row.file_path : row.finish_file_path;
 
                     if (!path || path.trim() === "") {
@@ -640,7 +635,6 @@ export default function Datatable({
                     document.body.removeChild(link);
                 }
             } catch (err) {
-                console.error("Download error:", err);
                 missingFiles.push(id);
             }
         }
@@ -648,48 +642,47 @@ export default function Datatable({
         if (missingFiles.length > 0) {
             alert(`Files not found for order IDs: ${missingFiles.join(", ")}`);
         }
-    };
+    }, [selectedRows, memoizedData, fileType, base_url]);
 
-    // Clear date filters
-    const clearDateFilters = () => {
+    const clearDateFilters = useCallback(() => {
         setDateFrom("");
         setDateTo("");
-    };
+    }, []);
 
-    // Theme-based styling functions
-    const getBackgroundClass = () => {
+    // Memoize style getters
+    const getBackgroundClass = useMemo(() => {
         return theme === 'dark'
             ? 'bg-gray-900 text-white'
             : 'bg-gray-200 text-gray-800';
-    };
+    }, [theme]);
 
-    const getTableHeaderClass = () => {
+    const getTableHeaderClass = useMemo(() => {
         return theme === 'dark'
             ? 'bg-gray-700 text-white'
             : 'bg-blue-600 text-white';
-    };
+    }, [theme]);
 
-    const getTableRowClass = (idx) => {
+    const getTableRowClass = useCallback((idx) => {
         if (theme === 'dark') {
             return idx % 2 === 0 ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white';
         } else {
             return idx % 2 === 0 ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-800';
         }
-    };
+    }, [theme]);
 
-    const getInputClass = () => {
+    const getInputClass = useMemo(() => {
         return theme === 'dark'
             ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
             : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500';
-    };
+    }, [theme]);
 
-    const getSelectClass = () => {
+    const getSelectClass = useMemo(() => {
         return theme === 'dark'
             ? 'bg-gray-700 border-gray-600 text-white'
             : 'bg-white border-gray-300 text-gray-800';
-    };
+    }, [theme]);
 
-    const getPaginationButtonStyle = (isActive = false) => {
+    const getPaginationButtonStyle = useCallback((isActive = false) => {
         const baseStyle = {
             padding: "8px 12px",
             border: "1px solid #ccc",
@@ -713,26 +706,43 @@ export default function Datatable({
                 borderColor: "#ccc",
             };
         }
-    };
+    }, [theme]);
 
-    const getDisabledButtonStyle = () => {
+    const getDisabledButtonStyle = useCallback(() => {
         return theme === 'dark'
-            ? { ...getPaginationButtonStyle(), background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
-            : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
-    };
+            ? { background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
+            : { background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
+    }, [theme]);
 
-    const getNoDataClass = () => {
+    const getNoDataClass = useMemo(() => {
         return theme === 'dark'
             ? 'bg-gray-800 text-gray-300'
             : 'bg-gray-100 text-gray-600';
-    };
+    }, [theme]);
+
+    const handleFileTypeChange = useCallback((e) => {
+        setFileType(e.target.value);
+    }, []);
+
+    const handleDateFromChange = useCallback((e) => {
+        setDateFrom(e.target.value);
+    }, []);
+
+    const handleDateToChange = useCallback((e) => {
+        setDateTo(e.target.value);
+    }, []);
+
+    // Handle popup close and clear message
+    const handlePopupClose = useCallback(() => {
+        setShowRedesignPopup(false);
+        setRedesignMessage("");
+    }, []);
 
     return (
         <>
             <Loder status={status} />
             <Chatbox orderid={orderid} />
 
-            {/* ✅ Use the separate popup component */}
             <RedesignPopup
                 theme={theme}
                 showRedesignPopup={showRedesignPopup}
@@ -741,30 +751,26 @@ export default function Datatable({
                 setRedesignMessage={setRedesignMessage}
                 isSubmitting={isSubmitting}
                 handleRedesignSubmit={handleRedesignSubmit}
-                setShowRedesignPopup={setShowRedesignPopup}
+                setShowRedesignPopup={handlePopupClose}
             />
 
-            {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
                 <section
                     style={{ padding: "20px" }}
-                    className={`overflow-scroll md:overflow-hidden rounded-xl mt-4 ${getBackgroundClass()}`}
+                    className={`overflow-scroll md:overflow-hidden rounded-xl mt-4 ${getBackgroundClass}`}
                 >
                     {(!Array.isArray(columns) || columns.length === 0) && (
-                        <div className={`p-5 text-center rounded-lg ${getNoDataClass()}`}>
+                        <div className={`p-5 text-center rounded-lg ${getNoDataClass}`}>
                             ⚠️ No columns provided.
                         </div>
                     )}
 
                     {Array.isArray(columns) && columns.length > 0 && (
                         <>
-                            {/* Search + Rows per page */}
                             <div className="mb-4">
                                 <div className="flex flex-col lg:flex-row items-stretch gap-2">
-                                    {/* Left panel - Clean minimal with colorful buttons */}
                                     <div className={`flex-1 rounded-lg border ${theme === 'light' ? 'bg-white border-gray-100' : 'bg-gray-900 border-gray-800'}`}>
                                         <div className="flex flex-col md:flex-row items-center p-4 gap-4">
-                                            {/* File type selector - Clean with reduced width */}
                                             <div className="w-full md:w-auto">
                                                 <div className="flex items-center gap-2">
                                                     <span className={`text-sm font-medium whitespace-nowrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
@@ -772,7 +778,7 @@ export default function Datatable({
                                                     </span>
                                                     <select
                                                         value={fileType}
-                                                        onChange={(e) => setFileType(e.target.value)}
+                                                        onChange={handleFileTypeChange}
                                                         className={`px-3 py-2 text-sm border-b focus:outline-none w-48 ${theme === 'light'
                                                             ? 'bg-transparent text-black border-gray-300 focus:border-blue-500'
                                                             : 'bg-gray-800 text-white border-gray-600 focus:border-blue-500'}`}
@@ -783,7 +789,6 @@ export default function Datatable({
                                                 </div>
                                             </div>
 
-                                            {/* Action buttons - Colorful but clean */}
                                             <div className="flex gap-3 w-full md:w-auto">
                                                 <button
                                                     onClick={handleBulkDownload}
@@ -810,8 +815,6 @@ export default function Datatable({
                                                 </button>
                                             </div>
 
-                                            {/* Date filters */}
-                                            {/* Date filters */}
                                             <div className="flex-1 flex flex-wrap items-center gap-3">
                                                 <div className="flex items-center gap-2">
                                                     <label className={`text-sm font-medium whitespace-nowrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
@@ -820,7 +823,7 @@ export default function Datatable({
                                                     <input
                                                         type="date"
                                                         value={dateFrom}
-                                                        onChange={(e) => setDateFrom(e.target.value)}
+                                                        onChange={handleDateFromChange}
                                                         className={`px-3 py-2 text-sm border rounded focus:outline-none w-36 ${theme === 'light'
                                                             ? 'bg-white text-black border-gray-300 focus:border-blue-500'
                                                             : 'bg-gray-800 text-white border-gray-600 focus:border-blue-500'}`}
@@ -834,7 +837,7 @@ export default function Datatable({
                                                     <input
                                                         type="date"
                                                         value={dateTo}
-                                                        onChange={(e) => setDateTo(e.target.value)}
+                                                        onChange={handleDateToChange}
                                                         className={`px-3 py-2 text-sm border rounded focus:outline-none w-36 ${theme === 'light'
                                                             ? 'bg-white text-black border-gray-300 focus:border-blue-500'
                                                             : 'bg-gray-800 text-white border-gray-600 focus:border-blue-500'}`}
@@ -863,11 +866,9 @@ export default function Datatable({
                                                     </button>
                                                 )}
                                             </div>
-
                                         </div>
                                     </div>
 
-                                    {/* Search bar - Clean with colorful focus */}
                                     <div className={`rounded-lg border p-4 ${theme === 'light' ? 'bg-white border-gray-100' : 'bg-gray-900 border-gray-800'}`}>
                                         <div className="relative group">
                                             <input
@@ -891,11 +892,9 @@ export default function Datatable({
                                 </div>
                             </div>
 
-                            {/* Table */}
                             <table id="datatable" style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <thead>
-                                    <tr className={getTableHeaderClass()}>
-                                        {/* ✅ Fixed checkbox column only */}
+                                    <tr className={getTableHeaderClass}>
                                         <th style={{
                                             border: "1px solid #ddd",
                                             width: "10vh",
@@ -932,7 +931,6 @@ export default function Datatable({
                                     {paginatedData.length > 0 ? (
                                         paginatedData.map((row, idx) => (
                                             <tr key={idx} className={getTableRowClass(idx)}>
-                                                {/* ✅ Fixed checkbox cell only */}
                                                 <td style={{
                                                     border: "1px solid #ddd",
                                                     textAlign: "center",
@@ -971,7 +969,6 @@ export default function Datatable({
                                                                             className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] shadow-lg"
                                                                             onClick={() => openPopup(`${row.orderid}`)}
                                                                         >
-                                                                            {/* Professional chat icon */}
                                                                             <svg
                                                                                 className="w-6 h-6 text-slate-200"
                                                                                 fill="currentColor"
@@ -1035,7 +1032,6 @@ export default function Datatable({
                                                                 </div>
                                                             )
                                                         }
-
                                                     </td>
                                                 ))}
                                             </tr>
@@ -1054,16 +1050,14 @@ export default function Datatable({
                                 </tbody>
                             </table>
 
-                            {/* Pagination */}
                             {paginatedData.length > 0 && (
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "15px" }}>
-                                    {/* Rows per page dropdown */}
                                     <label className={theme === "dark" ? "text-white" : "text-gray-800"}>
                                         Rows per page:{" "}
                                         <select
                                             value={rowsPerPage}
                                             onChange={handleRowsPerPageChange}
-                                            className={`p-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-400 ${getSelectClass()}`}
+                                            className={`p-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-400 ${getSelectClass}`}
                                         >
                                             {rowsPerPageOptions.map((option) => (
                                                 <option key={option} value={option}>
