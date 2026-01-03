@@ -29,6 +29,7 @@ export default function NewRequest() {
   };
 
   const handleFiles = async (selectedFiles) => {
+    
     const fileArray = Array.from(selectedFiles);
 
     const validFiles = fileArray.filter((file) =>
@@ -81,6 +82,7 @@ export default function NewRequest() {
   };
 
   const uploadFile = async (file, fileId, selectedOrderIds = null) => {
+    console.log("Uploading filename:", file.name);
     const controller = new AbortController();
     uploadControllers.current[fileId] = controller;
 
