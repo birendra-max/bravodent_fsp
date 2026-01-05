@@ -1,10 +1,11 @@
-import React ,{ useState, useMemo, useEffect, useContext, useRef, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useContext, useRef, useCallback } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fetchWithAuth } from '../../utils/userapi';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 
 const parseDateForFilter = (value) => {
     if (!value) return null;
@@ -54,10 +55,10 @@ const RedesignPopup = React.memo(({
     setShowRedesignPopup
 }) => {
     const textareaRef = useRef(null);
-    
+
     // Use local state only, no duplication with parent state
     const [localMessage, setLocalMessage] = useState(redesignMessage || "");
-    
+
     // Update local state only when redesignMessage prop changes and popup opens
     useEffect(() => {
         if (showRedesignPopup) {
@@ -346,8 +347,8 @@ export default function Datatable({
             filtered = filtered.filter((row) =>
                 columns.some((col) => {
                     const value = row[col.accessor];
-                    return value != null && 
-                           String(value).toLowerCase().includes(searchLower);
+                    return value != null &&
+                        String(value).toLowerCase().includes(searchLower);
                 })
             );
         }
@@ -550,19 +551,19 @@ export default function Datatable({
 
         if (res.status === "success") {
             let successMsg = res.message || "Orders sent for redesign successfully.";
-            
+
             if (newOrderIds.length > 0) {
                 successMsg += "\n\nNote: " + (newOrderIds.length === 1
                     ? `Order ${newOrderIds[0]} was skipped as it's a new order.`
                     : `Orders ${newOrderIds.join(', ')} were skipped as they are new orders.`);
             }
-            
+
             if (redesignIds.length > 0) {
                 successMsg += "\n\nNote: " + (redesignIds.length === 1
                     ? `Order ${redesignIds[0]} was skipped as it's already in redesign.`
                     : `Orders ${redesignIds.join(', ')} were skipped as they are already in redesign.`);
             }
-            
+
             alert(successMsg);
             window.location.reload();
         } else {
@@ -962,7 +963,11 @@ export default function Datatable({
                                                         }}
                                                         className="border border-gray-300" >
                                                         {
-                                                            col.header === 'Message' ? (
+                                                            col.header === 'Order Id' ? (
+                                                                <div>
+                                                                    <Link to={`/user/orderDeatails/${row.orderid}`} className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-bold" > {row.orderid} </Link>
+                                                                </div>
+                                                            ) : col.header === 'Message' ? (
                                                                 <div className="flex justify-center items-center relative">
                                                                     <div className="relative group">
                                                                         <div
