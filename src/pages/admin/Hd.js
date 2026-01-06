@@ -53,14 +53,14 @@ export default function Hd() {
         const currentPath = location.pathname;
         const menuPaths = [
             "/admin/dashboard",
-            "/admin/new_request", 
+            "/admin/new_request",
             "/admin/multisearch",
             "/admin/cases-reports"
         ];
-        
+
         // Check if current path matches any menu item
         const isMenuPage = menuPaths.some(path => currentPath.includes(path));
-        
+
         if (isMenuPage) {
             if (currentPath.includes("dashboard")) setActivePage("index");
             else if (currentPath.includes("new_request")) setActivePage("new_request");
@@ -99,8 +99,10 @@ export default function Hd() {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        if (!searchQuery.trim()) return;
-        showNotification(`Searching for "${searchQuery}"`, "info");
+        if (searchQuery.trim()) {
+            setMobileSearchOpen(false);
+            navigate(`/admin/search-order/${searchQuery}`)
+        }
     };
 
     const clearSearch = () => setSearchQuery("");
@@ -123,7 +125,7 @@ export default function Hd() {
         { href: "/admin/multisearch", label: "Multi Search", key: "multisearch", icon: faSearch },
         { href: "/admin/cases-reports", label: "Reports", key: "reports", icon: faChartBar }
     ];
-    
+
     return (
         <header
             className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? "shadow-xl bg-gray-900/95 backdrop-blur-lg" : "bg-gray-900"
