@@ -4,7 +4,7 @@ import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload, faTrashCan, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
+import { faDownload, faTrashCan, faFolderOpen, faPenToSquare, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { fetchWithAuth } from "../../utils/adminapi";
 import { Link } from "react-router-dom";
 
@@ -23,6 +23,25 @@ export default function Datatable({
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [orderid, setOrderid] = useState(null);
     const [tableData, setTableData] = useState(data); // ✅ Maintain local UI data
+    const [showModal, setShowModal] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [message, setMessage] = useState({ text: "", type: "" });
+    const [formLoading, setFormLoading] = useState(false);
+
+    // Form state
+    const [formData, setFormData] = useState({
+        name: "",
+        designation: "",
+        email: "",
+        occlusion: "",
+        labname: "",
+        mobile: "",
+        anatomy: "",
+        contact: "",
+        pontic: "",
+        password: "",
+        remark: ""
+    });
 
     // ✅ Update local data when parent data changes
     useEffect(() => {
@@ -137,7 +156,6 @@ export default function Datatable({
             : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
     };
 
-
     const getPageNumbers = (totalPages, currentPage) => {
         const maxButtons = 5;
         const pages = [];
@@ -155,7 +173,6 @@ export default function Datatable({
         setOrderid(id);
         document.getElementById('chatbox').style.display = "block";
     }
-
 
     // ✅ Status Toggle with Instant UI Update
     const handleStatusToggle = async (userid, currentStatus) => {
@@ -195,11 +212,11 @@ export default function Datatable({
                 method: "DELETE",
             });
 
-            if (res.status === "success") { // <-- FIX #2
-                setTableData((prev) => prev.filter((item) => item.userid !== userId));  // <-- FIX #3
+            if (res.status === "success") {
+                setTableData((prev) => prev.filter((item) => item.userid !== userId));
                 alert("✅ Client deleted successfully!");
             } else {
-                alert(data.message || "Failed to delete client");
+                alert(res.message || "Failed to delete client");
             }
         } catch (error) {
             console.error("Error deleting client:", error);
@@ -207,6 +224,103 @@ export default function Datatable({
         }
     };
 
+    const editUser = (userid) => {
+        if (userid !== '' && userid != null) {
+            // Find the user data
+            const user = tableData.find(item => item.userid === userid);
+            if (user) {
+                // Populate form data with user information
+                setFormData({
+                    name: user.name || "",
+                    designation: user.designation || "",
+                    email: user.email || "",
+                    occlusion: user.occlusion || "",
+                    labname: user.labname || "",
+                    mobile: user.mobile || "",
+                    anatomy: user.anatomy || "",
+                    contact: user.contact || "",
+                    pontic: user.pontic || "",
+                    password: "", // Don't pre-fill password for security
+                    remark: user.remark || ""
+                });
+                setShowModal(true);
+            } else {
+                alert('User not found');
+            }
+        } else {
+            alert('User ID not found');
+        }
+    };
+
+    // Handle form input changes
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setFormLoading(true);
+        setMessage({ text: "", type: "" });
+
+        try {
+            // Check if editing or adding new
+            const userId = tableData.find(item =>
+                item.email === formData.email ||
+                item.mobile === formData.mobile
+            )?.userid;
+
+            const url = `/update-client/${userId}`;
+            const method = 'PUT';
+
+            const res = await fetchWithAuth(url, {
+                method: method,
+                body: JSON.stringify(formData),
+            });
+
+            if (res.status === "success") {
+                setMessage({
+                    text: res.message,
+                    type: res.status,
+                });
+
+                setTimeout(() => {
+                    setFormData({
+                        name: "",
+                        designation: "",
+                        email: "",
+                        occlusion: "",
+                        labname: "",
+                        mobile: "",
+                        anatomy: "",
+                        contact: "",
+                        pontic: "",
+                        password: "",
+                        remark: ""
+                    });
+                    setShowModal(false);
+                    setMessage({ text: "", type: "" });
+                }, 2000);
+            } else {
+                setMessage({
+                    text: res.message || "❌ Failed to save client",
+                    type: "error"
+                });
+            }
+        } catch (error) {
+            console.error("Error saving client:", error);
+            setMessage({
+                text: "⚠️ Something went wrong. Please try again.",
+                type: "error"
+            });
+        } finally {
+            setFormLoading(false);
+        }
+    };
 
     // ✅ Theme-based styling helpers
     const getBackgroundClass = () =>
@@ -232,6 +346,165 @@ export default function Datatable({
         <>
             <Loder status={status} />
             <Chatbox orderid={orderid} />
+
+            {/* Popup Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Overlay */}
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        onClick={() => setShowModal(false)}
+                    ></div>
+
+                    {/* Modal Content */}
+                    <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        {/* Modal Header */}
+                        <div className={`flex items-center justify-between p-6 rounded-t-2xl ${theme === "dark"
+                            ? "bg-gray-800 border-b border-gray-700"
+                            : "bg-white border-b border-gray-200"
+                            }`}>
+                            <h2 className="text-xl font-bold">Edit Client</h2>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className={`p-2 rounded-lg hover:bg-opacity-20 ${theme === "dark"
+                                    ? "hover:bg-gray-700 text-gray-300"
+                                    : "hover:bg-gray-200 text-gray-600"
+                                    }`}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Form Card */}
+                        <div className={`p-8 rounded-b-2xl ${theme === "dark"
+                            ? "bg-gray-900"
+                            : "bg-white"
+                            }`}
+                        >
+                            <form
+                                onSubmit={handleSubmit}
+                                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                            >
+                                {/* Common input component */}
+                                {[
+                                    { label: "Full Name", name: "name", placeholder: "Enter client's name" },
+                                    { label: "Designation", name: "designation", placeholder: "e.g., Dentist, Technician" },
+                                    { label: "Email Address", name: "email", type: "email", placeholder: "Enter email" },
+                                    { label: "Occlusion", name: "occlusion", placeholder: "Enter occlusion" },
+                                    { label: "Lab Name", name: "labname", placeholder: "Enter lab name" },
+                                    { label: "Mobile Number", name: "mobile", placeholder: "Enter mobile number" },
+                                    { label: "Anatomy", name: "anatomy", placeholder: "Enter anatomy details" },
+                                    { label: "Contact", name: "contact", placeholder: "Enter contact info" },
+                                    { label: "Pontic", name: "pontic", placeholder: "Enter pontic info" },
+                                ].map((field) => (
+                                    <div key={field.name}>
+                                        <label className="font-semibold block mb-2">{field.label}</label>
+                                        <input
+                                            type={field.type || "text"}
+                                            name={field.name}
+                                            value={formData[field.name]}
+                                            onChange={handleChange}
+                                            required
+                                            placeholder={field.placeholder}
+                                            className={`w-full p-3 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
+                                                ? "bg-gray-800 border-gray-700"
+                                                : "bg-gray-50 border-gray-300"
+                                                }`}
+                                        />
+                                    </div>
+                                ))}
+
+                                {/* Password Field with Eye Toggle */}
+                                <div className="relative">
+                                    <label className="font-semibold block mb-2">Password</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            placeholder="Enter new password (leave blank to keep current)"
+                                            className={`w-full p-3 pr-10 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
+                                                ? "bg-gray-800 border-gray-700"
+                                                : "bg-gray-50 border-gray-300"
+                                                }`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-3 text-gray-500 hover:text-blue-600"
+                                        >
+                                            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Leave blank to keep current password
+                                    </p>
+                                </div>
+
+                                {/* Remark full width */}
+                                <div className="md:col-span-2">
+                                    <label className="font-semibold block mb-2">Remark</label>
+                                    <textarea
+                                        name="remark"
+                                        value={formData.remark}
+                                        onChange={handleChange}
+                                        placeholder="Enter remarks"
+                                        rows={3}
+                                        className={`w-full p-3 rounded-md border focus:ring-2 focus:ring-blue-500 ${theme === "dark"
+                                            ? "bg-gray-800 border-gray-700"
+                                            : "bg-gray-50 border-gray-300"
+                                            }`}
+                                    ></textarea>
+                                </div>
+
+                                {/* Submit Section */}
+                                <div className="md:col-span-2 flex items-center justify-between mt-6">
+                                    {/* Message Alert */}
+                                    {message.text && (
+                                        <div
+                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${message.type === "success"
+                                                ? "bg-green-100 text-green-700 border border-green-300"
+                                                : "bg-red-100 text-red-700 border border-red-300"
+                                                }`}
+                                        >
+                                            {message.text}
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center space-x-4 ml-auto">
+                                        {/* Cancel Button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowModal(false)}
+                                            className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${theme === "dark"
+                                                ? "bg-gray-700 hover:bg-gray-600 text-white"
+                                                : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                                                }`}
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        {/* Submit Button */}
+                                        <button
+                                            type="submit"
+                                            disabled={formLoading}
+                                            className={`px-8 py-2.5 rounded-lg font-semibold transition-all ${formLoading
+                                                ? "bg-blue-400 text-white cursor-not-allowed"
+                                                : "bg-blue-600 hover:bg-blue-700 text-white"
+                                                }`}
+                                        >
+                                            {formLoading ? "Saving..." : "Save Changes"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {status === "hide" && (
                 <section className={`overflow-scroll md:overflow-hidden mt-4 ${getBackgroundClass()}`}>
@@ -342,10 +615,26 @@ export default function Datatable({
                                                                     </label>
                                                                 )}
                                                             </div>
-                                                        ) : col.header === 'Delete' ? (
-                                                            <button className="cursor-pointer" onClick={() => deleteUser(row.userid)}>
-                                                                <FontAwesomeIcon icon={faTrashCan} className="text-red-500 text-lg" />
-                                                            </button>
+                                                        ) : col.header === 'Action' ? (
+                                                            <div>
+                                                                <button
+                                                                    className="cursor-pointer mr-3"
+                                                                    onClick={() => editUser(row.userid)}
+                                                                    title="Edit Client"
+                                                                >
+                                                                    <FontAwesomeIcon
+                                                                        icon={faPenToSquare}
+                                                                        className="text-blue-500 text-lg"
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    className="cursor-pointer"
+                                                                    onClick={() => deleteUser(row.userid)}
+                                                                    title="Delete Client"
+                                                                >
+                                                                    <FontAwesomeIcon icon={faTrashCan} className="text-red-500 text-lg" />
+                                                                </button>
+                                                            </div>
                                                         ) : (
                                                             row[col.accessor] ?? "-"
                                                         )}

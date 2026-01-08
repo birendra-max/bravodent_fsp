@@ -514,7 +514,7 @@ export default function Chatbox({ orderid }) {
                                     isDesigner ? 'text-green-600' :
                                         'text-blue-600'
                                     }`}>
-                                    {formatTimestamp(msg.timestamp)}
+                                    {msg.timestamp}
                                 </span>
                             </div>
                         );
