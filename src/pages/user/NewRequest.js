@@ -16,8 +16,7 @@ export default function NewRequest() {
   const [selectedDuration, setSelectedDuration] = useState("");
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [uploadRequests, setUploadRequests] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false); // Added missing state
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFiles = (selectedFiles) => {
     const fileArray = Array.from(selectedFiles);
@@ -49,7 +48,6 @@ export default function NewRequest() {
 
     // 3. Show error for invalid files (if any exist)
     if (invalidFiles.length > 0) {
-      // Show temporary error message
       setFiles(prev => [...prev, {
         fileName: `Invalid files detected (${invalidFiles.length})`,
         progress: 0,
@@ -62,7 +60,6 @@ export default function NewRequest() {
         isError: true
       }]);
 
-      // Auto-remove the error message after 5 seconds
       setTimeout(() => {
         setFiles(prev => prev.filter(f => !f.isError));
       }, 5000);
@@ -92,13 +89,14 @@ export default function NewRequest() {
         }
       }
     } catch (err) {
-      // Error handling for check exists API
+      // Continue upload even if check fails
     }
 
+    // Set initial status once
     setFiles((prev) =>
       prev.map((f) =>
         f.fileName === file.name
-          ? { ...f, uploadStatus: "Uploading... 0%", progress: 0 }
+          ? { ...f, uploadStatus: "Uploading", progress: 0 }
           : f
       )
     );
@@ -114,21 +112,18 @@ export default function NewRequest() {
       xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
           const percentComplete = Math.round((event.loaded / event.total) * 100);
+          // UPDATE ONLY progress number, NOT uploadStatus string
           setFiles((prev) =>
             prev.map((f) =>
               f.fileName === file.name
-                ? {
-                  ...f,
-                  progress: percentComplete,
-                  uploadStatus: `Uploading... ${percentComplete}%`
-                }
+                ? { ...f, progress: percentComplete } // Only update progress
                 : f
             )
           );
         }
       });
 
-      xhr.addEventListener('load', async () => {
+      xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const result = JSON.parse(xhr.responseText);
@@ -138,7 +133,7 @@ export default function NewRequest() {
                   ? {
                     ...f,
                     progress: 100,
-                    uploadStatus: "Success",
+                    uploadStatus: "Success", // Make sure this is "Success" not "Uploading"
                     orderId: result.id,
                     productType: result.product_type,
                     unit: result.unit,
@@ -313,7 +308,7 @@ export default function NewRequest() {
       return;
     }
 
-    setIsSubmitting(true); // Start loading
+    setIsSubmitting(true);
 
     const filesWithDuration = files.map(file => ({
       ...file,
@@ -351,13 +346,13 @@ export default function NewRequest() {
     } catch (error) {
       alert(`Submission error: ${error.message}`);
     } finally {
-      setIsSubmitting(false); // End loading
+      setIsSubmitting(false);
     }
   };
 
   const canSubmit = files.length > 0 &&
     files.some(f => f.uploadStatus === "Success") &&
-    !files.some(f => f.uploadStatus.startsWith("Uploading...")) &&
+    !files.some(f => f.uploadStatus === "Uploading") && // Changed from startsWith("Uploading...")
     selectedDuration;
 
   const getCardClass = () => {
@@ -417,7 +412,7 @@ export default function NewRequest() {
           textColor: "text-red-700",
           borderColor: "border-red-200",
         },
-        "Uploading...": {
+        "Uploading": {
           bgColor: "bg-gradient-to-r from-blue-50 to-blue-100",
           textColor: "text-blue-700",
           borderColor: "border-blue-200",
@@ -450,7 +445,7 @@ export default function NewRequest() {
           textColor: "text-red-400",
           borderColor: "border-red-700",
         },
-        "Uploading...": {
+        "Uploading": {
           bgColor: "bg-gradient-to-r from-blue-900/20 to-blue-800/20",
           textColor: "text-blue-400",
           borderColor: "border-blue-700",
@@ -482,14 +477,14 @@ export default function NewRequest() {
             status === "Failed" ? "bg-red-500" :
               status === "Cancelled" ? "bg-gray-500" :
                 status === "Cancelling..." ? "bg-yellow-500" :
-                  status.startsWith("Uploading...") ? "bg-blue-500" :
+                  status === "Uploading" ? "bg-blue-500" :
                     "bg-gray-400"
             }`}>
             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {status === "Success" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />}
               {status === "Failed" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />}
               {status === "Cancelled" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M18 6L6 18M6 6l12 12" />}
-              {status.startsWith("Uploading...") && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />}
+              {status === "Uploading" && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />}
               {status === "Waiting..." && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />}
             </svg>
           </div>
@@ -497,8 +492,8 @@ export default function NewRequest() {
       };
     };
 
-    // For Uploading status, show progress bar ONLY
-    if (status.startsWith("Uploading...")) {
+    // If uploading and progress > 0, show ONLY progress bar
+    if (status === "Uploading" && progress > 0) {
       return (
         <div className="w-full">
           <div
@@ -523,17 +518,23 @@ export default function NewRequest() {
       );
     }
 
+    // If upload just started (status = "Uploading" but progress = 0), show nothing
+    if (status === "Uploading" && progress === 0) {
+      return <div></div>; // Empty div, shows nothing
+    }
+
     // For all other statuses, show the regular status badge
     const config = getStatusConfig(status.split(' ')[0]);
 
     return (
       <div className="flex flex-col space-y-2">
-        <div className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold border ${config.bgColor} ${config.textColor} ${config.borderColor} ${config.shadow} transition-all duration-200`}>
-          {config.icon}
+        <div className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold border ${config?.bgColor || 'bg-gray-100'} ${config?.textColor || 'text-gray-700'} ${config?.borderColor || 'border-gray-200'} ${config?.shadow || ''} transition-all duration-200`}>
+          {config?.icon}
           <span className="font-medium">
             {status}
           </span>
         </div>
+
         {(status === "Failed" || status === "Cancelled") && message && (
           <div className={`flex items-start space-x-2 text-xs px-3 py-2 rounded-lg border ${theme === 'light'
             ? status === "Failed" ? 'text-red-600 bg-red-50 border-red-200' : 'text-gray-600 bg-gray-50 border-gray-200'
@@ -669,7 +670,7 @@ export default function NewRequest() {
                                 file.uploadStatus === "Failed" ? "bg-red-500" :
                                   file.uploadStatus === "Cancelled" ? "bg-gray-500" :
                                     file.uploadStatus === "Cancelling..." ? "bg-yellow-500" :
-                                      file.uploadStatus.startsWith("Uploading...") ? "bg-blue-500 animate-pulse" :
+                                      file.uploadStatus === "Uploading" ? "bg-blue-500 animate-pulse" :
                                         "bg-gray-400"
                                 }`}></div>
                               <span className="text-[13px] font-medium break-all whitespace-normal word-break break-words max-w-[400px]">
@@ -813,7 +814,7 @@ export default function NewRequest() {
                       <h3 className={`text-md font-semibold mb-3 text-left ${theme === "light" ? "text-gray-900" : "text-white"}`}>Submit Your Order</h3>
                       <div className={`text-xs mb-3 text-center leading-relaxed p-2 rounded-md ${isSubmitting
                         ? theme === "light" ? "text-blue-700 bg-blue-100" : "text-blue-300 bg-blue-900/30"
-                        : files.some(f => f.uploadStatus.startsWith("Uploading..."))
+                        : files.some(f => f.uploadStatus === "Uploading") // Changed condition
                           ? theme === "light" ? "text-yellow-700 bg-yellow-100" : "text-yellow-300 bg-yellow-900/30"
                           : !files.some(f => f.uploadStatus === "Success")
                             ? theme === "light" ? "text-red-700 bg-red-100" : "text-red-300 bg-red-900/30"
@@ -823,7 +824,7 @@ export default function NewRequest() {
                         }`}>
                         {isSubmitting
                           ? "🔄 Submitting your order, please wait..."
-                          : files.some(f => f.uploadStatus.startsWith("Uploading..."))
+                          : files.some(f => f.uploadStatus === "Uploading") // Changed condition
                             ? "⏳ Please wait for all uploads to complete before proceeding."
                             : !files.some(f => f.uploadStatus === "Success")
                               ? "❌ No files successfully uploaded. Please check and retry failed uploads."
