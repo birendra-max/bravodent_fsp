@@ -25,7 +25,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
-    const base_url = localStorage.getItem('base_url');
+    const base_url = localStorage.getItem('bravo_user_base_url');
     const navigate = useNavigate();
     const { logout } = useContext(UserContext);
     const { theme } = useContext(ThemeContext);
@@ -36,6 +36,7 @@ export default function Dashboard() {
         likes: "",
     });
     const [showModal, setShowModal] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
 
     const handleChange = (e) => {
         setForm({
@@ -93,16 +94,23 @@ export default function Dashboard() {
     };
 
     const handleCloseModal = () => {
-        setShowModal(false);
+        if (!isSubmitting) {
+            setShowModal(false);
+        }
     };
 
     const feedBackaRef = useRef(null);
     const token = localStorage.getItem('bravo_user_token');
+    
     const saveFeedback = async () => {
         if (form.feedback === '') {
             feedBackaRef.current.focus();
+            return;
         }
-        else {
+        
+        setIsSubmitting(true); // Start loading
+        
+        try {
             const resp = await fetch(`${base_url}/save-feedback`, {
                 method: "POST",
                 headers: {
@@ -111,23 +119,26 @@ export default function Dashboard() {
                     'X-Tenant': 'bravodent'
                 },
                 body: JSON.stringify(form),
-            })
+            });
 
-            const data = await resp.json()
+            const data = await resp.json();
+            
+            // Reset loading state
+            setIsSubmitting(false);
+            
             if (data.status === 'success') {
                 const statusEl = document.getElementById('status');
                 statusEl.className = 'mb-4 w-full px-4 py-2 text-sm font-medium border rounded-lg border-green-400 bg-green-100 text-green-700';
                 statusEl.innerText = data.message;
                 setForm({ feedback: "", likes: "" });
                 document.getElementById('feedbackform').reset();
+                
                 setTimeout(() => {
                     setShowModal(false);
                 }, 2000);
-
             } else {
-
                 if (data.error === 'Invalid or expired token') {
-                    alert('Invalid or expired token. Please log in again.')
+                    alert('Invalid or expired token. Please log in again.');
                     navigate(logout);
                 }
 
@@ -136,12 +147,21 @@ export default function Dashboard() {
                 statusEl.innerText = data.message;
                 setForm({ feedback: "", likes: "" });
                 document.getElementById('feedbackform').reset();
+                
                 setTimeout(() => {
                     setShowModal(false);
                 }, 2000);
             }
+        } catch (error) {
+            // Handle network errors
+            setIsSubmitting(false);
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'mb-4 w-full px-4 py-2 text-sm font-medium border rounded-lg border-red-400 bg-red-100 text-red-700';
+            statusEl.innerText = 'Network error. Please try again.';
+            console.error("Feedback submission error:", error);
         }
     };
+
     // Theme-based background classes
     const getBackgroundClass = () => {
         return theme === 'dark'
@@ -222,7 +242,9 @@ export default function Dashboard() {
                     <div className={`border w-full max-w-md rounded-xl shadow-lg relative ${getModalClass()}`}>
                         <button
                             onClick={handleCloseModal}
-                            className={`absolute top-3 right-3 w-8 h-8 rounded flex items-center justify-center text-sm cursor-pointer ${getButtonClass()}`}
+                            disabled={isSubmitting}
+                            className={`absolute top-3 right-3 w-8 h-8 rounded flex items-center justify-center text-sm cursor-pointer 
+                                ${isSubmitting ? 'opacity-50 cursor-not-allowed' : getButtonClass()}`}
                         >
                             ✖
                         </button>
@@ -255,7 +277,10 @@ export default function Dashboard() {
                                         name="feedback"
                                         value={form.feedback}
                                         onChange={handleChange}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm ${getTextAreaClass()}`}
+                                        disabled={isSubmitting}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm 
+                                            ${getTextAreaClass()} 
+                                            ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                                         placeholder="Share your thoughts..."
                                     ></textarea>
                                 </div>
@@ -270,20 +295,20 @@ export default function Dashboard() {
                                         {[1, 2, 3, 4, 5].map((num) => (
                                             <button
                                                 key={num}
-                                                onClick={() =>
-                                                    setForm((prev) => ({ ...prev, likes: num }))
-                                                }
+                                                onClick={() => !isSubmitting && setForm((prev) => ({ ...prev, likes: num }))}
                                                 type="button"
+                                                disabled={isSubmitting}
                                                 className={`
-                          group relative w-8 h-8 rounded-full flex items-center justify-center
-                          transition-all duration-300 transform hover:scale-110
-                          ${form.likes >= num
+                                                    group relative w-8 h-8 rounded-full flex items-center justify-center
+                                                    transition-all duration-300 transform hover:scale-110
+                                                    ${isSubmitting ? 'cursor-not-allowed opacity-60' : ''}
+                                                    ${form.likes >= num
                                                         ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white shadow-[0_0_10px_rgba(250,204,21,0.6)]'
                                                         : theme === 'dark'
                                                             ? 'bg-gray-700 text-yellow-400 hover:bg-yellow-400 hover:text-white'
                                                             : 'bg-gray-200 text-yellow-500 hover:bg-yellow-400 hover:text-white'
                                                     }
-                        `}
+                                                `}
                                             >
                                                 <FontAwesomeIcon icon={faStar} className="text-lg" />
                                                 <span className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs px-2 py-1 rounded-md bg-black/70 text-white whitespace-nowrap">
@@ -325,9 +350,21 @@ export default function Dashboard() {
                                     <button
                                         type="button"
                                         onClick={saveFeedback}
-                                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm font-medium"
+                                        disabled={isSubmitting}
+                                        className={`px-6 py-2 rounded-lg transition-colors cursor-pointer text-sm font-medium flex items-center justify-center gap-2 min-w-[140px] float-right mb-4
+                                            ${isSubmitting 
+                                                ? 'bg-blue-400 cursor-not-allowed' 
+                                                : 'bg-blue-600 hover:bg-blue-700'} 
+                                            text-white`}
                                     >
-                                        Submit Feedback
+                                        {isSubmitting ? (
+                                            <>
+                                                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                                                Submitting...
+                                            </>
+                                        ) : (
+                                            'Submit Feedback'
+                                        )}
                                     </button>
                                 </div>
                             </form>
