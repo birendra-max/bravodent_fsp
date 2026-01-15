@@ -1,15 +1,12 @@
 import { useState, useRef, useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    faUser, faTimes, faFile, faPaperclip, faPaperPlane, faDownload,
-    faCrown, faUserTie, faCamera, faMicrophone
-} from "@fortawesome/free-solid-svg-icons";
+import { faUser, faTimes, faFile, faPaperclip, faPaperPlane, faDownload, faCrown, faUserTie, faCamera } from "@fortawesome/free-solid-svg-icons";
 import { UserContext } from '../Context/UserContext';
 import { DesignerContext } from '../Context/DesignerContext';
 import { AdminContext } from '../Context/AdminContext';
 import config from '../config';
 
-export default function Chatbox({ orderid }) {
+export default function Chatbox({ orderid, isFloating = false, onClose, position, theme = 'light' }) {
     const userToken = localStorage.getItem('bravo_user_token');
     const adminToken = localStorage.getItem('bravo_admin_token');
     const designerToken = localStorage.getItem('bravo_designer_token');
@@ -61,7 +58,10 @@ export default function Chatbox({ orderid }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [isConnected, setIsConnected] = useState(false);
+    const [showTypingAnimation, setShowTypingAnimation] = useState(true);
+    const [textareaHeight, setTextareaHeight] = useState(40);
     const fileInputRef = useRef(null);
+    const imageInputRef = useRef(null);
     const chatBodyRef = useRef(null);
     const chatboxRef = useRef(null);
     const textareaRef = useRef(null);
@@ -69,23 +69,45 @@ export default function Chatbox({ orderid }) {
     const lastMessageIdRef = useRef(0);
     const posRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
     const recentlySentMessagesRef = useRef(new Set());
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+        if (isFloating && position && chatboxRef.current) {
+            chatboxRef.current.style.position = 'fixed';
+            chatboxRef.current.style.left = `${position.left}px`;
+            chatboxRef.current.style.top = `${position.top}px`;
+            chatboxRef.current.style.zIndex = '9999';
         }
-    }, [newMessage]);
+    }, [isFloating, position]);
+
+    const handleMessageChange = (e) => {
+        const value = e.target.value;
+        setNewMessage(value);
+
+        if (value.trim() !== '' && showTypingAnimation) {
+            setShowTypingAnimation(false);
+        } else if (value.trim() === '' && !showTypingAnimation) {
+            setShowTypingAnimation(true);
+        }
+
+        // Auto-resize textarea
+        const textarea = e.target;
+        textarea.style.height = 'auto';
+        const newHeight = Math.min(textarea.scrollHeight, 100); // Max 100px
+        textarea.style.height = `${newHeight}px`;
+        setTextareaHeight(newHeight);
+    };
 
     useEffect(() => {
         if (!orderid) return;
 
         setMessages([]);
         setNewMessage('');
+        setShowTypingAnimation(true);
+        setTextareaHeight(40);
         lastMessageIdRef.current = 0;
         recentlySentMessagesRef.current.clear();
 
-        // Clear any existing polling interval
         if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
@@ -95,6 +117,57 @@ export default function Chatbox({ orderid }) {
             loadChatHistory();
         }
     }, [orderid]);
+
+    useEffect(() => {
+        const chatbox = chatboxRef.current;
+        const header = chatbox?.querySelector("#chatHeader");
+        if (!chatbox || !header) return;
+
+        const mouseDownHandler = (e) => {
+            setIsDragging(true);
+            posRef.current = {
+                x: e.clientX,
+                y: e.clientY,
+                left: parseInt(chatbox.style.left) || 0,
+                top: parseInt(chatbox.style.top) || 0
+            };
+            document.addEventListener("mousemove", mouseMoveHandler);
+            document.addEventListener("mouseup", mouseUpHandler);
+        };
+
+        const mouseMoveHandler = (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - posRef.current.x;
+            const dy = e.clientY - posRef.current.y;
+
+            let newLeft = posRef.current.left + dx;
+            let newTop = posRef.current.top + dy;
+
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const chatboxWidth = chatbox.offsetWidth;
+            const chatboxHeight = chatbox.offsetHeight;
+
+            newLeft = Math.max(10, Math.min(newLeft, viewportWidth - chatboxWidth - 10));
+            newTop = Math.max(10, Math.min(newTop, viewportHeight - chatboxHeight - 10));
+
+            chatbox.style.left = `${newLeft}px`;
+            chatbox.style.top = `${newTop}px`;
+        };
+
+        const mouseUpHandler = () => {
+            setIsDragging(false);
+            document.removeEventListener("mousemove", mouseMoveHandler);
+            document.removeEventListener("mouseup", mouseUpHandler);
+        };
+
+        header.addEventListener("mousedown", mouseDownHandler);
+        return () => {
+            header.removeEventListener("mousedown", mouseDownHandler);
+            document.removeEventListener("mousemove", mouseMoveHandler);
+            document.removeEventListener("mouseup", mouseUpHandler);
+        };
+    }, [isDragging]);
 
     const loadChatHistory = async () => {
         try {
@@ -110,7 +183,6 @@ export default function Chatbox({ orderid }) {
 
             if (data.status === 'success' && data.data) {
                 const formatted = data.data.map(msg => {
-                    // SIMPLE RULE: Client messages -> LEFT, Designer/Admin messages -> RIGHT
                     const isClientMessage = msg.user_type === 'Client';
 
                     return {
@@ -136,23 +208,19 @@ export default function Chatbox({ orderid }) {
                     lastMessageIdRef.current = Math.max(...formatted.map(m => m.id));
                 }
 
-                // Start polling for new messages
                 startPolling();
             }
         } catch (error) {
             console.error("Error loading chat history:", error);
-            // Start polling anyway
             startPolling();
         }
     };
 
     const startPolling = () => {
-        // Clear any existing interval first
         if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
         }
 
-        // Set up polling every 3 seconds
         pollingIntervalRef.current = setInterval(fetchNewMessages, 3000);
         setIsConnected(true);
     };
@@ -161,7 +229,6 @@ export default function Chatbox({ orderid }) {
         if (!orderid || !token) return;
 
         try {
-            // Fetch new messages since the last message ID
             const response = await fetch(
                 `${config.API_BASE_URL}/chat/get-chat-history/${orderid}?lastId=${lastMessageIdRef.current}`,
                 {
@@ -179,11 +246,9 @@ export default function Chatbox({ orderid }) {
             const data = await response.json();
 
             if (data.status === 'success' && data.data) {
-                // Filter to only get messages newer than our last message ID
                 const newMessages = data.data
                     .filter(msg => msg.id > lastMessageIdRef.current)
                     .map(msg => {
-                        // SIMPLE RULE: Client messages -> LEFT, Designer/Admin messages -> RIGHT
                         const isClientMessage = msg.user_type === 'Client';
 
                         return {
@@ -204,14 +269,11 @@ export default function Chatbox({ orderid }) {
                     });
 
                 if (newMessages.length > 0) {
-                    // Update messages state
                     setMessages(prev => {
-                        // Filter out any duplicates
                         const existingIds = new Set(prev.map(m => m.id));
                         const uniqueNewMessages = newMessages.filter(m => !existingIds.has(m.id));
 
                         if (uniqueNewMessages.length > 0) {
-                            // Update last message ID
                             lastMessageIdRef.current = Math.max(...uniqueNewMessages.map(m => m.id));
                             return [...prev, ...uniqueNewMessages];
                         }
@@ -233,7 +295,6 @@ export default function Chatbox({ orderid }) {
         }
     }, [messages]);
 
-    // Cleanup polling interval on component unmount
     useEffect(() => {
         return () => {
             if (pollingIntervalRef.current) {
@@ -284,8 +345,6 @@ export default function Chatbox({ orderid }) {
             const data = await response.json();
 
             if (data.status === 'success') {
-                // Determine alignment based on user role
-                // Client messages go LEFT, Designer/Admin messages go RIGHT
                 const isCurrentUserClient = userRole === 'client';
 
                 const newMsg = {
@@ -307,8 +366,14 @@ export default function Chatbox({ orderid }) {
                 setMessages(prev => [...prev, newMsg]);
                 lastMessageIdRef.current = data.data.id;
                 setNewMessage('');
+                setShowTypingAnimation(true);
+                setTextareaHeight(40);
 
-                // Trigger immediate poll to get any other new messages
+                // Reset textarea height
+                if (textareaRef.current) {
+                    textareaRef.current.style.height = '40px';
+                }
+
                 setTimeout(() => fetchNewMessages(), 500);
             } else {
                 alert(`Failed to send message: ${data.message}`);
@@ -318,7 +383,7 @@ export default function Chatbox({ orderid }) {
         }
     };
 
-    const handleFileUpload = async (e) => {
+    const handleFileUpload = async (e, isImage = false) => {
         const files = Array.from(e.target.files);
         if (!files.length || !orderid) return;
 
@@ -346,7 +411,6 @@ export default function Chatbox({ orderid }) {
                     alert(`Upload failed: ${result.message}`);
                 }
 
-                // Trigger immediate poll to show the uploaded file
                 setTimeout(() => fetchNewMessages(), 500);
 
                 setTimeout(() => {
@@ -362,6 +426,7 @@ export default function Chatbox({ orderid }) {
     };
 
     const triggerFileInput = () => fileInputRef.current?.click();
+    const triggerImageInput = () => imageInputRef.current?.click();
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -393,30 +458,6 @@ export default function Chatbox({ orderid }) {
         }
     };
 
-    useEffect(() => {
-        const chatbox = chatboxRef.current;
-        const header = document.getElementById("chatHeader");
-        if (!chatbox || !header) return;
-
-        const mouseDownHandler = (e) => {
-            posRef.current = { x: e.clientX, y: e.clientY, left: chatbox.offsetLeft, top: chatbox.offsetTop };
-            document.addEventListener("mousemove", mouseMoveHandler);
-            document.addEventListener("mouseup", mouseUpHandler);
-        };
-        const mouseMoveHandler = (e) => {
-            const dx = e.clientX - posRef.current.x;
-            const dy = e.clientY - posRef.current.y;
-            chatbox.style.left = `${posRef.current.left + dx}px`;
-            chatbox.style.top = `${posRef.current.top + dy}px`;
-        };
-        const mouseUpHandler = () => {
-            document.removeEventListener("mousemove", mouseMoveHandler);
-            document.removeEventListener("mouseup", mouseUpHandler);
-        };
-        header.addEventListener("mousedown", mouseDownHandler);
-        return () => header.removeEventListener("mousedown", mouseDownHandler);
-    }, []);
-
     const getUserIcon = (userType) => {
         switch (userType) {
             case 'Admin': return faCrown;
@@ -426,19 +467,49 @@ export default function Chatbox({ orderid }) {
         }
     };
 
+    const handleClose = () => {
+        if (onClose) {
+            onClose();
+        } else {
+            const chatboxElement = document.getElementById('chatbox');
+            if (chatboxElement && chatboxElement.style) {
+                chatboxElement.style.display = "none";
+            }
+        }
+    };
+
+    const TypingAnimation = () => (
+        <div className="flex items-center justify-center space-x-1 w-full">
+            <span className="text-xs text-gray-500">Message</span>
+            <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+        </div>
+    );
+
+    // Calculate chat body height based on textarea height
+    const chatBodyHeight = `calc(464px - 64px - ${Math.min(textareaHeight, 100) + 24}px)`;
+
     return (
         <section
             id="chatbox"
             ref={chatboxRef}
-            style={{ position: "fixed", top: "80px", right: "24px" }}
-            className="md:w-[400px] w-[300px] h-[540px] rounded-xl shadow-xl bg-white z-[999] hidden overflow-hidden"
+            style={{
+                position: isFloating ? 'fixed' : 'absolute',
+                width: '350px',
+                minHeight: '464px',
+                maxHeight: '600px'
+            }}
+            className={`rounded-xl shadow-xl bg-white z-[9999] overflow-hidden border border-gray-200 flex flex-col ${isDragging ? 'cursor-move' : ''}`}
         >
-            {/* Header */}
+            {/* Header - Matching second design */}
             <div
                 id="chatHeader"
-                className="flex items-center justify-between px-3 py-2 bg-[#00a884] rounded-t-xl border-b border-gray-300 cursor-move select-none"
+                className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-[#00a884] rounded-t-xl border-b border-gray-300 cursor-move select-none"
             >
-                <div className="flex items-center gap-2 py-2">
+                <div className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${userRole === 'admin' ? 'bg-purple-600' :
                         userRole === 'designer' ? 'bg-green-600' :
                             'bg-blue-600'
@@ -462,22 +533,23 @@ export default function Chatbox({ orderid }) {
                 </div>
                 <div className="flex items-center gap-1">
                     <button
-                        onClick={() => document.getElementById('chatbox').style.display = "none"}
-                        className="w-6 h-6 flex items-center justify-center text-white/80 hover:text-white hover:bg-red-500/20 rounded"
+                        onClick={handleClose}
+                        className="w-8 h-8 flex items-center justify-center text-white/80 hover:text-white hover:bg-red-500/20 rounded-full transition-colors"
                     >
                         <FontAwesomeIcon icon={faTimes} />
                     </button>
                 </div>
             </div>
 
-            {/* Chat Body - Scrollable area */}
+            {/* Chat Body - Dynamic height based on textarea */}
             <div
                 ref={chatBodyRef}
-                className="p-3 h-[calc(520px-120px)] overflow-y-auto"
                 style={{
+                    height: chatBodyHeight,
                     backgroundColor: '#efeae2',
                     backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23d1f7c4\' fill-opacity=\'0.4\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")'
                 }}
+                className="p-4 overflow-y-auto flex-grow"
             >
                 {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
@@ -493,7 +565,7 @@ export default function Chatbox({ orderid }) {
 
                         return (
                             <div key={msg.id} className={`flex flex-col ${isRight ? 'items-end' : 'items-start'} mb-3`}>
-                                <div className={`max-w-[85%] p-2 rounded-lg ${isRight ? 'bg-[#d9fdd3] text-gray-800 rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none shadow-sm'}`}>
+                                <div className={`max-w-[85%] p-3 rounded-lg ${isRight ? 'bg-[#d9fdd3] text-gray-800 rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none shadow-sm'}`}>
                                     {msg.hasAttachment && msg.file_path ? (
                                         <div className="flex items-center gap-2 p-1">
                                             <FontAwesomeIcon icon={faFile} className="text-gray-600" />
@@ -503,11 +575,11 @@ export default function Chatbox({ orderid }) {
                                                 className="text-gray-600 hover:text-gray-800 ml-2"
                                                 title="Download file"
                                             >
-                                                <FontAwesomeIcon icon={faDownload} className="text-xl hover:text-gray-800 cursor-pointer" />
+                                                <FontAwesomeIcon icon={faDownload} className="text-lg hover:text-gray-800 cursor-pointer" />
                                             </button>
                                         </div>
                                     ) : (
-                                        <p className="text-xs whitespace-pre-wrap">{msg.text}</p>
+                                        <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
                                     )}
                                 </div>
                                 <span className={`text-[10px] mt-1 px-1 ${isAdmin ? 'text-purple-600' :
@@ -524,8 +596,8 @@ export default function Chatbox({ orderid }) {
 
             {/* Input Area - Fixed at bottom */}
             <div className="flex-shrink-0 bg-gray-100 border-t border-gray-300">
-                <div className="px-4 py-3">
-                    <div className="flex items-end gap-2">
+                <div className="px-3 py-2">
+                    <div className="flex items-end gap-1">
                         {/* Attachment Button */}
                         <button
                             onClick={triggerFileInput}
@@ -538,7 +610,7 @@ export default function Chatbox({ orderid }) {
 
                         {/* Camera Button */}
                         <button
-                            onClick={triggerFileInput}
+                            onClick={triggerImageInput}
                             disabled={!orderid || !token}
                             className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50 flex-shrink-0"
                             title="Camera"
@@ -546,26 +618,35 @@ export default function Chatbox({ orderid }) {
                             <FontAwesomeIcon icon={faCamera} className="text-xl" />
                         </button>
 
-                        {/* Text Input Area */}
+                        {/* Text Input Area - Responsive */}
                         <div className="flex-1 min-w-0 relative bg-white rounded-full border border-gray-300 overflow-hidden">
+                            {showTypingAnimation && newMessage.trim() === '' && (
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                    <TypingAnimation />
+                                </div>
+                            )}
                             <textarea
                                 ref={textareaRef}
                                 value={newMessage}
-                                onChange={(e) => {
-                                    setNewMessage(e.target.value);
-                                    // Auto-resize
-                                    const textarea = e.target;
-                                    textarea.style.height = 'auto';
-                                    textarea.style.height = Math.min(textarea.scrollHeight, 80) + 'px';
-                                }}
+                                onChange={handleMessageChange}
                                 onKeyDown={handleKeyDown}
-                                placeholder={!token ? "Authentication required" : !orderid ? "Select an order" : "Type a message"}
-                                className="w-full bg-transparent text-gray-800 px-4 py-3 text-sm focus:outline-none resize-none"
+                                onFocus={() => {
+                                    if (newMessage.trim() === '') {
+                                        setShowTypingAnimation(true);
+                                    }
+                                }}
+                                onBlur={() => {
+                                    if (newMessage.trim() === '') {
+                                        setShowTypingAnimation(true);
+                                    }
+                                }}
+                                className="w-full bg-transparent text-gray-800 px-3 py-2 text-sm focus:outline-none resize-none placeholder-transparent"
                                 disabled={!orderid || !token}
                                 rows="1"
                                 style={{
-                                    minHeight: '44px',
-                                    maxHeight: '80px',
+                                    height: `${textareaHeight}px`,
+                                    minHeight: '40px',
+                                    maxHeight: '100px',
                                     overflowY: 'auto',
                                     scrollbarWidth: 'thin',
                                     scrollbarColor: '#CBD5E0 transparent'
@@ -573,10 +654,11 @@ export default function Chatbox({ orderid }) {
                             />
                         </div>
 
+                        {/* Send Button */}
                         <button
                             onClick={sendMessage}
                             disabled={!newMessage.trim() || !orderid || !token}
-                            className="w-10 h-10 flex items-center justify-center text-white bg-whatsapp-green rounded-full transition-colors disabled:opacity-50 flex-shrink-0"
+                            className="w-10 h-10 flex items-center justify-center text-white rounded-full transition-colors disabled:opacity-50 flex-shrink-0 ml-1"
                             style={{ backgroundColor: '#00a884' }}
                             title="Send"
                         >
@@ -585,12 +667,22 @@ export default function Chatbox({ orderid }) {
                     </div>
                 </div>
 
-                {/* Hidden File Input */}
+                {/* Hidden File Inputs */}
                 <input
                     ref={fileInputRef}
                     type="file"
-                    onChange={handleFileUpload}
+                    onChange={(e) => handleFileUpload(e, false)}
                     multiple
+                    accept=".pdf,.doc,.docx,.txt,.zip,.rar,.xls,.xlsx"
+                    className="hidden"
+                />
+
+                <input
+                    ref={imageInputRef}
+                    type="file"
+                    onChange={(e) => handleFileUpload(e, true)}
+                    multiple
+                    accept="image/*"
                     className="hidden"
                 />
             </div>

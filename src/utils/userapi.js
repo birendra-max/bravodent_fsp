@@ -1,18 +1,21 @@
 import { logoutUser } from "./userauth";
 
-let isLoggingOut = false;
+let logoutInProgress = false;
+let logoutTimer = null;
 
 export async function fetchWithAuth(endpoint, options = {}) {
     let token = localStorage.getItem("bravo_user_token");
     let base_url = localStorage.getItem('bravo_user_base_url');
 
+    if (logoutInProgress) {
+        return null;
+    }
+
     if (!token || token === "null" || token === "undefined" || token.trim() === "") {
-        console.warn("Invalid token found in localStorage:", token);
         token = null;
     }
 
     if (!base_url || base_url === "null" || base_url === "undefined" || base_url.trim() === "") {
-        console.warn("Invalid base Urlnot found in localStorage:", base_url);
         base_url = null;
     }
 
@@ -30,10 +33,21 @@ export async function fetchWithAuth(endpoint, options = {}) {
         });
 
         if (response.status === 401 || response.status === 403) {
-            if (!isLoggingOut) {
-                isLoggingOut = true;
-                alert("Session expired. Please log in again.");
-                logoutUser();
+            if (!logoutInProgress) {
+                logoutInProgress = true;
+                
+                if (logoutTimer) {
+                    clearTimeout(logoutTimer);
+                }
+                
+                logoutTimer = setTimeout(() => {
+                    alert("Session expired. Please log in again.");
+                    logoutUser();
+                    setTimeout(() => {
+                        logoutInProgress = false;
+                        logoutTimer = null;
+                    }, 1000);
+                }, 100);
             }
             return null;
         }
@@ -45,20 +59,41 @@ export async function fetchWithAuth(endpoint, options = {}) {
             (data.error === "Invalid or expired token" ||
                 data.message === "Token expired")
         ) {
-            if (!isLoggingOut) {
-                isLoggingOut = true;
-                alert("Invalid or expired token. Please log in again.");
-                logoutUser();
+            if (!logoutInProgress) {
+                logoutInProgress = true;
+                
+                if (logoutTimer) {
+                    clearTimeout(logoutTimer);
+                }
+                
+                logoutTimer = setTimeout(() => {
+                    alert("Invalid or expired token. Please log in again.");
+                    logoutUser();
+                    setTimeout(() => {
+                        logoutInProgress = false;
+                        logoutTimer = null;
+                    }, 1000);
+                }, 100);
             }
             return null;
         }
 
         return data;
     } catch (err) {
-        console.error("API error:", err);
-        if (!isLoggingOut) {
-            isLoggingOut = true;
-            logoutUser();
+        if (token && !logoutInProgress && err.name !== 'AbortError') {
+            logoutInProgress = true;
+            
+            if (logoutTimer) {
+                clearTimeout(logoutTimer);
+            }
+            
+            logoutTimer = setTimeout(() => {
+                logoutUser();
+                setTimeout(() => {
+                    logoutInProgress = false;
+                    logoutTimer = null;
+                }, 1000);
+            }, 100);
         }
         return null;
     } finally {

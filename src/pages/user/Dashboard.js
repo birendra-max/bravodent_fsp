@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { fetchWithAuth } from "../../utils/userapi";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { UserContext } from "../../Context/UserContext";
-import { useNavigate } from "react-router-dom";
 
 import {
     faShoppingCart,
@@ -36,7 +35,7 @@ export default function Dashboard() {
         likes: "",
     });
     const [showModal, setShowModal] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (e) => {
         setForm({
@@ -45,27 +44,26 @@ export default function Dashboard() {
         });
     };
 
+    // Function to fetch dashboard data
+    const fetchDashboardData = async () => {
+        try {
+            const data = await fetchWithAuth('all-cases-data-count', {
+                method: "GET",
+            });
 
-    useEffect(() => {
-        async function fetchCardsData() {
-            try {
-                const data = await fetchWithAuth('all-cases-data-count', {
-                    method: "GET",
-                });
-
-                // data is already the parsed JSON response
-                if (data.status === 'success') {
-                    setCases(data);
-                } else {
-                    setCases(null);
-                }
-            } catch (error) {
-                console.error("Error fetching cases:", error);
+            if (data.status === 'success') {
+                setCases(data);
+            } else {
                 setCases(null);
             }
+        } catch (error) {
+            console.error("Error fetching cases:", error);
+            setCases(null);
         }
+    };
 
-        fetchCardsData();
+    useEffect(() => {
+        fetchDashboardData();
     }, []);
 
     useEffect(() => {
@@ -108,7 +106,7 @@ export default function Dashboard() {
             return;
         }
         
-        setIsSubmitting(true); // Start loading
+        setIsSubmitting(true);
         
         try {
             const resp = await fetch(`${base_url}/save-feedback`, {
@@ -123,7 +121,6 @@ export default function Dashboard() {
 
             const data = await resp.json();
             
-            // Reset loading state
             setIsSubmitting(false);
             
             if (data.status === 'success') {
@@ -153,12 +150,25 @@ export default function Dashboard() {
                 }, 2000);
             }
         } catch (error) {
-            // Handle network errors
             setIsSubmitting(false);
             const statusEl = document.getElementById('status');
             statusEl.className = 'mb-4 w-full px-4 py-2 text-sm font-medium border rounded-lg border-red-400 bg-red-100 text-red-700';
             statusEl.innerText = 'Network error. Please try again.';
             console.error("Feedback submission error:", error);
+        }
+    };
+
+    // Handle card click - FORCE RELOAD even for same page
+    const handleCardClick = (e, href) => {
+        e.preventDefault();
+        
+        // Force full page reload for all clicks
+        if (window.location.pathname === href) {
+            // If already on the same page, force reload
+            window.location.href = href;
+        } else {
+            // For different page, navigate normally
+            navigate(href);
         }
     };
 
@@ -210,9 +220,9 @@ export default function Dashboard() {
             <section className={`p-6 rounded-xl ${getBackgroundClass()}`}>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {cards.map((card, idx) => (
-                        <Link
+                        <div
                             key={idx}
-                            to={card.href}
+                            onClick={(e) => handleCardClick(e, card.href)}
                             className={`rounded-xl shadow-md p-4 hover:shadow-xl transition cursor-pointer ${getCardClass()}`}
                             id={card.id}
                         >
@@ -229,7 +239,7 @@ export default function Dashboard() {
                                     )}
                                 </div>
                             </div>
-                        </Link>
+                        </div>
                     ))}
                 </div>
 

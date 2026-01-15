@@ -93,13 +93,9 @@ function Chatbox({ orderid, theme }) {
                 const formatted = data.data.map(msg => {
                     // Client messages -> LEFT, Designer/Admin messages -> RIGHT
                     const isClient = msg.user_type === 'Client';
-                    const isDesigner = msg.user_type === 'Designer';
-                    const isAdmin = msg.user_type === 'Admin';
 
-                    // Show right if: (client viewing own message) OR (designer viewing designer message) OR (admin viewing any non-client message)
-                    const showRight = (userRole === 'client' && isClient) ||
-                        (userRole === 'designer' && isDesigner) ||
-                        (userRole === 'admin' && !isClient);
+                    // Simple rule: Client messages = left, Designer/Admin messages = right
+                    const showRight = !isClient;
 
                     return {
                         id: msg.id,
@@ -151,12 +147,9 @@ function Chatbox({ orderid, theme }) {
                     .filter(msg => msg.id > lastMessageIdRef.current)
                     .map(msg => {
                         const isClient = msg.user_type === 'Client';
-                        const isDesigner = msg.user_type === 'Designer';
-                        const isAdmin = msg.user_type === 'Admin';
 
-                        const showRight = (userRole === 'client' && isClient) ||
-                            (userRole === 'designer' && isDesigner) ||
-                            (userRole === 'admin' && !isClient);
+                        // Simple rule: Client messages = left, Designer/Admin messages = right
+                        const showRight = !isClient;
 
                         return {
                             id: msg.id,
@@ -233,12 +226,9 @@ function Chatbox({ orderid, theme }) {
 
                 // Add message immediately with correct alignment
                 const isClient = getUserTypeForApi() === 'Client';
-                const isDesigner = getUserTypeForApi() === 'Designer';
-                const isAdmin = getUserTypeForApi() === 'Admin';
 
-                const showRight = (userRole === 'client' && isClient) ||
-                    (userRole === 'designer' && isDesigner) ||
-                    (userRole === 'admin' && !isClient);
+                // Simple rule: Client messages = left, Designer/Admin messages = right
+                const showRight = !isClient;
 
                 const newMsg = {
                     id: data.data.id,
@@ -322,7 +312,7 @@ function Chatbox({ orderid, theme }) {
     };
 
     return (
-        <div className={`flex flex-col h-full rounded-xl overflow-hidden border ${theme === "light" ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
+        <div className={`flex flex-col h-[500px] rounded-xl overflow-hidden border ${theme === "light" ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
 
             {/* ================= HEADER ================= */}
             <div className={`shrink-0 flex items-center justify-between px-6 py-4 border-b ${theme === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"}`}>
@@ -411,6 +401,7 @@ function Chatbox({ orderid, theme }) {
         </div>
     );
 }
+
 
 export default function OrderDetails() {
     const { theme } = useContext(ThemeContext);
@@ -935,18 +926,18 @@ export default function OrderDetails() {
                                                             <div className={`h-2 rounded-full overflow-hidden ${theme === "light" ? "bg-gray-200" : "bg-gray-600"}`}>
                                                                 <div
                                                                     className={`h-full transition-all duration-300 ${progress.status === 'completed' ? 'bg-green-500' :
-                                                                            progress.status === 'error' ? 'bg-red-500' :
-                                                                                progress.status === 'processing' ? 'bg-yellow-500' :
-                                                                                    'bg-blue-500'
+                                                                        progress.status === 'error' ? 'bg-red-500' :
+                                                                            progress.status === 'processing' ? 'bg-yellow-500' :
+                                                                                'bg-blue-500'
                                                                         }`}
                                                                     style={{ width: `${progress.progress}%` }}
                                                                 />
                                                             </div>
                                                             <div className="flex justify-between items-center text-xs">
                                                                 <span className={`font-medium ${progress.status === 'completed' ? 'text-green-600' :
-                                                                        progress.status === 'error' ? 'text-red-600' :
-                                                                            progress.status === 'processing' ? 'text-yellow-600' :
-                                                                                'text-blue-600'
+                                                                    progress.status === 'error' ? 'text-red-600' :
+                                                                        progress.status === 'processing' ? 'text-yellow-600' :
+                                                                            'text-blue-600'
                                                                     }`}>
                                                                     {progress.status === 'uploading' ? 'Uploading...' :
                                                                         progress.status === 'processing' ? 'Processing...' :
@@ -988,8 +979,8 @@ export default function OrderDetails() {
                                                 onClick={() => fileInputRef.current?.click()}
                                                 disabled={uploading}
                                                 className={`w-full flex flex-col items-center gap-3 px-8 py-8 rounded-lg font-bold text-lg transition-all hover:scale-105 ${uploading ? 'bg-gray-400 cursor-not-allowed' :
-                                                        theme === "light" ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg' :
-                                                            'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 shadow-lg'
+                                                    theme === "light" ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg' :
+                                                        'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 shadow-lg'
                                                     }`}
                                             >
                                                 {uploading ? (

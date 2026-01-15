@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useContext } from "react";
+import React,{ useState, useMemo, useEffect, useContext, useRef, useCallback } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -11,6 +11,53 @@ import {
     faFolderOpen,
     faBolt
 } from '@fortawesome/free-solid-svg-icons';
+
+// Floating Chatbox Wrapper Component
+const FloatingChatboxWrapper = React.memo(({
+    orderid,
+    position,
+    onClose,
+    theme
+}) => {
+    const chatboxRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (chatboxRef.current && !chatboxRef.current.contains(event.target)) {
+                const messageIcon = event.target.closest('.message-icon-container');
+                if (!messageIcon) {
+                    onClose();
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    if (!orderid || !position) return null;
+
+    return (
+        <div
+            ref={chatboxRef}
+            style={{
+                position: 'fixed',
+                top: `${position.top}px`,
+                left: `${position.left}px`,
+                zIndex: 9999
+            }}
+            className="chatbox-container"
+        >
+            <Chatbox
+                orderid={orderid}
+                isFloating={true}
+                onClose={onClose}
+                position={position}
+                theme={theme}
+            />
+        </div>
+    );
+});
 
 export default function Datatable({
     columns = [],
@@ -28,11 +75,16 @@ export default function Datatable({
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [orderid, setOrderid] = useState(null);
 
-    // ✅ NEW STATES for multi-select & dropdown
     const [selectedRows, setSelectedRows] = useState([]);
     const [fileType, setFileType] = useState("initial");
 
-    // ✅ Control loader based on parent's loading prop
+    // State for floating chatbox
+    const [chatboxState, setChatboxState] = useState({
+        isOpen: false,
+        orderid: null,
+        position: null
+    });
+
     useEffect(() => {
         if (!loading) {
             setStatus("hide");
@@ -41,7 +93,6 @@ export default function Datatable({
         }
     }, [loading]);
 
-    // Filter & Sort
     const filteredData = useMemo(() => {
         let filtered = data || [];
 
@@ -131,83 +182,49 @@ export default function Datatable({
         return pages;
     };
 
-    function openPopup(id) {
-        setOrderid(id);
-        document.getElementById('chatbox').style.display = "block"
-    }
+    // New floating chatbox function
+    const openChatbox = (orderid, event) => {
+        const iconElement = event.currentTarget;
+        const rect = iconElement.getBoundingClientRect();
 
-    // Theme-based styling functions
-    const getBackgroundClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-900 text-white'
-            : 'bg-gray-200 text-gray-800';
-    };
+        const chatboxWidth = 350;
+        const chatboxHeight = 450;
 
-    const getTableHeaderClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 text-white'
-            : 'bg-blue-600 text-white';
-    };
+        let left = rect.left - chatboxWidth - 10;
 
-    const getTableRowClass = (idx) => {
-        if (theme === 'dark') {
-            return idx % 2 === 0 ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white';
-        } else {
-            return idx % 2 === 0 ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-800';
+        if (left < 10) {
+            left = rect.right + 10;
         }
-    };
 
-    const getInputClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500';
-    };
+        let top = rect.top;
 
-    const getSelectClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-700 border-gray-600 text-white'
-            : 'bg-white border-gray-300 text-gray-800';
-    };
+        if (top + chatboxHeight > window.innerHeight) {
+            top = window.innerHeight - chatboxHeight - 10;
+        }
+        if (top < 10) {
+            top = 10;
+        }
 
-    const getPaginationButtonStyle = (isActive = false) => {
-        const baseStyle = {
-            padding: "8px 12px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontWeight: "bold",
+        const position = {
+            top: top,
+            left: left
         };
 
-        if (theme === 'dark') {
-            return {
-                ...baseStyle,
-                background: isActive ? "#4f46e5" : "#374151",
-                color: isActive ? "#fff" : "#d1d5db",
-                borderColor: isActive ? "#4f46e5" : "#4b5563",
-            };
-        } else {
-            return {
-                ...baseStyle,
-                background: isActive ? "#007bff" : "#fff",
-                color: isActive ? "#fff" : "#000",
-                borderColor: "#ccc",
-            };
-        }
+        setChatboxState({
+            isOpen: true,
+            orderid,
+            position
+        });
     };
 
-    const getDisabledButtonStyle = () => {
-        return theme === 'dark'
-            ? { ...getPaginationButtonStyle(), background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
-            : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
+    const closeChatbox = () => {
+        setChatboxState({
+            isOpen: false,
+            orderid: null,
+            position: null
+        });
     };
 
-    const getNoDataClass = () => {
-        return theme === 'dark'
-            ? 'bg-gray-800 text-gray-300'
-            : 'bg-gray-100 text-gray-600';
-    };
-
-    // ✅ Multi-select logic
     const toggleSelectRow = (id) =>
         setSelectedRows((prev) =>
             prev.includes(id)
@@ -288,7 +305,6 @@ export default function Datatable({
 
             try {
                 if (fileType === "stl") {
-                    // Step 1: get all STL file paths from backend
                     const res = await fetch(`${base_url}/download-all?orderid=${id}`, {
                         headers: { 'X-Tenant': 'bravodent' }
                     });
@@ -299,7 +315,6 @@ export default function Datatable({
                         continue;
                     }
 
-                    // Step 2: download each STL file via backend
                     for (const filePath of files) {
                         if (!filePath) continue;
 
@@ -315,11 +330,10 @@ export default function Datatable({
                         link.click();
                         document.body.removeChild(link);
 
-                        await new Promise(r => setTimeout(r, 500)); // optional delay
+                        await new Promise(r => setTimeout(r, 500));
                     }
 
                 } else if (fileType === "initial" || fileType === "finish") {
-                    // Get the correct file path
                     let path = fileType === "initial" ? row.file_path : row.finish_file_path;
 
                     if (!path || path.trim() === "") {
@@ -350,11 +364,89 @@ export default function Datatable({
         }
     };
 
+    const getBackgroundClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-900 text-white'
+            : 'bg-gray-200 text-gray-800';
+    };
+
+    const getTableHeaderClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 text-white'
+            : 'bg-blue-600 text-white';
+    };
+
+    const getTableRowClass = (idx) => {
+        if (theme === 'dark') {
+            return idx % 2 === 0 ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white';
+        } else {
+            return idx % 2 === 0 ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-800';
+        }
+    };
+
+    const getInputClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500';
+    };
+
+    const getSelectClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-700 border-gray-600 text-white'
+            : 'bg-white border-gray-300 text-gray-800';
+    };
+
+    const getPaginationButtonStyle = (isActive = false) => {
+        const baseStyle = {
+            padding: "8px 12px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: "bold",
+        };
+
+        if (theme === 'dark') {
+            return {
+                ...baseStyle,
+                background: isActive ? "#4f46e5" : "#374151",
+                color: isActive ? "#fff" : "#d1d5db",
+                borderColor: isActive ? "#4f46e5" : "#4b5563",
+            };
+        } else {
+            return {
+                ...baseStyle,
+                background: isActive ? "#007bff" : "#fff",
+                color: isActive ? "#fff" : "#000",
+                borderColor: "#ccc",
+            };
+        }
+    };
+
+    const getDisabledButtonStyle = () => {
+        return theme === 'dark'
+            ? { ...getPaginationButtonStyle(), background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
+            : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
+    };
+
+    const getNoDataClass = () => {
+        return theme === 'dark'
+            ? 'bg-gray-800 text-gray-300'
+            : 'bg-gray-100 text-gray-600';
+    };
 
     return (
         <>
             <Loder status={status} />
-            <Chatbox orderid={orderid} />
+
+            {/* Floating Chatbox */}
+            {chatboxState.isOpen && (
+                <FloatingChatboxWrapper
+                    orderid={chatboxState.orderid}
+                    position={chatboxState.position}
+                    onClose={closeChatbox}
+                    theme={theme}
+                />
+            )}
 
             {/* Table is only shown after loader is hidden */}
             {status === "hide" && (
@@ -438,7 +530,7 @@ export default function Datatable({
                             <table id="datatable" style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <thead>
                                     <tr className={getTableHeaderClass()}>
-                                        {/* ✅ Fixed checkbox column only */}
+                                        {/* Fixed checkbox column only */}
                                         <th style={{
                                             border: "1px solid #ddd",
                                             width: "10vh",
@@ -475,7 +567,7 @@ export default function Datatable({
                                     {paginatedData.length > 0 ? (
                                         paginatedData.map((row, idx) => (
                                             <tr key={idx} className={getTableRowClass(idx)}>
-                                                {/* ✅ Fixed checkbox cell only */}
+                                                {/* Fixed checkbox cell only */}
                                                 <td style={{
                                                     border: "1px solid #ddd",
                                                     textAlign: "center",
@@ -513,12 +605,11 @@ export default function Datatable({
                                                                 </div>
                                                             ) : col.header === 'Message' ? (
                                                                 <div className="flex justify-center items-center relative">
-                                                                    <div className="relative group">
+                                                                    <div className="relative group message-icon-container">
                                                                         <div
                                                                             className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] shadow-lg"
-                                                                            onClick={() => openPopup(`${row.orderid}`)}
+                                                                            onClick={(e) => openChatbox(`${row.orderid}`, e)}
                                                                         >
-                                                                            {/* Professional chat icon */}
                                                                             <svg
                                                                                 className="w-6 h-6 text-slate-200"
                                                                                 fill="currentColor"

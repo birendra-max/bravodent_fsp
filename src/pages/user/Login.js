@@ -61,7 +61,7 @@ export default function Login() {
                 localStorage.setItem('bravo_user_token', data.token);
                 localStorage.setItem('bravo_user_base_url', data.base_url);
                 setStatus({ type: "success", message: data.message });
-                navigate('/user/home');
+                navigate('/user/weekly_case');
             } else {
                 setStatus({ type: "error", message: data.message || "Invalid login" });
                 setIsSubmitting(false);

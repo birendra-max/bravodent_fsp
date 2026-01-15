@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useContext } from "react";
+import React,{ useState, useMemo, useEffect, useContext, useRef, useCallback } from "react";
 import Loder from "../../Components/Loder";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { exportToExcel } from '../../helper/ExcelGenerate';
@@ -7,10 +7,57 @@ import { faDownload, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 import { Link } from 'react-router-dom';
 import Chatbox from '../../Components/Chatbox';
 
+// Floating Chatbox Wrapper Component
+const FloatingChatboxWrapper = React.memo(({
+    orderid,
+    position,
+    onClose,
+    theme
+}) => {
+    const chatboxRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (chatboxRef.current && !chatboxRef.current.contains(event.target)) {
+                const messageIcon = event.target.closest('.message-icon-container');
+                if (!messageIcon) {
+                    onClose();
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    if (!orderid || !position) return null;
+
+    return (
+        <div
+            ref={chatboxRef}
+            style={{
+                position: 'fixed',
+                top: `${position.top}px`,
+                left: `${position.left}px`,
+                zIndex: 9999
+            }}
+            className="chatbox-container"
+        >
+            <Chatbox
+                orderid={orderid}
+                isFloating={true}
+                onClose={onClose}
+                position={position}
+                theme={theme}
+            />
+        </div>
+    );
+});
+
 export default function CasesDatatable({
     columns = [],
     data = [],
-    rowsPerPageOptions = [50, 100, 200, 500, 'All'], // ✅ Added 'All' option
+    rowsPerPageOptions = [50, 100, 200, 500, 'All'],
     loading = false,
     error = null,
     onSelectionChange = () => { }
@@ -19,12 +66,18 @@ export default function CasesDatatable({
     const [status, setStatus] = useState("show");
     const [search, setSearch] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-    const [orderid, setOrderid] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
     const [fileType, setFileType] = useState("finish");
     const [isFetchingPage, setIsFetchingPage] = useState(false);
     const [tableData, setTableData] = useState({ cases: [], pagination: {} });
     const base_url = localStorage.getItem('bravo_admin_base_url');
+
+    // State for floating chatbox
+    const [chatboxState, setChatboxState] = useState({
+        isOpen: false,
+        orderid: null,
+        position: null
+    });
 
     useEffect(() => {
         if (data && data.cases) {
@@ -112,7 +165,6 @@ export default function CasesDatatable({
         setStatus("show");
         const token = localStorage.getItem('bravo_admin_token')
         try {
-            // Use base_url if provided URL is relative
             let fullUrl = url;
             if (base_url && !url.startsWith('http://') && !url.startsWith('https://')) {
                 fullUrl = `${base_url}${url}`;
@@ -165,12 +217,10 @@ export default function CasesDatatable({
     const handlePageNumberClick = (pageNum) => {
         if (pageNum === currentPage || pageNum < 1 || pageNum > totalPages) return;
 
-        // Use base_url for constructing URLs
         const baseEndpoint = base_url ? `${base_url}/get-all-cases` : '';
 
         if (nextPage || previousPage) {
             try {
-                // Use existing URL pattern from pagination
                 const existingUrl = nextPage || previousPage;
                 const urlObj = new URL(existingUrl, window.location.origin);
 
@@ -198,11 +248,9 @@ export default function CasesDatatable({
         const value = e.target.value;
 
         if (value === 'All') {
-            // For "All" option, fetch with a very large per_page value
             if (nextPage) {
                 const urlObj = new URL(nextPage, window.location.origin);
                 urlObj.searchParams.delete('per_page');
-                // Use totalRecords to fetch all data
                 urlObj.searchParams.set('per_page', totalRecords);
                 urlObj.searchParams.set('page_orders', 1);
                 fetchPage(urlObj.toString());
@@ -260,10 +308,48 @@ export default function CasesDatatable({
         return pages;
     };
 
-    function openPopup(id) {
-        setOrderid(id);
-        document.getElementById('chatbox').style.display = "block";
-    }
+    // New floating chatbox function
+    const openChatbox = useCallback((orderid, event) => {
+        const iconElement = event.currentTarget;
+        const rect = iconElement.getBoundingClientRect();
+
+        const chatboxWidth = 350;
+        const chatboxHeight = 450;
+
+        let left = rect.left - chatboxWidth - 10;
+
+        if (left < 10) {
+            left = rect.right + 10;
+        }
+
+        let top = rect.top;
+
+        if (top + chatboxHeight > window.innerHeight) {
+            top = window.innerHeight - chatboxHeight - 10;
+        }
+        if (top < 10) {
+            top = 10;
+        }
+
+        const position = {
+            top: top,
+            left: left
+        };
+
+        setChatboxState({
+            isOpen: true,
+            orderid,
+            position
+        });
+    }, []);
+
+    const closeChatbox = useCallback(() => {
+        setChatboxState({
+            isOpen: false,
+            orderid: null,
+            position: null
+        });
+    }, []);
 
     const getBackgroundClass = () => {
         return theme === 'dark'
@@ -369,7 +455,6 @@ export default function CasesDatatable({
 
             if (path && path.trim() !== "") {
                 try {
-                    // Use base_url for file paths if they are relative
                     let fullPath = path;
                     if (base_url && !path.startsWith('http://') && !path.startsWith('https://') && !path.startsWith('blob:')) {
                         fullPath = `${base_url}${path}`;
@@ -404,13 +489,21 @@ export default function CasesDatatable({
         }
     };
 
-    // ✅ Determine current perPage value for select
     const currentPerPageValue = perPage === totalRecords || perPage;
 
     return (
         <>
             <Loder status={status} />
-            <Chatbox orderid={orderid} />
+
+            {/* Floating Chatbox */}
+            {chatboxState.isOpen && (
+                <FloatingChatboxWrapper
+                    orderid={chatboxState.orderid}
+                    position={chatboxState.position}
+                    onClose={closeChatbox}
+                    theme={theme}
+                />
+            )}
 
             {status === "hide" && (
                 <section
@@ -545,10 +638,10 @@ export default function CasesDatatable({
                                                             </div>
                                                         ) : col.header === 'Message' ? (
                                                             <div className="flex justify-center items-center relative">
-                                                                <div className="relative group">
+                                                                <div className="relative group message-icon-container">
                                                                     <div
                                                                         className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] shadow-lg"
-                                                                        onClick={() => openPopup(`${row.orderid}`)}
+                                                                        onClick={(e) => openChatbox(`${row.orderid}`, e)}
                                                                     >
                                                                         <svg
                                                                             className="w-6 h-6 text-slate-200"

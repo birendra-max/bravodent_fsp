@@ -43,6 +43,55 @@ const parseDateForFilter = (value) => {
     ).getTime();
 };
 
+// Floating Chatbox Wrapper Component
+const FloatingChatboxWrapper = React.memo(({
+    orderid,
+    position,
+    onClose,
+    theme
+}) => {
+    const chatboxRef = useRef(null);
+
+    // Handle click outside to close
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (chatboxRef.current && !chatboxRef.current.contains(event.target)) {
+                // Check if the click is on a message icon
+                const messageIcon = event.target.closest('.message-icon-container');
+                if (!messageIcon) {
+                    onClose();
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    if (!orderid || !position) return null;
+
+    return (
+        <div
+            ref={chatboxRef}
+            style={{
+                position: 'fixed',
+                top: `${position.top}px`,
+                left: `${position.left}px`,
+                zIndex: 9999
+            }}
+            className="chatbox-container"
+        >
+            <Chatbox
+                orderid={orderid}
+                isFloating={true}
+                onClose={onClose}
+                position={position}
+                theme={theme}
+            />
+        </div>
+    );
+});
+
 // Use React.memo to prevent unnecessary re-renders
 const RedesignPopup = React.memo(({
     theme,
@@ -301,7 +350,6 @@ export default function Datatable({
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-    const [orderid, setOrderid] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
     const [fileType, setFileType] = useState("stl");
     const [showRedesignPopup, setShowRedesignPopup] = useState(false);
@@ -310,6 +358,13 @@ export default function Datatable({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+
+    // State for floating chatbox
+    const [chatboxState, setChatboxState] = useState({
+        isOpen: false,
+        orderid: null,
+        position: null
+    });
 
     // Memoize the data to prevent unnecessary re-renders
     const memoizedData = useMemo(() => data || [], [data]);
@@ -430,9 +485,51 @@ export default function Datatable({
         return pages;
     }, []);
 
-    const openPopup = useCallback((id) => {
-        setOrderid(id);
-        document.getElementById('chatbox').style.display = "block"
+    const openChatbox = useCallback((orderid, event) => {
+        const iconElement = event.currentTarget;
+        const rect = iconElement.getBoundingClientRect();
+
+        // Calculate position to the LEFT of the icon
+        const chatboxWidth = 350; // Same as in Chatbox.js
+        const chatboxHeight = 450; // Same as in Chatbox.js
+
+        // Position to the left of the icon
+        let left = rect.left - chatboxWidth - 10; // 10px gap from the icon
+
+        // If there's not enough space on the left, show on the right
+        if (left < 10) {
+            left = rect.right + 10; // Show on right side with gap
+        }
+
+        // Position at the same vertical level as the icon
+        let top = rect.top;
+
+        // Adjust if chatbox would go off screen vertically
+        if (top + chatboxHeight > window.innerHeight) {
+            top = window.innerHeight - chatboxHeight - 10;
+        }
+        if (top < 10) {
+            top = 10;
+        }
+
+        const position = {
+            top: top,
+            left: left
+        };
+
+        setChatboxState({
+            isOpen: true,
+            orderid,
+            position
+        });
+    }, []);
+
+    const closeChatbox = useCallback(() => {
+        setChatboxState({
+            isOpen: false,
+            orderid: null,
+            position: null
+        });
     }, []);
 
     const sendRedesign = useCallback(async (orderIds, message) => {
@@ -709,11 +806,11 @@ export default function Datatable({
         }
     }, [theme]);
 
-    const getDisabledButtonStyle = useCallback(() => {
+    const getDisabledButtonStyle = () => {
         return theme === 'dark'
-            ? { background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
-            : { background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
-    }, [theme]);
+            ? { ...getPaginationButtonStyle(), background: "#1f2937", color: "#6b7280", cursor: "not-allowed" }
+            : { ...getPaginationButtonStyle(), background: "#f8f9fa", color: "#6c757d", cursor: "not-allowed" };
+    };
 
     const getNoDataClass = useMemo(() => {
         return theme === 'dark'
@@ -742,7 +839,16 @@ export default function Datatable({
     return (
         <>
             <Loder status={status} />
-            <Chatbox orderid={orderid} />
+
+            {/* Floating Chatbox */}
+            {chatboxState.isOpen && (
+                <FloatingChatboxWrapper
+                    orderid={chatboxState.orderid}
+                    position={chatboxState.position}
+                    onClose={closeChatbox}
+                    theme={theme}
+                />
+            )}
 
             <RedesignPopup
                 theme={theme}
@@ -971,8 +1077,8 @@ export default function Datatable({
                                                                 <div className="flex justify-center items-center relative">
                                                                     <div className="relative group">
                                                                         <div
-                                                                            className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] shadow-lg"
-                                                                            onClick={() => openPopup(`${row.orderid}`)}
+                                                                            className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] shadow-lg message-icon-container"
+                                                                            onClick={(e) => openChatbox(`${row.orderid}`, e)}
                                                                         >
                                                                             <svg
                                                                                 className="w-6 h-6 text-slate-200"
