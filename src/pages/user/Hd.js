@@ -19,7 +19,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Hd() {
-
+    const navigate = useNavigate();
+    const location = useLocation();
+    
     useEffect(() => {
         const data = localStorage.getItem('bravo_user') ? localStorage.getItem('bravo_user') : "";
         const token = localStorage.getItem('bravo_user_token') ? localStorage.getItem('bravo_user_token') : "";
@@ -27,12 +29,10 @@ export default function Hd() {
         if (data === '' && token === '') {
             navigate('/user');
         }
-    })
+    }, [navigate]);
 
     const { setTheme } = useContext(ThemeContext);
     const [mode, setMode] = useState('light');
-    const navigate = useNavigate();
-    const location = useLocation();
     const { user, logout } = useContext(UserContext);
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -89,9 +89,9 @@ export default function Hd() {
     }, [dropdownOpen, isOpen, mobileSearchOpen]);
 
     const navItems = [
-        { href: "/user/home", label: "Home", key: "index", icon: faHome },
+        { href: "/user/weekly_case", label: "Home", key: "index", icon: faHome },
         { href: "/user/new_request", label: "File Upload", key: "new_request", icon: faUpload },
-        { href: "/user/reports", label: "Billing Reports", key: "reports", icon: faBuildingColumns   }
+        { href: "/user/reports", label: "Billing Reports", key: "reports", icon: faBuildingColumns }
     ];
 
     const applyTheme = (newTheme) => {
@@ -109,12 +109,29 @@ export default function Hd() {
         e.preventDefault();
         if (searchQuery.trim()) {
             setMobileSearchOpen(false);
-            navigate(`/user/search-order/${searchQuery}`)
+            navigate(`/user/search-order/${searchQuery}`);
         }
     };
 
     const clearSearch = () => {
         setSearchQuery("");
+    };
+
+    // Function to handle tab click - RELOAD PAGE EVERY TIME
+    const handleTabClick = (e, href) => {
+        e.preventDefault();
+        
+        // Close mobile menu if open
+        setIsOpen(false);
+        setMobileSearchOpen(false);
+        
+        // If already on same page, force reload
+        if (location.pathname === href) {
+            window.location.reload();
+        } else {
+            // Navigate to different page
+            navigate(href);
+        }
     };
 
     return (
@@ -126,13 +143,10 @@ export default function Hd() {
                     <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
                         {/* Logo - Left Side */}
                         <div className="flex-shrink-0">
-                            <Link
-                                to="/user/home"
+                            <a
+                                href="/user/home"
+                                onClick={(e) => handleTabClick(e, "/user/home")}
                                 className="flex items-center justify-center"
-                                onClick={() => {
-                                    setIsOpen(false);
-                                    setMobileSearchOpen(false);
-                                }}
                             >
                                 <img
                                     src="/img/logo.png"
@@ -142,16 +156,17 @@ export default function Hd() {
                                         e.target.src = '/img/placeholder-logo.png';
                                     }}
                                 />
-                            </Link>
+                            </a>
                         </div>
 
                         {/* Center Menu - Desktop */}
                         <div className="hidden xl:flex xl:items-center xl:flex-1 xl:justify-center">
                             <div className="flex items-center space-x-6 bg-gray-800/70 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700">
                                 {navItems.map((item) => (
-                                    <Link
-                                        to={item.href}
+                                    <a
+                                        href={item.href}
                                         key={item.key}
+                                        onClick={(e) => handleTabClick(e, item.href)}
                                         className={`text-xs lg:text-sm px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${activePage === item.key
                                             ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg transform scale-105"
                                             : "text-gray-300 hover:bg-gray-700 hover:text-white hover:shadow-md"
@@ -162,7 +177,7 @@ export default function Hd() {
                                             className="w-3 h-3 lg:w-4 lg:h-4"
                                         />
                                         <span className="whitespace-nowrap">{item.label}</span>
-                                    </Link>
+                                    </a>
                                 ))}
                             </div>
                         </div>
@@ -395,14 +410,14 @@ export default function Hd() {
                         <div className="xl:hidden bg-gray-800 border-t border-gray-700 animate-slideDown">
                             <div className="px-2 py-3 space-y-1">
                                 {navItems.map((item) => (
-                                    <Link
-                                        to={item.href}
+                                    <a
+                                        href={item.href}
                                         key={item.key}
+                                        onClick={(e) => handleTabClick(e, item.href)}
                                         className={`block px-4 py-4 rounded-xl font-medium transition-all duration-300 flex items-center space-x-4 text-base sm:text-lg ${activePage === item.key
                                             ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg"
                                             : "text-gray-300 hover:bg-gray-700 hover:text-white"
                                             }`}
-                                        onClick={() => setIsOpen(false)}
                                     >
                                         <FontAwesomeIcon
                                             icon={item.icon}
@@ -410,7 +425,7 @@ export default function Hd() {
                                                 }`}
                                         />
                                         <span>{item.label}</span>
-                                    </Link>
+                                    </a>
                                 ))}
                             </div>
                         </div>
