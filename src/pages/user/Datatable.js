@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fetchWithAuth } from '../../utils/userapi';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { UserContext } from "../../Context/UserContext";
 
 const parseDateForFilter = (value) => {
     if (!value) return null;
@@ -358,6 +359,7 @@ export default function Datatable({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    const { user } = useContext(UserContext);
 
     // State for floating chatbox
     const [chatboxState, setChatboxState] = useState({
@@ -489,22 +491,15 @@ export default function Datatable({
         const iconElement = event.currentTarget;
         const rect = iconElement.getBoundingClientRect();
 
-        // Calculate position to the LEFT of the icon
-        const chatboxWidth = 350; // Same as in Chatbox.js
-        const chatboxHeight = 450; // Same as in Chatbox.js
+        const chatboxWidth = 350;
+        const chatboxHeight = 450;
 
-        // Position to the left of the icon
-        let left = rect.left - chatboxWidth - 10; // 10px gap from the icon
+        let left = rect.left - chatboxWidth - 10;
 
-        // If there's not enough space on the left, show on the right
         if (left < 10) {
-            left = rect.right + 10; // Show on right side with gap
+            left = rect.right + 10;
         }
-
-        // Position at the same vertical level as the icon
         let top = rect.top;
-
-        // Adjust if chatbox would go off screen vertically
         if (top + chatboxHeight > window.innerHeight) {
             top = window.innerHeight - chatboxHeight - 10;
         }
@@ -541,7 +536,8 @@ export default function Datatable({
                 },
                 body: JSON.stringify({
                     orders: orderIds,
-                    message: message
+                    message: message,
+                    labname: user.labname
                 }),
             });
 
