@@ -10,9 +10,11 @@ export default function NewRequest() {
   const [files, setFiles] = useState([]);
   const [drag, setDragActive] = useState(false);
   const [orderSelection, setOrderSelection] = useState({});
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const token = localStorage.getItem('bravo_designer_token');
   let base_url = localStorage.getItem('bravo_designer_base_url');
   const uploadControllers = useRef({});
+  const uploadQueue = useRef([]);
 
   useEffect(() => {
     const errorFiles = files.filter(f => f.isError);
@@ -24,12 +26,17 @@ export default function NewRequest() {
     }
   }, [files]);
 
+  useEffect(() => {
+    if (uploadQueue.current.length > 0 && !isProcessingQueue) {
+      processUploadQueue();
+    }
+  }, [files, isProcessingQueue]);
+
   const hasRealFiles = () => {
     return files.some(file => !file.isError);
   };
 
   const handleFiles = async (selectedFiles) => {
-    
     const fileArray = Array.from(selectedFiles);
 
     const validFiles = fileArray.filter((file) =>
@@ -49,8 +56,8 @@ export default function NewRequest() {
             id: fileId,
             fileName: file.name,
             progress: 0,
-            uploadStatus: "Waiting...",
-            message: "Ready to upload...",
+            uploadStatus: "Queued",
+            message: "Waiting in queue...",
             file: file,
             matchingOrders: null,
             showOrderSelection: false,
@@ -60,7 +67,12 @@ export default function NewRequest() {
             totalUploads: 0
           },
         ]);
-        uploadFile(file, fileId);
+
+        uploadQueue.current.push({
+          fileId,
+          file,
+          status: 'pending'
+        });
       });
     }
 
@@ -79,6 +91,45 @@ export default function NewRequest() {
         },
       ]);
     }
+  };
+
+  const processUploadQueue = async () => {
+    if (isProcessingQueue || uploadQueue.current.length === 0) return;
+
+    setIsProcessingQueue(true);
+    
+    const nextUpload = uploadQueue.current.find(item => item.status === 'pending');
+    
+    if (!nextUpload) {
+      setIsProcessingQueue(false);
+      return;
+    }
+
+    nextUpload.status = 'processing';
+    
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.id === nextUpload.fileId
+          ? {
+            ...f,
+            uploadStatus: "Starting...",
+            message: "Starting upload...",
+            isUploading: true
+          }
+          : f
+      )
+    );
+
+    await uploadFile(nextUpload.file, nextUpload.fileId);
+    
+    nextUpload.status = 'completed';
+    
+    setTimeout(() => {
+      setIsProcessingQueue(false);
+      if (uploadQueue.current.some(item => item.status === 'pending')) {
+        processUploadQueue();
+      }
+    }, 1000);
   };
 
   const uploadFile = async (file, fileId, selectedOrderIds = null) => {
@@ -119,7 +170,6 @@ export default function NewRequest() {
       const xhr = new XMLHttpRequest();
       xhr.timeout = 0;
 
-      // Track only file upload progress
       xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
           const uploadProgress = Math.round((event.loaded / event.total) * 100);
@@ -142,7 +192,6 @@ export default function NewRequest() {
       });
 
       xhr.addEventListener('load', () => {
-        // File upload is complete (100%), now process server response
         setFiles((prev) =>
           prev.map((f) =>
             f.id === fileId
@@ -156,7 +205,6 @@ export default function NewRequest() {
           )
         );
 
-        // Process server response (this happens after upload is done)
         try {
           const result = JSON.parse(xhr.responseText);
 
@@ -215,7 +263,7 @@ export default function NewRequest() {
               ? {
                 ...f,
                 uploadStatus: "Failed",
-                progress: 100, // File was uploaded
+                progress: 100,
                 message: "Server timeout - file uploaded but server took too long to respond",
                 isUploading: false
               }
@@ -231,7 +279,7 @@ export default function NewRequest() {
               ? {
                 ...f,
                 uploadStatus: "Failed",
-                progress: 100, // File was uploaded
+                progress: 100,
                 message: "Network error. File uploaded but connection lost.",
                 isUploading: false
               }
@@ -286,11 +334,9 @@ export default function NewRequest() {
     try {
       const totalOrders = selectedOrderIds.length;
       
-      // Upload files sequentially (one after another)
       for (let index = 0; index < selectedOrderIds.length; index++) {
         const orderId = selectedOrderIds[index];
         
-        // Reset progress for each new order upload
         setFiles((prev) =>
           prev.map((f) =>
             f.id === fileId
@@ -310,7 +356,6 @@ export default function NewRequest() {
           throw new Error(`Failed to upload to order ${orderId}: ${result.message}`);
         }
         
-        // Current order upload completed successfully
         setFiles((prev) =>
           prev.map((f) =>
             f.id === fileId
@@ -323,13 +368,11 @@ export default function NewRequest() {
           )
         );
         
-        // Small delay before next upload (optional)
         if (index < selectedOrderIds.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 300));
         }
       }
 
-      // All uploads completed successfully
       setFiles((prev) =>
         prev.map((f) =>
           f.id === fileId
@@ -367,7 +410,7 @@ export default function NewRequest() {
               ? {
                 ...f,
                 uploadStatus: "Failed",
-                progress: 100, // File was uploaded
+                progress: 100,
                 message: error.message || "Error uploading file to selected orders",
                 isUploading: false
               }
@@ -380,7 +423,6 @@ export default function NewRequest() {
     }
   };
 
-  // Helper function to upload single order file
   const uploadSingleOrderFile = (file, orderId, fileId, controller) => {
     return new Promise((resolve, reject) => {
       const formData = new FormData();
@@ -436,7 +478,6 @@ export default function NewRequest() {
       xhr.timeout = 0;
       xhr.send(formData);
 
-      // Store XHR for cancellation
       controller.xhr = xhr;
     });
   };
@@ -511,9 +552,41 @@ export default function NewRequest() {
       if (controller.xhr) controller.xhr.abort();
     });
     uploadControllers.current = {};
+    
+    uploadQueue.current = [];
+    setIsProcessingQueue(false);
 
     setFiles([]);
     setOrderSelection({});
+  };
+
+  const cancelUpload = (fileId) => {
+    const controller = uploadControllers.current[fileId];
+    if (controller) {
+      if (controller.abort) controller.abort();
+      if (controller.xhr) controller.xhr.abort();
+      delete uploadControllers.current[fileId];
+    }
+    
+    uploadQueue.current = uploadQueue.current.filter(item => item.fileId !== fileId);
+    
+    setFiles(prev =>
+      prev.map(f =>
+        f.id === fileId
+          ? {
+            ...f,
+            uploadStatus: "Cancelled",
+            progress: 0,
+            message: "Upload cancelled",
+            isUploading: false
+          }
+          : f
+      )
+    );
+
+    if (!isProcessingQueue) {
+      processUploadQueue();
+    }
   };
 
   const getCardClass = () => {
@@ -570,12 +643,13 @@ export default function NewRequest() {
           return file.totalUploads > 1 
             ? "from-purple-600 to-purple-400" 
             : "from-blue-600 to-blue-400";
+        case "Queued":
+        case "Starting...":
+          return "from-gray-400 to-gray-300";
         default:
           return "from-gray-400 to-gray-300";
       }
     };
-
-    const showCancelButton = file.uploadStatus === "Uploading..." || file.uploadStatus === "Processing...";
 
     return (
       <div className="w-full max-w-xs">
@@ -711,6 +785,11 @@ export default function NewRequest() {
           ? "bg-yellow-100 text-yellow-800 border-yellow-200"
           : "bg-yellow-900/30 text-yellow-400 border-yellow-800";
       }
+      if (status === "Queued" || status === "Starting...") {
+        return theme === 'light'
+          ? "bg-gray-100 text-gray-800 border-gray-200"
+          : "bg-gray-800 text-gray-400 border-gray-700";
+      }
       return theme === 'light'
         ? "bg-gray-100 text-gray-800 border-gray-200"
         : "bg-gray-800 text-gray-400 border-gray-700";
@@ -753,6 +832,18 @@ export default function NewRequest() {
             </svg>
             <span>View File</span>
           </a>
+        )}
+
+        {(status === "Uploading..." || status === "Processing..." || status === "Queued") && (
+          <button
+            onClick={() => cancelUpload(file.id)}
+            className={`text-xs px-3 py-1 rounded border ${theme === 'light'
+              ? 'text-red-600 bg-red-50 border-red-200 hover:bg-red-100'
+              : 'text-red-400 bg-red-900/20 border-red-700 hover:bg-red-900/30'
+              } transition-colors`}
+          >
+            Cancel Upload
+          </button>
         )}
       </div>
     );
@@ -876,6 +967,7 @@ export default function NewRequest() {
                                     file.uploadStatus === "Processing..." ? "bg-purple-500" :
                                     file.uploadStatus === "Error" ? "bg-red-500" :
                                     file.uploadStatus === "Multiple Orders Found" ? "bg-yellow-500" :
+                                    file.uploadStatus === "Queued" || file.uploadStatus === "Starting..." ? "bg-gray-400" :
                                       "bg-gray-400"
                                   }`}></div>
                                 <span className="text-sm font-medium truncate max-w-xs">
