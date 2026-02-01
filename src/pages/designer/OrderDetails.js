@@ -529,8 +529,8 @@ export default function OrderDetails() {
     };
 
     const handleDeleteFile = async (fileId, type) => {
-        if (!window.confirm("Are you sure you want to delete this file?")) return;
 
+        if (type === 'finished' && !window.confirm("Are you sure you want to delete this file?")) return;
         toast.loading("Deleting file...");
         try {
             const response = await fetch(`${base_url}/delete-file`, {
@@ -819,27 +819,57 @@ export default function OrderDetails() {
                     <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`rounded-xl shadow-lg ${theme === "light" ? "bg-white" : "bg-gray-800"}`}>
                             <div className="p-6">
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                                    <div>
+                                <div className="flex items-center gap-12 mb-6 flex-nowrap">
+                                    <div className="whitespace-nowrap">
                                         <label className="font-bold text-lg">Order ID: </label>
                                         <span className="text-xl font-bold text-blue-600">{order?.orderid}</span>
                                     </div>
-                                    <div>
-                                        <label className="font-bold text-lg"><FontAwesomeIcon icon={faClock} className="mr-2" />Status:</label>
-                                        <span className={`ml-2 px-4 py-2 rounded-full text-sm font-bold ${order?.status === 'Completed' ? 'bg-green-500 text-white' : order?.status === 'Cancel' || order?.status === 'Cancelled' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-gray-900'}`}>
+
+                                    <div className="whitespace-nowrap">
+                                        <label className="font-bold text-lg">
+                                            <FontAwesomeIcon icon={faClock} className="mr-2" />
+                                            Status:
+                                        </label>
+                                        <span
+                                            className={`ml-2 px-4 py-2 rounded-full text-sm font-bold ${order?.status === 'Completed'
+                                                ? 'bg-green-500 text-white'
+                                                : order?.status === 'Cancel' || order?.status === 'Cancelled'
+                                                    ? 'bg-red-500 text-white'
+                                                    : 'bg-yellow-500 text-gray-900'
+                                                }`}
+                                        >
                                             {order?.status === 'progress' ? 'In Progress' : order?.status}
                                         </span>
                                     </div>
-                                    <div>
-                                        <label className="font-bold text-lg">Run Self By: </label>
-                                        <span className="text-xl font-bold text-blue-600">{order?.run_self_by}</span>
+
+                                    <div className="whitespace-nowrap">
+                                        <label className="font-bold text-lg">
+                                            <FontAwesomeIcon icon={faClock} className="mr-2" />
+                                            Redesign Date:
+                                        </label>
+                                        <span className="px-4 py-2 rounded-full text-sm font-bold">
+                                            {order?.redesign_date}
+                                        </span>
                                     </div>
-                                    <div className="text-right">
-                                        <button onClick={() => navigate(-1)} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-lg cursor-pointer">
-                                            <FontAwesomeIcon icon={faBackward} className="mr-2" />Back to Orders
+
+                                    <div className="whitespace-nowrap">
+                                        <label className="font-bold text-lg">Run Self By: </label>
+                                        <span className="text-xl font-bold text-blue-600">
+                                            {order?.run_self_by}
+                                        </span>
+                                    </div>
+
+                                    <div className="ml-auto">
+                                        <button
+                                            onClick={() => navigate(-1)}
+                                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-lg cursor-pointer whitespace-nowrap"
+                                        >
+                                            <FontAwesomeIcon icon={faBackward} className="mr-2" />
+                                            Back to Orders
                                         </button>
                                     </div>
                                 </div>
+
 
                                 <div className="border-t pt-6">
                                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
