@@ -15,13 +15,13 @@ import {
     faBars,
     faChevronUp,
     faChevronDown,
-    faBuildingColumns   
+    faBuildingColumns
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Hd() {
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     useEffect(() => {
         const data = localStorage.getItem('bravo_user') ? localStorage.getItem('bravo_user') : "";
         const token = localStorage.getItem('bravo_user_token') ? localStorage.getItem('bravo_user_token') : "";
@@ -41,12 +41,13 @@ export default function Hd() {
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Initialize theme from localStorage or system preference
+    // Initialize theme
     useEffect(() => {
         const savedMode = localStorage.getItem('theme') || 'light';
         setMode(savedMode);
-        applyTheme(savedMode);
-    }, []);
+        localStorage.setItem('theme', savedMode);
+        setTheme(savedMode);
+    }, [setTheme]);
 
     // Handle scroll effect
     useEffect(() => {
@@ -57,7 +58,7 @@ export default function Hd() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Determine active page based on current route
+    // Determine active page
     useEffect(() => {
         const pathname = location.pathname;
         if (pathname.includes("new_request")) setActivePage("new_request");
@@ -81,11 +82,7 @@ export default function Hd() {
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('touchstart', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('touchstart', handleClickOutside);
-        };
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [dropdownOpen, isOpen, mobileSearchOpen]);
 
     const navItems = [
@@ -94,15 +91,11 @@ export default function Hd() {
         { href: "/user/reports", label: "Billing Reports", key: "reports", icon: faBuildingColumns }
     ];
 
-    const applyTheme = (newTheme) => {
-        localStorage.setItem('theme', newTheme);
-        setTheme(newTheme);
-    };
-
     const changeIcon = () => {
         const newMode = mode === 'light' ? 'dark' : 'light';
         setMode(newMode);
-        applyTheme(newMode);
+        localStorage.setItem('theme', newMode);
+        setTheme(newMode);
     };
 
     const handleSearchSubmit = (e) => {
@@ -115,76 +108,66 @@ export default function Hd() {
 
     const clearSearch = () => {
         setSearchQuery("");
+        setMobileSearchOpen(false);
     };
 
-    // Function to handle tab click - RELOAD PAGE EVERY TIME
-    const handleTabClick = (e, href) => {
-        e.preventDefault();
-        
-        // Close mobile menu if open
+    // Navigation function that works for ALL devices
+    const handleNavigate = (href) => {
         setIsOpen(false);
         setMobileSearchOpen(false);
         
-        // If already on same page, force reload
         if (location.pathname === href) {
             window.location.reload();
         } else {
-            // Navigate to different page
             navigate(href);
         }
     };
 
     return (
-        <header className="fixed z-50 top-0 left-0 w-full h-[9vh] bg-gray-800 text-white flex items-center">
-            <nav className={`w-full transition-all duration-300 ${scrolled ? "bg-gray-900 shadow-2xl" : "bg-gray-900"
-                }`}>
-                <div className="w-full mx-auto px-3 sm:px-4 lg:px-6">
+        <header className="fixed z-50 top-0 left-0 w-full bg-gray-800 text-white">
+            <nav className={`w-full transition-all duration-300 ${scrolled ? "bg-gray-900 shadow-2xl" : "bg-gray-900"}`}>
+                <div className="w-full mx-auto px-4 sm:px-6">
                     {/* Main Navigation Bar */}
-                    <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
-                        {/* Logo - Left Side */}
+                    <div className="flex items-center justify-between h-16 md:h-20">
+                        {/* Logo */}
                         <div className="flex-shrink-0">
-                            <a
-                                href="/user/home"
-                                onClick={(e) => handleTabClick(e, "/user/home")}
-                                className="flex items-center justify-center"
+                            <button
+                                onClick={() => handleNavigate("/user/home")}
+                                className="flex items-center focus:outline-none"
                             >
                                 <img
                                     src="/img/logo.png"
                                     alt="Logo"
-                                    className="h-6 w-auto sm:h-8 lg:h-18 transition-all duration-300 hover:scale-105"
+                                    className="h-8 w-auto sm:h-10 md:h-12 lg:h-14 transition-all duration-300 hover:scale-105"
                                     onError={(e) => {
                                         e.target.src = '/img/placeholder-logo.png';
                                     }}
                                 />
-                            </a>
+                            </button>
                         </div>
 
-                        {/* Center Menu - Desktop */}
-                        <div className="hidden xl:flex xl:items-center xl:flex-1 xl:justify-center">
-                            <div className="flex items-center space-x-6 bg-gray-800/70 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700">
+                        {/* Desktop Menu (Tablet & Laptop) - Shows on 768px and above */}
+                        <div className="hidden md:flex md:items-center md:space-x-4 lg:space-x-6">
+                            <div className="flex items-center space-x-2 lg:space-x-4 bg-gray-800/70 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700">
                                 {navItems.map((item) => (
-                                    <a
-                                        href={item.href}
+                                    <button
                                         key={item.key}
-                                        onClick={(e) => handleTabClick(e, item.href)}
-                                        className={`text-xs lg:text-sm px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${activePage === item.key
+                                        onClick={() => handleNavigate(item.href)}
+                                        className={`px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${activePage === item.key
                                             ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg transform scale-105"
                                             : "text-gray-300 hover:bg-gray-700 hover:text-white hover:shadow-md"
                                             }`}
                                     >
-                                        <FontAwesomeIcon
-                                            icon={item.icon}
-                                            className="w-3 h-3 lg:w-4 lg:h-4"
-                                        />
-                                        <span className="whitespace-nowrap">{item.label}</span>
-                                    </a>
+                                        <FontAwesomeIcon icon={item.icon} className="w-3 h-3 lg:w-4 lg:h-4" />
+                                        <span className="text-sm lg:text-base whitespace-nowrap">{item.label}</span>
+                                    </button>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Right Side - Search & Profile */}
-                        <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
-                            {/* Search Form - Desktop */}
+                        {/* Right Side Items */}
+                        <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-6">
+                            {/* Desktop Search - Laptop only (1024px+) */}
                             <div className="hidden lg:block search-container">
                                 <form className="flex items-center" onSubmit={handleSearchSubmit}>
                                     <div className="relative group">
@@ -197,7 +180,7 @@ export default function Hd() {
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                     placeholder="Search by Orders..."
                                                     aria-label="Search orders by ID"
-                                                    className="w-74 pl-4 pr-12 py-3 bg-gray-900 text-white placeholder-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-gray-800 transition-all duration-200 text-sm font-medium tracking-wide"
+                                                    className="w-64 xl:w-80 pl-4 pr-12 py-3 bg-gray-900 text-white placeholder-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-gray-800 transition-all duration-200 text-sm font-medium tracking-wide"
                                                 />
                                                 {searchQuery && (
                                                     <button
@@ -228,7 +211,7 @@ export default function Hd() {
                                 </form>
                             </div>
 
-                            {/* Mobile Search Button */}
+                            {/* Mobile Search Button (Mobile & Tablet) */}
                             <button
                                 onClick={() => {
                                     setMobileSearchOpen(!mobileSearchOpen);
@@ -242,12 +225,11 @@ export default function Hd() {
                                 />
                             </button>
 
-                            {/* Theme Toggle - Material Design Switch */}
+                            {/* Theme Toggle */}
                             <div className="flex items-center space-x-3">
                                 <FontAwesomeIcon
                                     icon={faSun}
-                                    className={`w-4 h-4 transition-colors duration-300 ${mode === 'light' ? 'text-amber-500' : 'text-gray-500'
-                                        }`}
+                                    className={`w-4 h-4 transition-colors duration-300 ${mode === 'light' ? 'text-amber-500' : 'text-gray-500'}`}
                                 />
 
                                 <button
@@ -257,21 +239,15 @@ export default function Hd() {
                                     aria-checked={mode === 'dark'}
                                     role="switch"
                                 >
-                                    {/* Inactive track */}
                                     <div className="w-full h-full bg-gray-700 rounded-full"></div>
-
-                                    {/* Active track overlay */}
                                     <div className={`absolute top-0.5 left-0.5 right-0.5 bottom-0.5 rounded-full transition-all duration-300 ${mode === 'light'
                                         ? 'bg-amber-500/20 w-1/2'
                                         : 'bg-blue-500/20 w-full'
                                         }`}></div>
-
-                                    {/* Toggle thumb */}
                                     <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-lg transform transition-all duration-300 ${mode === 'light'
                                         ? 'left-0.5 bg-gradient-to-b from-amber-200 to-amber-400'
                                         : 'left-5.5 bg-gradient-to-b from-gray-300 to-gray-500'
                                         }`}>
-                                        {/* Ripple effect */}
                                         <div className={`absolute inset-0 rounded-full transition-opacity duration-300 ${mode === 'light' ? 'bg-amber-500/20' : 'bg-gray-600/20'
                                             }`}></div>
                                     </div>
@@ -279,12 +255,11 @@ export default function Hd() {
 
                                 <FontAwesomeIcon
                                     icon={faMoon}
-                                    className={`w-4 h-4 transition-colors duration-300 ${mode === 'dark' ? 'text-blue-400' : 'text-gray-500'
-                                        }`}
+                                    className={`w-4 h-4 transition-colors duration-300 ${mode === 'dark' ? 'text-blue-400' : 'text-gray-500'}`}
                                 />
                             </div>
 
-                            {/* Profile Dropdown - Compact Professional */}
+                            {/* Profile Dropdown */}
                             <div className="relative dropdown-container">
                                 <button
                                     onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -312,10 +287,7 @@ export default function Hd() {
 
                                 {dropdownOpen && (
                                     <>
-                                        <div
-                                            className="fixed inset-0 z-40"
-                                            onClick={() => setDropdownOpen(false)}
-                                        ></div>
+                                        <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)}></div>
                                         <div className="absolute right-0 mt-2 w-56 bg-gray-900 rounded-lg shadow-xl py-2 border border-gray-800 z-50">
                                             <div className="px-4 py-3 border-b border-gray-800">
                                                 <div className="text-white font-semibold text-sm truncate">
@@ -325,56 +297,49 @@ export default function Hd() {
                                                     {user?.email || ''}
                                                 </div>
                                             </div>
-
-                                            <div className="py-2">
-                                                <Link
-                                                    to="/user/profile"
-                                                    className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
-                                                    onClick={() => setDropdownOpen(false)}
-                                                >
-                                                    <FontAwesomeIcon icon={faUser} className="w-4 h-4 mr-3" />
-                                                    <span className="text-sm">Profile</span>
-                                                </Link>
-                                            </div>
-
-                                            <div className="py-2">
-                                                <button
-                                                    onClick={() => {
-                                                        logout();
-                                                        setDropdownOpen(false);
-                                                    }}
-                                                    className="flex items-center w-full px-4 py-2 text-red-400 hover:bg-red-600/10 hover:text-red-300 transition-colors duration-200"
-                                                >
-                                                    <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4 mr-3" />
-                                                    <span className="text-sm">Logout</span>
-                                                </button>
-                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    handleNavigate("/user/profile");
+                                                    setDropdownOpen(false);
+                                                }}
+                                                className="flex items-center w-full px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
+                                            >
+                                                <FontAwesomeIcon icon={faUser} className="w-4 h-4 mr-3" />
+                                                <span className="text-sm">Profile</span>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    logout();
+                                                    setDropdownOpen(false);
+                                                }}
+                                                className="flex items-center w-full px-4 py-2 text-red-400 hover:bg-red-600/10 hover:text-red-300 transition-colors duration-200"
+                                            >
+                                                <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4 mr-3" />
+                                                <span className="text-sm">Logout</span>
+                                            </button>
                                         </div>
                                     </>
                                 )}
                             </div>
 
-                            {/* Mobile Menu Button */}
+                            {/* Mobile Menu Button (Mobile only) */}
                             <button
                                 onClick={() => {
                                     setIsOpen(!isOpen);
                                     setMobileSearchOpen(false);
                                 }}
-                                className="xl:hidden text-white hover:text-orange-300 p-2 transition-colors duration-200 rounded-lg hover:bg-gray-800"
+                                className="md:hidden text-white hover:text-orange-300 p-2 transition-colors duration-200 rounded-lg hover:bg-gray-800"
                                 aria-label="Toggle menu"
                             >
-                                <FontAwesomeIcon
-                                    icon={isOpen ? faTimes : faBars}
-                                    className="w-5 h-5 sm:w-6 sm:h-6"
-                                />
+                                <FontAwesomeIcon icon={isOpen ? faTimes : faBars} className="w-6 h-6" />
                             </button>
                         </div>
                     </div>
 
                     {/* Mobile Search Bar */}
                     {mobileSearchOpen && (
-                        <div className="lg:hidden bg-gray-800 px-3 sm:px-4 py-3 border-t border-gray-700 animate-slideDown">
-                            <form onSubmit={handleSearchSubmit} className="flex space-x-2">
+                        <div className="lg:hidden bg-gray-800 px-4 py-3 border-t border-gray-700">
+                            <form onSubmit={handleSearchSubmit} className="flex space-x-3">
                                 <div className="relative flex-1">
                                     <input
                                         type="text"
@@ -389,7 +354,7 @@ export default function Hd() {
                                         <button
                                             type="button"
                                             onClick={clearSearch}
-                                            className="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-400 p-1"
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-400 p-1"
                                         >
                                             <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
                                         </button>
@@ -397,7 +362,7 @@ export default function Hd() {
                                 </div>
                                 <button
                                     type="submit"
-                                    className="px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                    className="px-5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                                 >
                                     <FontAwesomeIcon icon={faSearch} className="w-4 h-4" />
                                 </button>
@@ -407,46 +372,25 @@ export default function Hd() {
 
                     {/* Mobile Menu */}
                     {isOpen && (
-                        <div className="xl:hidden bg-gray-800 border-t border-gray-700 animate-slideDown">
-                            <div className="px-2 py-3 space-y-1">
+                        <div className="md:hidden bg-gray-800 border-t border-gray-700 mobile-menu-container">
+                            <div className="px-4 py-4 space-y-2">
                                 {navItems.map((item) => (
-                                    <a
-                                        href={item.href}
+                                    <button
                                         key={item.key}
-                                        onClick={(e) => handleTabClick(e, item.href)}
-                                        className={`block px-4 py-4 rounded-xl font-medium transition-all duration-300 flex items-center space-x-4 text-base sm:text-lg ${activePage === item.key
+                                        onClick={() => handleNavigate(item.href)}
+                                        className={`flex items-center space-x-4 w-full px-4 py-4 rounded-xl ${activePage === item.key
                                             ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg"
                                             : "text-gray-300 hover:bg-gray-700 hover:text-white"
                                             }`}
                                     >
-                                        <FontAwesomeIcon
-                                            icon={item.icon}
-                                            className={`w-5 h-5 ${activePage === item.key ? 'text-white' : 'text-orange-400'
-                                                }`}
-                                        />
-                                        <span>{item.label}</span>
-                                    </a>
+                                        <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+                                        <span className="text-base font-medium">{item.label}</span>
+                                    </button>
                                 ))}
                             </div>
                         </div>
                     )}
                 </div>
-
-                <style jsx='true'>{`
-                @keyframes slideDown {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                .animate-slideDown {
-                    animation: slideDown 0.3s ease-out;
-                }
-            `}</style>
             </nav>
         </header>
     );
