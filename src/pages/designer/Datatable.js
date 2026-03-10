@@ -1,4 +1,4 @@
-import React,{ useState, useMemo, useEffect, useContext, useRef, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useContext, useRef, useCallback } from "react";
 import Loder from "../../Components/Loder";
 import Chatbox from "../../Components/Chatbox";
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -317,11 +317,9 @@ export default function Datatable({
 
                     for (const filePath of files) {
                         if (!filePath) continue;
-
                         const encodedPath = encodeURIComponent(filePath);
                         const finalUrl = `${base_url}/download?path=${encodedPath}`;
                         const filename = filePath.split('/').pop();
-
                         const link = document.createElement("a");
                         link.href = finalUrl;
                         link.target = "_blank";
@@ -329,7 +327,6 @@ export default function Datatable({
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
-
                         await new Promise(r => setTimeout(r, 500));
                     }
 
@@ -344,7 +341,6 @@ export default function Datatable({
                     const encodedPath = encodeURIComponent(path);
                     const finalUrl = `${base_url}/download?path=${encodedPath}`;
                     const filename = `${fileType}_${id}`;
-
                     const link = document.createElement("a");
                     link.href = finalUrl;
                     link.target = "_blank";
@@ -353,8 +349,9 @@ export default function Datatable({
                     link.click();
                     document.body.removeChild(link);
                 }
+
             } catch (err) {
-                alert("Download error:", err);
+                console.error("Download error:", err);
                 missingFiles.push(id);
             }
         }
